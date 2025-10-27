@@ -6,7 +6,8 @@
       "Bash(find:*)",
       "Bash(alembic revision:*)",
       "Bash(.venv/Scripts/python -m alembic revision:*)",
-      "Bash(.venv/Scripts/python:*)"
+      "Bash(.venv/Scripts/python:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
