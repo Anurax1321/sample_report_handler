@@ -1,24 +1,41 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import asyncio
 from app.core.config import settings
 from app.api.routes_samples import router as samples_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    print("\n" + "="*60)
-    print("🚀 Sample Report Handler API Started!")
-    print("="*60)
-    print("📍 Backend API:        http://localhost:8000")
-    print("📚 API Docs:           http://localhost:8000/docs")
-    print("❤️  Health Check:      http://localhost:8000/health")
-    print("🎨 Frontend:           http://localhost:3000")
-    print("="*60 + "\n")
+    # Startup - wait a moment for uvicorn logs to finish
+    await asyncio.sleep(0.5)
+
+    banner = """
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+"""
+    print(banner, flush=True)
+
     yield
+
     # Shutdown
-    print("\n👋 Shutting down...\n")
+    print("\n👋 Shutting down Sample Report Handler...\n", flush=True)
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
