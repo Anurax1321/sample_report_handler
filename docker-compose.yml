@@ -11,7 +11,6 @@ services:
       - SQLALCHEMY_DATABASE_URI=sqlite:///./dev.db
     volumes:
       - ./backend:/app
-      - backend-data:/app/dev.db
     networks:
       - app-network
     restart: unless-stopped
@@ -36,10 +35,6 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-
-volumes:
-  backend-data:
-    driver: local
 
 networks:
   app-network:
