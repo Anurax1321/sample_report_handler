@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.api.routes_samples import router as samples_router
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -12,11 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(samples_router)
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-# placeholder route to prove POST works
-@app.post("/echo")
-def echo(payload: dict):
-    return {"you_sent": payload}
