@@ -1,9 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.api.routes_samples import router as samples_router
 
-app = FastAPI(title=settings.PROJECT_NAME)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("\n" + "="*60)
+    print("🚀 Sample Report Handler API Started!")
+    print("="*60)
+    print("📍 Backend API:        http://localhost:8000")
+    print("📚 API Docs:           http://localhost:8000/docs")
+    print("❤️  Health Check:      http://localhost:8000/health")
+    print("🎨 Frontend:           http://localhost:3000")
+    print("="*60 + "\n")
+    yield
+    # Shutdown
+    print("\n👋 Shutting down...\n")
+
+
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
