@@ -1,19 +1,24 @@
-import { useEffect, useState } from "react";
-import api from "./lib/api";
+import Header from './components/Header';
+import SampleEntry from './components/SampleEntry';
+import ReportHandling from './components/ReportHandling';
+import './App.css';
 
 export default function App() {
-  const [status, setStatus] = useState("checking...");
-
-  useEffect(() => {
-    api.get("/health")
-      .then(res => setStatus(res.data.status ?? "ok"))
-      .catch(() => setStatus("backend not reachable"));
-  }, []);
-
   return (
-    <main style={{padding: 20, fontFamily: "system-ui"}}>
-      <h1>sample_report_handler</h1>
-      <p>Backend health: <b>{status}</b></p>
-    </main>
+    <div className="app">
+      <Header />
+      <main className="main-content">
+        <div className="container">
+          <div className="divisions">
+            <div className="division">
+              <SampleEntry />
+            </div>
+            <div className="division">
+              <ReportHandling />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
