@@ -1,0 +1,78 @@
+@import '../components/SampleEntry.css';
+@import '../components/ReportHandling.css';
+
+.main-content {
+  flex: 1;
+  padding: 3rem;
+  display: flex;
+  align-items: stretch;
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.divisions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  height: 100%;
+  align-items: stretch;
+}
+
+.division {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+}
+
+/* Tablet and smaller */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 2.5rem 2rem;
+  }
+
+  .divisions {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .division {
+    min-height: 400px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .divisions {
+    gap: 2rem;
+  }
+
+  .division {
+    min-height: 350px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .divisions {
+    gap: 1.5rem;
+  }
+
+  .division {
+    min-height: 300px;
+  }
+}
