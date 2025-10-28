@@ -36,6 +36,28 @@
   min-height: 40px;
 }
 
+.home-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.home-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* Tablet and smaller */
 @media (max-width: 1024px) {
   .header-content {
@@ -71,5 +93,15 @@
   .header-title {
     font-size: 1.1rem;
     letter-spacing: 0.3px;
+  }
+
+  .home-link {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .home-link svg {
+    width: 20px;
+    height: 20px;
   }
 }
