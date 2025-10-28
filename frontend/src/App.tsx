@@ -1,24 +1,25 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import SampleEntry from './components/SampleEntry';
-import ReportHandling from './components/ReportHandling';
+import Home from './pages/Home';
+import SampleEntryChoice from './pages/SampleEntryChoice';
+import SampleEntryForm from './pages/SampleEntryForm';
+import SampleTracking from './pages/SampleTracking';
+import ReportHandling from './pages/ReportHandling';
 import './App.css';
 
 export default function App() {
   return (
-    <div className="app">
-      <Header />
-      <main className="main-content">
-        <div className="container">
-          <div className="divisions">
-            <div className="division">
-              <SampleEntry />
-            </div>
-            <div className="division">
-              <ReportHandling />
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <BrowserRouter>
+      <div className="app">
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/sample-entry" element={<SampleEntryChoice />} />
+          <Route path="/sample-entry/form" element={<SampleEntryForm />} />
+          <Route path="/sample-entry/tracking" element={<SampleTracking />} />
+          <Route path="/report-handling" element={<ReportHandling />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
