@@ -3,7 +3,12 @@
     "allow": [
       "Bash(docker-compose down:*)",
       "Bash(docker-compose build:*)",
-      "Bash(docker-compose up:*)"
+      "Bash(docker-compose up:*)",
+      "Bash(tree:*)",
+      "WebSearch",
+      "Read(//d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/**)",
+      "Bash(dir:*)",
+      "Bash(alembic revision:*)"
     ],
     "deny": [],
     "ask": []

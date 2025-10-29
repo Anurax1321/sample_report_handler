@@ -142,6 +142,35 @@
   transform: translateY(0);
 }
 
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sample-select,
+.patient-count-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.sample-select:focus,
+.patient-count-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.sample-select option {
+  padding: 0.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .card-header {
