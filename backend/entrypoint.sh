@@ -17,6 +17,10 @@ alembic upgrade head
 
 echo "✅ Migrations complete"
 
+# Seed database with dummy data
+echo "🌱 Seeding database with test data..."
+python seed_data.py
+
 # Start the application
 echo "🎯 Starting FastAPI server..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
