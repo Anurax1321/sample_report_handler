@@ -1,14 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker-compose down:*)",
-      "Bash(docker-compose build:*)",
-      "Bash(docker-compose up:*)",
-      "Bash(tree:*)",
-      "WebSearch",
-      "Read(//d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/**)",
-      "Bash(dir:*)",
-      "Bash(alembic revision:*)"
+      "Bash(cmd.exe //c \"wsl.exe --version\")",
+      "Bash(cmd.exe //c \"wsl.exe -l -v\")",
+      "Bash(cmd.exe //c \"net stop LxssManager\")",
+      "Bash(cmd.exe //c \"sc query state= all | findstr /i wsl\")",
+      "Bash(cmd.exe //c \"tasklist | findstr /i wsl\")",
+      "Bash(cmd.exe //c \"net stop WSLService\")"
     ],
     "deny": [],
     "ask": []
