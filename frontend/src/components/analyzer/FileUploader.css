@@ -1,0 +1,87 @@
+.file-uploader {
+  margin-bottom: 2rem;
+}
+
+.file-uploader-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+}
+
+.file-uploader-dropzone {
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.file-uploader-dropzone:hover:not(.disabled) {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.file-uploader-dropzone.dragging {
+  border-color: #667eea;
+  background: #edf2f7;
+  transform: scale(1.02);
+}
+
+.file-uploader-dropzone.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f7fafc;
+}
+
+.file-uploader-icon {
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.file-uploader-icon svg {
+  margin: 0 auto;
+}
+
+.file-uploader-text .primary-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+}
+
+.file-uploader-text .secondary-text {
+  font-size: 0.95rem;
+  color: #718096;
+  margin: 0 0 1rem 0;
+}
+
+.file-uploader-text .file-types {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  margin: 0;
+}
+
+.file-uploader-selected {
+  background: #edf2f7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.file-uploader-selected .file-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+  word-break: break-all;
+}
+
+.file-uploader-selected .file-size {
+  font-size: 0.9rem;
+  color: #718096;
+  margin: 0;
+}

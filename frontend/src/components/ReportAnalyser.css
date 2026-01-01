@@ -21,25 +21,25 @@
   backdrop-filter: blur(10px);
   margin-bottom: 0;
   border-bottom: none;
-  padding: 2rem;
+  padding: 1rem;
   color: white;
 }
 
 .report-analyser .section-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.2rem;
   font-weight: 700;
   color: white;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .report-analyser .section-description {
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 400;
 }
 
@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 1.25rem 0.75rem;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -62,14 +62,19 @@
 }
 
 .report-analyser .placeholder-icon {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   opacity: 0.9;
   animation: float 3s ease-in-out infinite;
 }
 
+.report-analyser .placeholder-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
 .report-analyser .placeholder-text {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: white;
 }

@@ -5,6 +5,7 @@ import asyncio
 from app.core.config import settings
 from app.api.routes_samples import router as samples_router
 from app.api.routes_reports import router as reports_router
+from app.api.routes_analyzer import router as analyzer_router
 
 
 @asynccontextmanager
@@ -51,6 +52,7 @@ app.add_middleware(
 
 app.include_router(samples_router)
 app.include_router(reports_router)
+app.include_router(analyzer_router)
 
 @app.get("/health")
 def health():

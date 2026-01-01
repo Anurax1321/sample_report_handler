@@ -10,4 +10,12 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
+  css: {
+    devSourcemap: true,
+  },
 })
