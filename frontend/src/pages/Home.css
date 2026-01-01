@@ -1,5 +1,6 @@
 @import '../components/SampleEntry.css';
 @import '../components/ReportHandling.css';
+@import '../components/ReportAnalyser.css';
 
 .main-content {
   flex: 1;
@@ -19,7 +20,7 @@
 
 .divisions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 3rem;
   height: 100%;
   align-items: stretch;
@@ -38,12 +39,20 @@
   }
 
   .divisions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 2.5rem;
   }
 
   .division {
     min-height: 400px;
+  }
+
+  /* Center the third item when it's alone in the second row */
+  .division:nth-child(3):last-child {
+    grid-column: 1 / -1;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
   }
 }
 
@@ -54,11 +63,19 @@
   }
 
   .divisions {
+    grid-template-columns: 1fr;
     gap: 2rem;
   }
 
   .division {
     min-height: 350px;
+  }
+
+  /* Reset centering on mobile */
+  .division:nth-child(3):last-child {
+    grid-column: auto;
+    max-width: none;
+    margin: 0;
   }
 }
 
