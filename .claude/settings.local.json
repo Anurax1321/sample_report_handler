@@ -8,7 +8,8 @@
       "Bash(cmd.exe //c \"tasklist | findstr /i wsl\")",
       "Bash(cmd.exe //c \"net stop WSLService\")",
       "Bash(git -C \"/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler\" branch -a)",
-      "Bash(node --version:*)"
+      "Bash(node --version:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []
