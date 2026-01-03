@@ -8,9 +8,43 @@ import re
 import zipfile
 import tempfile
 import shutil
+import signal
+import logging
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import pdfplumber
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+# Timeout configuration
+PDF_PROCESSING_TIMEOUT = 30  # seconds per PDF
+
+
+class TimeoutError(Exception):
+    """Raised when PDF processing exceeds timeout."""
+    pass
+
+
+def timeout_handler(signum, frame):
+    """Signal handler for timeout."""
+    raise TimeoutError("PDF processing timed out")
+
+
+class timeout:
+    """Context manager for adding timeout to operations."""
+    def __init__(self, seconds=30):
+        self.seconds = seconds
+
+    def __enter__(self):
+        # Set the signal handler and alarm
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        # Disable the alarm
+        signal.alarm(0)
 
 
 class NeonatalReportAnalyzer:
@@ -35,13 +69,16 @@ class NeonatalReportAnalyzer:
         self.abnormalities = []  # Track all abnormal findings
 
     def extract_text_from_pdf(self, quiet: bool = True) -> str:
-        """Extract all text from PDF."""
+        """Extract all text from PDF with timeout protection."""
         all_text = []
         try:
-            with pdfplumber.open(self.pdf_path) as pdf:
-                for i, page in enumerate(pdf.pages, 1):
-                    text = page.extract_text()
-                    all_text.append(f"\n--- PAGE {i} ---\n{text}")
+            with timeout(PDF_PROCESSING_TIMEOUT):
+                with pdfplumber.open(self.pdf_path) as pdf:
+                    for i, page in enumerate(pdf.pages, 1):
+                        text = page.extract_text()
+                        all_text.append(f"\n--- PAGE {i} ---\n{text}")
+        except TimeoutError:
+            raise RuntimeError(f"PDF processing timed out after {PDF_PROCESSING_TIMEOUT} seconds. The file may be too large or corrupted.")
         except Exception as e:
             raise RuntimeError(f"Error reading PDF: {e}")
 
@@ -234,31 +271,40 @@ class NeonatalReportAnalyzer:
 
         # Handle range with dash (e.g., "0.9-45" or "0.00 - 0.5")
         if '-' in range_str:
-            # Remove spaces around dash for easier parsing
+            # Remove spaces for easier parsing
             normalized = range_str.replace(' ', '')
 
-            # Now split on dash
-            parts = normalized.split('-')
+            # Special handling for negative numbers
+            # Try to parse as "min-max" where min and/or max could be negative
+            try:
+                # Approach: find the last dash that separates min from max
+                # For "-5-10": we want min=-5, max=10
+                # For "-10--5": we want min=-10, max=-5
+                # For "0.9-45": we want min=0.9, max=45
 
-            # Filter out empty strings
-            parts = [p for p in parts if p]
+                # Check if it starts with negative
+                if normalized.startswith('-'):
+                    # Remove leading '-' temporarily
+                    temp = normalized[1:]
 
-            if len(parts) == 2:
-                try:
-                    min_val = float(parts[0])
-                    max_val = float(parts[1])
-                    return (min_val, max_val)
-                except ValueError:
-                    pass
-            elif len(parts) == 3:
-                # Could be negative number at start (e.g., "-5-10")
-                try:
-                    if normalized.startswith('-'):
-                        min_val = float('-' + parts[0])
+                    # Find the next '-' which is the separator
+                    if '-' in temp:
+                        separator_idx = temp.index('-')
+                        min_str = '-' + temp[:separator_idx]
+                        max_str = temp[separator_idx+1:]
+
+                        min_val = float(min_str)
+                        max_val = float(max_str)
+                        return (min_val, max_val)
+                else:
+                    # Positive start, just split normally
+                    parts = normalized.split('-')
+                    if len(parts) == 2:
+                        min_val = float(parts[0])
                         max_val = float(parts[1])
                         return (min_val, max_val)
-                except ValueError:
-                    pass
+            except (ValueError, IndexError):
+                pass
 
         # Single value (treat as exact or use as upper limit)
         try:
@@ -275,9 +321,13 @@ class NeonatalReportAnalyzer:
         """
         min_val, max_val = self.parse_reference_range(range_str)
 
-        # If we couldn't parse the range, assume normal
+        # If we couldn't parse the range, log warning and flag for review
         if min_val is None and max_val is None:
-            return (True, "Could not parse range")
+            logger.warning(
+                f"Unable to parse reference range '{range_str}' for value {value} "
+                f"in file {self.relative_path}. Marking for manual review."
+            )
+            return (False, f"NEEDS REVIEW: Unparseable range '{range_str}'")
 
         # Check lower bound
         if min_val is not None and value < min_val:
@@ -292,6 +342,7 @@ class NeonatalReportAnalyzer:
     def validate_all_values(self):
         """Validate all parsed values against their reference ranges."""
         self.abnormalities = []
+        unparseable_ranges = 0
 
         # Validate amino acids
         for aa in self.amino_acids:
@@ -356,6 +407,23 @@ class NeonatalReportAnalyzer:
                     'reason': reason,
                     'unit': ''
                 })
+
+        # Count unparseable ranges
+        for abn in self.abnormalities:
+            if 'NEEDS REVIEW' in abn['reason']:
+                unparseable_ranges += 1
+
+        # Log summary
+        if unparseable_ranges > 0:
+            logger.warning(
+                f"File {self.relative_path}: Found {unparseable_ranges} unparseable reference ranges. "
+                f"Total abnormalities: {len(self.abnormalities)}"
+            )
+        else:
+            logger.info(
+                f"File {self.relative_path}: Validation complete. "
+                f"Abnormalities: {len(self.abnormalities)}"
+            )
 
     def get_summary(self) -> Dict:
         """Get a summary of the analysis results."""

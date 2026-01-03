@@ -2,7 +2,7 @@
 API routes for Neonatal Report Analyzer
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Body
+from fastapi import APIRouter, UploadFile, File, HTTPException, Body, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 import shutil
@@ -35,6 +35,24 @@ MAX_PDF_SIZE_MB = 50
 MAX_ZIP_SIZE_MB = 200
 ALLOWED_PDF_MIME_TYPES = ['application/pdf']
 ALLOWED_ZIP_MIME_TYPES = ['application/zip', 'application/x-zip-compressed']
+
+
+def cleanup_temp_file(file_path: Path):
+    """
+    Background task to clean up temporary files after response is sent.
+
+    Args:
+        file_path: Path to the file or directory to remove
+    """
+    try:
+        if file_path.exists():
+            if file_path.is_file():
+                file_path.unlink()
+            elif file_path.is_dir():
+                shutil.rmtree(file_path, ignore_errors=True)
+    except Exception as e:
+        # Log error but don't raise - cleanup failure shouldn't affect response
+        print(f"Warning: Failed to cleanup temp file {file_path}: {e}")
 
 
 def validate_file_upload(file: UploadFile, max_size_mb: int, allowed_types: List[str], file_extension: str):
@@ -97,6 +115,46 @@ def validate_file_size(content: bytes, max_size_mb: int, filename: str):
             status_code=400,
             detail=f"File '{filename}' is empty"
         )
+
+
+def handle_analysis_error(e: Exception, filename: str = "unknown") -> SingleAnalysisResponse:
+    """
+    Standardized error response handler for analysis operations.
+
+    Args:
+        e: The exception that occurred
+        filename: Name of the file being processed
+
+    Returns:
+        SingleAnalysisResponse with error details
+    """
+    import traceback
+
+    # Determine error type and create appropriate message
+    if isinstance(e, HTTPException):
+        error_message = e.detail
+        status_code = e.status_code
+    elif isinstance(e, FileNotFoundError):
+        error_message = f"File not found: {str(e)}"
+        status_code = 404
+    elif isinstance(e, ValueError):
+        error_message = f"Invalid data in file: {str(e)}"
+        status_code = 422
+    elif isinstance(e, RuntimeError):
+        error_message = str(e)
+        status_code = 422
+    else:
+        # Log unexpected errors for debugging
+        print(f"Unexpected error analyzing {filename}: {traceback.format_exc()}")
+        error_message = "An unexpected error occurred while processing the file."
+        status_code = 500
+
+    return SingleAnalysisResponse(
+        success=False,
+        message=f"Failed to analyze {filename}",
+        error=error_message,
+        result=None
+    )
 
 
 def convert_analyzer_to_schema(analyzer: NeonatalReportAnalyzer) -> AnalysisResult:
@@ -181,36 +239,13 @@ async def analyze_single_pdf(file: UploadFile = File(...)):
             result=result
         )
 
-    except HTTPException:
-        # Re-raise HTTP exceptions as-is
-        raise
-
-    except FileNotFoundError as e:
-        raise HTTPException(
-            status_code=404,
-            detail=f"File not found: {str(e)}"
-        )
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Invalid data in PDF: {str(e)}"
-        )
-
-    except RuntimeError as e:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Error processing PDF: {str(e)}"
-        )
+    except HTTPException as e:
+        # Convert HTTPException to standardized response
+        return handle_analysis_error(e, file.filename)
 
     except Exception as e:
-        # Log unexpected errors for debugging
-        import traceback
-        print(f"Unexpected error analyzing PDF: {traceback.format_exc()}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"An unexpected error occurred while processing the file. Please ensure it's a valid PDF."
-        )
+        # Handle all other errors with standardized response
+        return handle_analysis_error(e, file.filename)
 
     finally:
         # Clean up temporary file
@@ -375,7 +410,7 @@ def convert_analyzer_from_dict(data: dict) -> AnalysisResult:
 
 
 @router.post("/export/excel")
-async def export_to_excel(analysis_result: dict = Body(...)):
+async def export_to_excel(background_tasks: BackgroundTasks, analysis_result: dict = Body(...)):
     """
     Export analysis result to Excel file.
 
@@ -422,12 +457,14 @@ async def export_to_excel(analysis_result: dict = Body(...)):
                 detail="Failed to generate Excel file"
             )
 
+        # Schedule cleanup of temp directory after response is sent
+        background_tasks.add_task(cleanup_temp_file, temp_dir)
+
         # Return file for download
         return FileResponse(
             path=str(excel_path),
             filename=f"{file_name}_analysis.xlsx",
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            background=None
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
     except HTTPException:
@@ -443,7 +480,7 @@ async def export_to_excel(analysis_result: dict = Body(...)):
 
 
 @router.post("/export/html")
-async def export_to_html(analysis_result: dict = Body(...)):
+async def export_to_html(background_tasks: BackgroundTasks, analysis_result: dict = Body(...)):
     """
     Export analysis result to HTML file.
 
@@ -500,12 +537,14 @@ async def export_to_html(analysis_result: dict = Body(...)):
                 detail="Failed to generate HTML file"
             )
 
+        # Schedule cleanup of temp directory after response is sent
+        background_tasks.add_task(cleanup_temp_file, temp_dir)
+
         # Return file for download
         return FileResponse(
             path=str(html_path),
             filename=f"{file_name}_analysis.html",
-            media_type="text/html",
-            background=None
+            media_type="text/html"
         )
 
     except HTTPException:

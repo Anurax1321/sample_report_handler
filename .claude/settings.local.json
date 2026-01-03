@@ -19,7 +19,8 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(cat:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

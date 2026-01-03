@@ -7,6 +7,7 @@ interface FileUploaderProps {
   maxSizeMB?: number;
   label: string;
   disabled?: boolean;
+  showUploadButton?: boolean;
 }
 
 export default function FileUploader({
@@ -14,7 +15,8 @@ export default function FileUploader({
   acceptedTypes,
   maxSizeMB = 50,
   label,
-  disabled = false
+  disabled = false,
+  showUploadButton = true
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -38,13 +40,16 @@ export default function FileUploader({
     const acceptedExtensions = acceptedTypes.split(',').map(t => t.trim().replace('.', ''));
 
     if (!acceptedExtensions.includes(fileExtension || '')) {
-      return `Invalid file type. Accepted types: ${acceptedTypes}`;
+      return `Invalid file type. Please upload a PDF or ZIP file. Accepted types: ${acceptedTypes}`;
     }
 
-    // Check file size
+    // Check file size with specific limits
     const fileSizeMB = file.size / (1024 * 1024);
-    if (fileSizeMB > maxSizeMB) {
-      return `File size exceeds ${maxSizeMB}MB limit`;
+    const isPDF = fileExtension === 'pdf';
+    const actualLimit = isPDF ? 50 : maxSizeMB;
+
+    if (fileSizeMB > actualLimit) {
+      return `File size exceeds ${actualLimit}MB limit for ${isPDF ? 'PDF' : 'ZIP'} files`;
     }
 
     return null;
@@ -67,7 +72,11 @@ export default function FileUploader({
       }
 
       setSelectedFile(file);
-      onFileSelect(file);
+
+      // If no upload button, auto-submit
+      if (!showUploadButton) {
+        onFileSelect(file);
+      }
     }
   };
 
@@ -84,7 +93,11 @@ export default function FileUploader({
       }
 
       setSelectedFile(file);
-      onFileSelect(file);
+
+      // If no upload button, auto-submit
+      if (!showUploadButton) {
+        onFileSelect(file);
+      }
     }
   };
 
@@ -98,6 +111,19 @@ export default function FileUploader({
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const handleUploadClick = () => {
+    if (selectedFile && !disabled) {
+      onFileSelect(selectedFile);
+    }
+  };
+
+  const handleClearFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -132,17 +158,51 @@ export default function FileUploader({
           <div className="file-uploader-selected">
             <p className="file-name">{selectedFile.name}</p>
             <p className="file-size">{formatFileSize(selectedFile.size)}</p>
+            <p className="file-type-badge">
+              {selectedFile.name.toLowerCase().endsWith('.pdf') ? '📄 Single PDF' : '📦 Batch ZIP'}
+            </p>
           </div>
         ) : (
           <div className="file-uploader-text">
             <p className="primary-text">
-              {isDragging ? 'Drop file here' : 'Drag and drop file here'}
+              {isDragging ? 'Drop file here' : 'Drag and drop your file here'}
             </p>
             <p className="secondary-text">or click to browse</p>
-            <p className="file-types">Accepted: {acceptedTypes} (max {maxSizeMB}MB)</p>
+            <p className="file-types">
+              Accepted: PDF (single report, max 50MB) or ZIP (multiple reports, max 200MB)
+            </p>
           </div>
         )}
       </div>
+
+      {/* Upload Button - shown when file is selected and showUploadButton is true */}
+      {showUploadButton && selectedFile && (
+        <div className="file-uploader-actions">
+          <button
+            className="upload-button"
+            onClick={handleUploadClick}
+            disabled={disabled}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload & Analyze
+          </button>
+          <button
+            className="clear-button"
+            onClick={handleClearFile}
+            disabled={disabled}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 }
