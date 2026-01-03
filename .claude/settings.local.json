@@ -20,7 +20,10 @@
       "Bash(python3:*)",
       "Bash(cat:*)",
       "Bash(docker logs:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(docker-compose build --no-cache backend)",
+      "Bash(docker-compose build --no-cache frontend)",
+      "Bash(docker-compose build frontend)"
     ],
     "deny": [],
     "ask": []

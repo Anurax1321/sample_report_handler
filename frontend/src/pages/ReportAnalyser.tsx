@@ -13,12 +13,14 @@ export default function ReportAnalyser() {
   const [batchResult, setBatchResult] = useState<BatchAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   const handleFileSelect = async (file: File) => {
     setIsAnalyzing(true);
     setError(null);
     setAnalysisResult(null);
     setBatchResult(null);
+    setUploadedFileName(file.name);
 
     try {
       // Auto-detect file type
@@ -58,6 +60,10 @@ export default function ReportAnalyser() {
         setError(err.response.data.detail);
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
+      } else if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. The file may be too large or contain too many PDFs. Please try with a smaller file.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Network error. Please check if the backend server is running and accessible.');
       } else if (err.message) {
         setError(err.message);
       } else {
@@ -72,10 +78,11 @@ export default function ReportAnalyser() {
     setAnalysisResult(null);
     setBatchResult(null);
     setError(null);
+    setUploadedFileName('');
   };
 
   return (
-    <main className="page-layout">
+    <main className="page-layout report-analyser">
       <div className="page-container">
         <div className="page-header">
           <div className="header-left">
@@ -90,89 +97,98 @@ export default function ReportAnalyser() {
             )}
           </div>
           <div className="header-right">
-            <button className="help-button" onClick={() => setShowInstructions(!showInstructions)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-              How to Use
-            </button>
+            {!isAnalyzing && (
+              <div className="help-dropdown-container">
+                <button className="help-button" onClick={() => setShowInstructions(!showInstructions)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  How to Use
+                </button>
+
+                {/* Dropdown Instructions Panel */}
+                {showInstructions && (
+                  <div className="help-dropdown">
+                    <div className="info-panel-header">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      </svg>
+                      <h4>How to Use</h4>
+                    </div>
+                    <div className="info-section">
+                      <h5>📤 Upload Your Files</h5>
+                      <ul>
+                        <li><strong>Single PDF:</strong> Upload one report file (max 50MB)</li>
+                        <li><strong>Batch ZIP:</strong> Upload a ZIP containing multiple PDF reports (max 200MB)</li>
+                        <li>The system <strong>automatically detects</strong> the file type and processes accordingly</li>
+                      </ul>
+                    </div>
+                    <div className="info-section">
+                      <h5>🔍 What Gets Analyzed</h5>
+                      <ul>
+                        <li>Patient information and demographics</li>
+                        <li>68+ test parameters (amino acids, acylcarnitines, ratios)</li>
+                        <li>Validation against medical reference ranges</li>
+                        <li>Automatic identification of abnormalities</li>
+                      </ul>
+                    </div>
+                    <div className="info-section">
+                      <h5>📊 Export Results</h5>
+                      <ul>
+                        <li>Download comprehensive reports in Excel or HTML format</li>
+                        <li>Color-coded abnormalities for easy review</li>
+                        <li>Complete test summaries with reference ranges</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="page-content">
-          {/* Upload Section - Show when no results */}
-          {!analysisResult && !batchResult && (
-            <>
-              {/* File Uploader - Shown First */}
-              <FileUploader
-                onFileSelect={handleFileSelect}
-                acceptedTypes=".pdf,.zip"
-                maxSizeMB={200}
-                label="Upload Report File"
-                disabled={isAnalyzing}
-              />
-
-              {isAnalyzing && (
-                <div className="analyzing-status">
-                  <div className="spinner"></div>
-                  <h3>Analyzing Report...</h3>
-                  <p>Please wait while we extract and validate test parameters</p>
-                </div>
-              )}
-
-              {error && (
-                <div className="error-message">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <div>
-                    <h4>Analysis Failed</h4>
-                    <p>{error}</p>
-                  </div>
-                </div>
-              )}
-            </>
+          {/* Upload Section - Show when NOT analyzing and no results */}
+          {!isAnalyzing && !analysisResult && !batchResult && (
+            <FileUploader
+              onFileSelect={handleFileSelect}
+              acceptedTypes=".pdf,.zip"
+              maxSizeMB={200}
+              label="Upload Report File"
+              disabled={false}
+            />
           )}
 
-          {/* Instructions Panel - Toggle with button */}
-          {showInstructions && (
-            <div className="info-panel">
-              <div className="info-panel-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <h4>How to Use</h4>
+          {/* Loading Section - Replace upload section during analysis */}
+          {isAnalyzing && (
+            <div className="analyzing-status">
+              <div className="spinner"></div>
+              <h3>Analyzing Report...</h3>
+              <p className="analyzing-filename">{uploadedFileName}</p>
+              <p>Please wait while we extract and validate test parameters</p>
+              <div className="progress-bar-container">
+                <div className="progress-bar">
+                  <div className="progress-bar-fill"></div>
+                </div>
               </div>
-              <div className="info-section">
-                <h5>📤 Upload Your Files</h5>
-                <ul>
-                  <li><strong>Single PDF:</strong> Upload one report file (max 50MB)</li>
-                  <li><strong>Batch ZIP:</strong> Upload a ZIP containing multiple PDF reports (max 200MB)</li>
-                  <li>The system <strong>automatically detects</strong> the file type and processes accordingly</li>
-                </ul>
-              </div>
-              <div className="info-section">
-                <h5>🔍 What Gets Analyzed</h5>
-                <ul>
-                  <li>Patient information and demographics</li>
-                  <li>68+ test parameters (amino acids, acylcarnitines, ratios)</li>
-                  <li>Validation against medical reference ranges</li>
-                  <li>Automatic identification of abnormalities</li>
-                </ul>
-              </div>
-              <div className="info-section">
-                <h5>📊 Export Results</h5>
-                <ul>
-                  <li>Download comprehensive reports in Excel or HTML format</li>
-                  <li>Color-coded abnormalities for easy review</li>
-                  <li>Complete test summaries with reference ranges</li>
-                </ul>
+            </div>
+          )}
+
+          {/* Error Section - Show after failed analysis */}
+          {error && !isAnalyzing && (
+            <div className="error-message">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <div>
+                <h4>Analysis Failed</h4>
+                <p>{error}</p>
               </div>
             </div>
           )}

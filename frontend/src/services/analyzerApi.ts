@@ -8,6 +8,10 @@ import type { SingleAnalysisResponse, BatchAnalysisResponse, AnalysisResult } fr
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const ANALYZER_URL = `${API_BASE_URL}/api/analyzer`;
 
+// Timeout configurations (in milliseconds)
+const SINGLE_PDF_TIMEOUT = 120000; // 2 minutes for single PDF
+const BATCH_ZIP_TIMEOUT = 600000;  // 10 minutes for batch ZIP processing
+
 /**
  * Upload and analyze a single PDF report
  */
@@ -22,6 +26,7 @@ export const analyzeSinglePDF = async (file: File): Promise<SingleAnalysisRespon
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: SINGLE_PDF_TIMEOUT,
     }
   );
 
@@ -42,6 +47,7 @@ export const analyzeBatchPDFs = async (file: File): Promise<BatchAnalysisRespons
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: BATCH_ZIP_TIMEOUT,
     }
   );
 
