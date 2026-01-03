@@ -86,18 +86,9 @@ export default function ReportAnalyser() {
       <div className="page-container">
         <div className="page-header">
           <div className="header-left">
-            {(analysisResult || batchResult) && (
-              <button className="reset-button" onClick={handleReset}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-                Analyze New Report
-              </button>
-            )}
           </div>
           <div className="header-right">
-            {!isAnalyzing && (
+            {!isAnalyzing && !analysisResult && !batchResult && (
               <div className="help-dropdown-container">
                 <button className="help-button" onClick={() => setShowInstructions(!showInstructions)}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
