@@ -1,7 +1,7 @@
 .batch-dashboard {
   display: flex;
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 0.5rem;
   min-height: 70vh;
 }
 
@@ -138,13 +138,13 @@
   border-radius: 8px;
   font-size: 1rem;
   width: 100%;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .batch-search:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #764ba2;
 }
 
 .failed-reports-section {
