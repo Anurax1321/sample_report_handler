@@ -47,8 +47,11 @@ export async function extractPDFFromZip(
       return null;
     }
 
-    // Extract the PDF as a Blob
-    const pdfBlob = await pdfFile.async('blob');
+    // Extract the PDF as a Blob with proper MIME type
+    const pdfArrayBuffer = await pdfFile.async('arraybuffer');
+
+    // Create a blob with explicit PDF MIME type
+    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
 
     // Create a blob URL that can be used in an iframe or opened in a new tab
     const blobUrl = URL.createObjectURL(pdfBlob);
