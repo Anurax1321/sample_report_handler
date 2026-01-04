@@ -82,6 +82,7 @@ export default function ReportAnalyser() {
     setBatchResult(null);
     setError(null);
     setUploadedFileName('');
+    setIsBatchUpload(false);
   };
 
   return (
@@ -153,8 +154,10 @@ export default function ReportAnalyser() {
           {isAnalyzing && (
             <div className="analyzing-status">
               <div className="spinner"></div>
-              <h3>Analyzing Report...</h3>
-              <p className="analyzing-filename">{uploadedFileName}</p>
+              <h3>{isBatchUpload ? 'Processing Batch...' : 'Analyzing Report...'}</h3>
+              <p className="analyzing-filename">
+                {isBatchUpload ? 'Processing multiple PDF files from batch' : uploadedFileName}
+              </p>
               <p>Please wait while we extract and validate test parameters</p>
               <div className="progress-bar-container">
                 <div className="progress-bar">
