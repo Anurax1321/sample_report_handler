@@ -15,6 +15,7 @@ export default function ReportAnalyser() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const [isBatchUpload, setIsBatchUpload] = useState(false);
+  const [uploadedZipFile, setUploadedZipFile] = useState<File | null>(null);
 
   const handleFileSelect = async (file: File) => {
     setIsAnalyzing(true);
@@ -47,6 +48,7 @@ export default function ReportAnalyser() {
       } else {
         // Batch ZIP analysis
         setIsBatchUpload(true);
+        setUploadedZipFile(file); // Store ZIP file for later PDF extraction
         const response = await analyzeBatchPDFs(file);
 
         if (response.success) {
@@ -83,6 +85,7 @@ export default function ReportAnalyser() {
     setError(null);
     setUploadedFileName('');
     setIsBatchUpload(false);
+    setUploadedZipFile(null);
   };
 
   return (
@@ -189,7 +192,7 @@ export default function ReportAnalyser() {
 
           {/* Batch Results */}
           {batchResult && !isAnalyzing && (
-            <BatchDashboard batchResult={batchResult} onReset={handleReset} />
+            <BatchDashboard batchResult={batchResult} onReset={handleReset} uploadedZipFile={uploadedZipFile} />
           )}
         </div>
       </div>

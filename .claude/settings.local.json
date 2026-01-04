@@ -23,7 +23,12 @@
       "Bash(npm run build:*)",
       "Bash(docker-compose build --no-cache backend)",
       "Bash(docker-compose build --no-cache frontend)",
-      "Bash(docker-compose build frontend)"
+      "Bash(docker-compose build frontend)",
+      "Bash(npm install:*)",
+      "Bash(docker system prune:*)",
+      "Bash(docker info:*)",
+      "Bash(docker logout:*)",
+      "Bash(docker login:*)"
     ],
     "deny": [],
     "ask": []

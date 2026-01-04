@@ -1,14 +1,47 @@
 import { useState } from 'react';
 import type { AnalysisResult } from '../../types/analyzer';
+import { extractPDFFromZip, revokeBlobURL } from '../../utils/pdfExtractor';
 import './BatchReportCard.css';
 
 interface BatchReportCardProps {
   report: AnalysisResult;
+  uploadedZipFile: File | null;
 }
 
-export default function BatchReportCard({ report }: BatchReportCardProps) {
+export default function BatchReportCard({ report, uploadedZipFile }: BatchReportCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoadingPDF, setIsLoadingPDF] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const { summary, patient_info, abnormalities, file_name } = report;
+
+  const handleViewPDF = async () => {
+    if (!uploadedZipFile) {
+      setPdfError('ZIP file is no longer available. Please re-upload to view PDFs.');
+      return;
+    }
+
+    setIsLoadingPDF(true);
+    setPdfError(null);
+
+    try {
+      const pdfUrl = await extractPDFFromZip(uploadedZipFile, file_name);
+
+      if (pdfUrl) {
+        // Open PDF in new tab
+        window.open(pdfUrl, '_blank');
+
+        // Clean up blob URL after a delay
+        setTimeout(() => revokeBlobURL(pdfUrl), 60000); // 1 minute
+      } else {
+        setPdfError('Unable to extract PDF from the archive. The file may have been moved or renamed.');
+      }
+    } catch (error) {
+      console.error('Error viewing PDF:', error);
+      setPdfError('An error occurred while trying to open the PDF.');
+    } finally {
+      setIsLoadingPDF(false);
+    }
+  };
 
   return (
     <div className={`batch-report-card ${summary.status}`}>
@@ -114,6 +147,37 @@ export default function BatchReportCard({ report }: BatchReportCardProps) {
                 </svg>
                 <span>All test values are within normal range</span>
               </div>
+            </div>
+          )}
+
+          {/* View PDF Button - Only for abnormal reports */}
+          {summary.status === 'abnormal' && (
+            <div className="detail-section">
+              <button
+                className="view-pdf-button"
+                onClick={handleViewPDF}
+                disabled={isLoadingPDF || !uploadedZipFile}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                {isLoadingPDF ? 'Loading PDF...' : 'View Full PDF Report'}
+              </button>
+
+              {pdfError && (
+                <div className="pdf-error-message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  {pdfError}
+                </div>
+              )}
             </div>
           )}
         </div>

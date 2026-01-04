@@ -6,9 +6,10 @@ import './BatchDashboard.css';
 interface BatchDashboardProps {
   batchResult: BatchAnalysisResponse;
   onReset: () => void;
+  uploadedZipFile: File | null;
 }
 
-export default function BatchDashboard({ batchResult, onReset }: BatchDashboardProps) {
+export default function BatchDashboard({ batchResult, onReset, uploadedZipFile }: BatchDashboardProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'abnormal' | 'normal' | 'failed'>('abnormal');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -171,7 +172,7 @@ export default function BatchDashboard({ batchResult, onReset }: BatchDashboardP
               </div>
             ) : (
               filteredReports.map((report, idx) => (
-                <BatchReportCard key={idx} report={report} />
+                <BatchReportCard key={idx} report={report} uploadedZipFile={uploadedZipFile} />
               ))
             )}
           </div>
