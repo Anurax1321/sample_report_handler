@@ -14,6 +14,7 @@ export default function ReportAnalyser() {
   const [error, setError] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [isBatchUpload, setIsBatchUpload] = useState(false);
 
   const handleFileSelect = async (file: File) => {
     setIsAnalyzing(true);
@@ -35,6 +36,7 @@ export default function ReportAnalyser() {
 
       if (isPDF) {
         // Single PDF analysis
+        setIsBatchUpload(false);
         const response = await analyzeSinglePDF(file);
 
         if (response.success && response.result) {
@@ -44,6 +46,7 @@ export default function ReportAnalyser() {
         }
       } else {
         // Batch ZIP analysis
+        setIsBatchUpload(true);
         const response = await analyzeBatchPDFs(file);
 
         if (response.success) {
@@ -125,14 +128,6 @@ export default function ReportAnalyser() {
                         <li>68+ test parameters (amino acids, acylcarnitines, ratios)</li>
                         <li>Validation against medical reference ranges</li>
                         <li>Automatic identification of abnormalities</li>
-                      </ul>
-                    </div>
-                    <div className="info-section">
-                      <h5>📊 Export Results</h5>
-                      <ul>
-                        <li>Download comprehensive reports in Excel or HTML format</li>
-                        <li>Color-coded abnormalities for easy review</li>
-                        <li>Complete test summaries with reference ranges</li>
                       </ul>
                     </div>
                   </div>

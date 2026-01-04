@@ -107,23 +107,7 @@ export default function BatchDashboard({ batchResult, onReset }: BatchDashboardP
             </div>
           </button>
 
-          {/* Processed */}
-          <button
-            className={`sidebar-stat-card success ${activeTab === 'processed' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all')}
-          >
-            <div className="stat-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div className="stat-content">
-              <div className="stat-label">Processed</div>
-              <div className="stat-value">{batchResult.successful}</div>
-            </div>
-          </button>
-
-          {/* Failed (if any) */}
+          {/* Unprocessed (if any) */}
           {batchResult.failed > 0 && (
             <button
               className={`sidebar-stat-card failed ${activeTab === 'failed' ? 'active' : ''}`}
@@ -137,7 +121,7 @@ export default function BatchDashboard({ batchResult, onReset }: BatchDashboardP
                 </svg>
               </div>
               <div className="stat-content">
-                <div className="stat-label">Failed</div>
+                <div className="stat-label">Unprocessed</div>
                 <div className="stat-value">{batchResult.failed}</div>
               </div>
             </button>
@@ -158,10 +142,10 @@ export default function BatchDashboard({ batchResult, onReset }: BatchDashboardP
           />
         </div>
 
-        {/* Failed Reports */}
+        {/* Unprocessed Reports */}
         {activeTab === 'failed' && batchResult.failed_reports.length > 0 && (
           <div className="failed-reports-section">
-            <h3>Failed Reports</h3>
+            <h3>Unprocessed Reports</h3>
             {batchResult.failed_reports.map((failed, idx) => (
               <div key={idx} className="failed-report-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
