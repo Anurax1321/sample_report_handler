@@ -1,16 +1,46 @@
 # Development Guide - Sample Report Handler
 
-## Quick Start (Windows)
+## Quick Start
 
 The easiest way to start development without Docker:
 
-### Start Everything
-Simply double-click `start-dev.bat` or run from command prompt:
+### For WSL/Linux
+
+#### Start Everything
+```bash
+./start-dev.sh
+```
+
+#### Stop Everything
+```bash
+./stop-dev.sh
+```
+
+#### View Logs
+```bash
+# Backend logs
+tail -f backend.log
+
+# Frontend logs
+tail -f frontend.log
+```
+
+### For Windows (CMD/PowerShell)
+
+#### Start Everything
 ```batch
 start-dev.bat
 ```
 
-This will:
+#### Stop Everything
+```batch
+stop-dev.bat
+```
+
+---
+
+### What the Scripts Do
+
 1. Set up Python virtual environment
 2. Install all backend dependencies
 3. Run database migrations
@@ -20,12 +50,6 @@ This will:
 7. Start frontend server (http://localhost:5173)
 8. Open the app in your browser
 
-### Stop Everything
-Double-click `stop-dev.bat` or run:
-```batch
-stop-dev.bat
-```
-
 ---
 
 ## Manual Setup (if you prefer)
@@ -33,22 +57,37 @@ stop-dev.bat
 ### Backend Setup
 
 1. **Navigate to backend directory:**
-   ```batch
+   ```bash
    cd backend
    ```
 
 2. **Create and activate virtual environment:**
+
+   **WSL/Linux:**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+   **Windows:**
    ```batch
    python -m venv .venv
    .venv\Scripts\activate
    ```
 
 3. **Install dependencies:**
-   ```batch
+   ```bash
    pip install -r requirements.txt
    ```
 
 4. **Create `.env` file:**
+
+   **WSL/Linux:**
+   ```bash
+   cp .env.example .env
+   ```
+
+   **Windows:**
    ```batch
    copy .env.example .env
    ```
@@ -188,10 +227,40 @@ npm run lint
 ### Backend Issues
 
 **`uvicorn: command not found`**
-- Make sure virtual environment is activated: `.venv\Scripts\activate`
-- Reinstall dependencies: `pip install -r requirements.txt`
+
+**WSL/Linux:**
+```bash
+# Make sure virtual environment is activated
+source .venv/bin/activate
+
+# Reinstall dependencies
+pip install -r requirements.txt
+```
+
+**Windows:**
+```batch
+# Make sure virtual environment is activated
+.venv\Scripts\activate
+
+# Reinstall dependencies
+pip install -r requirements.txt
+```
 
 **Port 8000 already in use:**
+
+**WSL/Linux:**
+```bash
+# Stop Docker containers
+docker-compose down
+
+# Or find and kill process
+lsof -ti:8000 | xargs kill -9
+
+# Or use the stop script
+./stop-dev.sh
+```
+
+**Windows:**
 ```batch
 REM Stop Docker containers
 docker-compose down
@@ -212,6 +281,17 @@ python seed_data.py
 ### Frontend Issues
 
 **Port 5173 already in use:**
+
+**WSL/Linux:**
+```bash
+# Kill Vite process
+pkill -f vite
+
+# Or use the stop script
+./stop-dev.sh
+```
+
+**Windows:**
 ```batch
 REM Kill all Node processes
 taskkill /F /IM node.exe
