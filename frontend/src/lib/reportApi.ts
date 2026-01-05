@@ -130,3 +130,30 @@ export async function getProcessedData(reportId: number): Promise<ProcessedRepor
   const response = await api.get<ProcessedReportData>(`/reports/${reportId}/processed-data`);
   return response.data;
 }
+
+/**
+ * Approve a report with edited data and generate PDF
+ */
+export async function approveReport(reportId: number, editedData: Record<string, number>): Promise<any> {
+  const response = await api.post<any>(`/reports/${reportId}/approve`, editedData);
+  return response.data;
+}
+
+/**
+ * Download generated PDF for a report
+ */
+export async function downloadPDF(reportId: number, filename: string): Promise<void> {
+  const response = await api.get(`/reports/${reportId}/download-pdf`, {
+    responseType: 'blob',
+  });
+
+  // Create download link
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}

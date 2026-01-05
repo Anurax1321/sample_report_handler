@@ -4,12 +4,13 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
 from app.schema.report import ReportCreate, ReportRead
-from app.services import file_validator, report_processor
+from app.services import file_validator, report_processor, pdf_generation
 from typing import List
 import os
 import shutil
 import zipfile
 from io import BytesIO
+import json
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -224,6 +225,101 @@ async def download_report(report_id: int, db: Session = Depends(get_db)):
         zip_buffer,
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename=report_{report_id}_{report.date_code}.zip"}
+    )
+
+@router.post("/{report_id}/approve")
+async def approve_report(report_id: int, edited_data: dict, db: Session = Depends(get_db)):
+    """
+    Approve a report with edited data and generate PDF
+
+    Body:
+    - edited_data: Dictionary containing the edited cell values from the frontend
+
+    Returns:
+    - Report object with pdf_path field containing the path to generated PDF
+    """
+    report = db.get(model.Report, report_id)
+    if not report:
+        raise HTTPException(404, "Report not found")
+
+    if report.processing_status != model.ReportStatus.completed:
+        raise HTTPException(400, f"Report is not ready for approval. Status: {report.processing_status}")
+
+    try:
+        # Store the edited data in the processed_data field
+        processed_data = json.loads(report.processed_data)
+
+        # Update processed_data with edited values
+        # edited_data format: { "rowId-compound": newValue, ... }
+        for cell_key, new_value in edited_data.items():
+            row_id_str, compound = cell_key.split('-', 1)
+            row_id = int(row_id_str)
+
+            if row_id < len(processed_data['processed_data']):
+                if compound in processed_data['processed_data'][row_id]['values']:
+                    processed_data['processed_data'][row_id]['values'][compound]['value'] = new_value
+
+        # Save updated processed data
+        report.processed_data = json.dumps(processed_data)
+
+        # Generate PDF with updated data
+        date_code = processed_data['date_code']
+        output_dir = os.path.join(UPLOAD_DIR, str(report_id), "output")
+
+        pdf_path = pdf_generation.generate_nbs_report_pdf(
+            processed_data,
+            output_dir,
+            date_code
+        )
+
+        # Update report with PDF path - always set to ensure it's correct
+        report.output_directory = output_dir
+
+        db.commit()
+        db.refresh(report)
+
+        # Return report with pdf_path for frontend
+        return {
+            **report.__dict__,
+            "pdf_path": pdf_path,
+            "pdf_filename": os.path.basename(pdf_path)
+        }
+
+    except pdf_generation.PDFGenerationError as e:
+        raise HTTPException(500, f"PDF generation failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(500, f"Unexpected error during approval: {str(e)}")
+
+@router.get("/{report_id}/download-pdf")
+async def download_pdf(report_id: int, db: Session = Depends(get_db)):
+    """
+    Download the generated PDF for a report
+
+    Returns:
+    - PDF file
+    """
+    report = db.get(model.Report, report_id)
+    if not report:
+        raise HTTPException(404, "Report not found")
+
+    if not report.output_directory or not os.path.exists(report.output_directory):
+        raise HTTPException(404, "Output directory not found")
+
+    # Find PDF file in output directory
+    pdf_files = [f for f in os.listdir(report.output_directory) if f.endswith('.pdf')]
+
+    if not pdf_files:
+        raise HTTPException(404, "PDF file not found. Please approve the report first.")
+
+    pdf_path = os.path.join(report.output_directory, pdf_files[0])
+
+    if not os.path.exists(pdf_path):
+        raise HTTPException(404, "PDF file not found")
+
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={pdf_files[0]}"}
     )
 
 @router.delete("/{report_id}")

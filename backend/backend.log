@@ -208,3 +208,234 @@ INFO:     127.0.0.1:52696 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
 INFO:     127.0.0.1:52700 - "GET /reports/11 HTTP/1.1" 200 OK
 INFO:     127.0.0.1:52696 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
 INFO:     127.0.0.1:52700 - "GET /reports/11 HTTP/1.1" 200 OK
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Report processing completed successfully. Data ready for review.
+INFO:     127.0.0.1:44882 - "POST /reports/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44882 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44894 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44882 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44894 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44688 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44678 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44706 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44692 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32962 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32982 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32966 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32968 - "GET /reports/12 HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38290]
+INFO:     Started server process [38725]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+INFO:     127.0.0.1:40448 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40436 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40452 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40452 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33802 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33808 - "GET /reports/12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33804 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33820 - "GET /reports/12/processed-data HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/pdfgeom.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgetbase.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/bubble.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/renderbase.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/line_chart.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/yaml.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/testutils.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/flags.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/abag.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/qrencoder.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/boxstuff.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/rl_safe_eval.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/tableofcontents.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/spider.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/extformat.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/textsplit.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/utils3d.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/enums.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/arciv.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/markers.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/pdfdoc.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/validators.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/transform.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/simple_pie.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/clustered_column.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/pygments2xpre.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/usps.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/common.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/testshapes.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesbolditalic.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/shapes.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courieroblique.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/units.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/markers.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/fontfinder.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/normalDate.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/renderPDF.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/utils.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/textobject.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/stacked_bar.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/usps4s.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/utils.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_standard.py', '.venv/lib64/python3.10/site-packages/reportlab/rl_settings.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/rl_accel.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_symbol.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/pdfmetrics.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/fourstate.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/svgpath.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_zapfdingbats.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/ecc200datamatrix.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_macroman.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/colors.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/eanbc.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/formatters.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/rltempfile.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/excelcolors.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/pagesizes.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/radar.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/pdfencrypt.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/randomtext.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/rl_codecs.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/tables.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/paragraph.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/linechart_with_markers.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/canvas.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/grids.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/utils.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/piecharts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/sequencer.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/flowables.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/eventcal.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/lto.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/barcharts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticaboldoblique.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/PyFontify.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/filled_radar.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/widgets.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/multicol.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/paraparser.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/codecharts.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/scatter_lines.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/clustered_bar.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/dotbox.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/linecharts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courierboldoblique.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_pdfdoc.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/pdfimages.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_zapfdingbats.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/runall.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/pdfpattern.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/acroform.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/styles.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticaoblique.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courierbold.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/pathobject.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/textlabels.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesbold.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/ttfonts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helvetica.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/attrmap.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/legends.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/rparsexml.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/scatter_lines_markers.py', '.venv/lib64/python3.10/site-packages/reportlab/rl_config.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticabold.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/figures.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/adjustableArrow.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/signsandsymbols.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/dmtx.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/doctemplate.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/test.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courier.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfgen/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/xpreformatted.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/pdfutils.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/scatter.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_symbol.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/cidfonts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_glyphlist.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/renderSVG.py', '.venv/lib64/python3.10/site-packages/reportlab/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/exploded_pie.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/doughnut.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/samples/stacked_column.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/areas.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/testdrawings.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/frames.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/code39.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/renderPS.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/renderPM.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/axes.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesitalic.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/code128.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/widgets/table.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_macexpert.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/qr.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/corp.py', '.venv/lib64/python3.10/site-packages/reportlab/platypus/para.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/pdfform.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/geomutils.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/slidebox.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_cidfontdata.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesroman.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/fonts.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_winansi.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/barcode/code93.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/pdfbase/_can_cmap_data.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/__init__.py', '.venv/lib64/python3.10/site-packages/reportlab/lib/logger.py', '.venv/lib64/python3.10/site-packages/reportlab/graphics/charts/lineplots.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38725]
+INFO:     Started server process [38880]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courier.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/qrencoder.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/spider.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/formatters.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/pdfutils.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/rparsexml.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/figures.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/flags.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_symbol.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/utils3d.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/cidfonts.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/randomtext.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/tables.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_glyphlist.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/paragraph.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticaboldoblique.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/xpreformatted.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/renderSVG.py', '.venv/Lib/python3.10/site-packages/reportlab/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/clustered_column.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/simple_pie.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/testdrawings.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/usps.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/renderPS.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/flowables.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/renderPM.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesitalic.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/markers.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_macexpert.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/pdfform.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/widgets.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_cidfontdata.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesroman.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/frames.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courierbold.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_winansi.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/multicol.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/codecharts.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/paraparser.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/utils.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/stacked_bar.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/usps4s.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_can_cmap_data.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/geomutils.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/fourstate.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgetbase.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/renderbase.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/ecc200datamatrix.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/pdfgeom.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/logger.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/eanbc.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/legends.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/attrmap.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/excelcolors.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/yaml.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/radar.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/pdfdoc.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/abag.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/doctemplate.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/boxstuff.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/linechart_with_markers.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/adjustableArrow.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/transform.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/piecharts.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/extformat.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/testshapes.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/textsplit.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/lto.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesbolditalic.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/grids.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/barcharts.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/shapes.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courieroblique.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/validators.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/filled_radar.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/stacked_column.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/eventcal.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/renderPDF.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/scatter_lines.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/clustered_bar.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/dotbox.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/linecharts.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/utils.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_standard.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/units.py', '.venv/Lib/python3.10/site-packages/reportlab/rl_settings.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_symbol.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/runall.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/para.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/corp.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/fontfinder.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/svgpath.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/textobject.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/fonts.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_zapfdingbats.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/textlabels.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/table.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_macroman.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/bubble.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/scatter_lines_markers.py', '.venv/Lib/python3.10/site-packages/reportlab/rl_config.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/testutils.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/dmtx.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/rl_codecs.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/test.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/colors.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/rl_safe_eval.py', '.venv/Lib/python3.10/site-packages/reportlab/platypus/tableofcontents.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/rltempfile.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/scatter.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/signsandsymbols.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/pagesizes.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/pdfencrypt.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/enums.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/canvas.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/arciv.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/utils.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/exploded_pie.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/doughnut.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/widgets/markers.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/pygments2xpre.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/sequencer.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/areas.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/common.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/code39.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_courierboldoblique.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_pdfdoc.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/axes.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/PyFontify.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_enc_zapfdingbats.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/code128.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/pdfpattern.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/qr.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/pdfmetrics.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/acroform.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticaoblique.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/slidebox.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/normalDate.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/pdfimages.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_timesbold.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/barcode/code93.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/__init__.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/ttfonts.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helvetica.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/rl_accel.py', '.venv/Lib/python3.10/site-packages/reportlab/lib/styles.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfgen/pathobject.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/charts/lineplots.py', '.venv/Lib/python3.10/site-packages/reportlab/pdfbase/_fontdata_widths_helveticabold.py', '.venv/Lib/python3.10/site-packages/reportlab/graphics/samples/line_chart.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38880]
+INFO:     Started server process [38889]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38889]
+WARNING:  WatchFiles detected changes in 'app/services/pdf_generation.py'. Reloading...
+INFO:     Started server process [38913]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38913]
+INFO:     Started server process [38936]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Report processing completed successfully. Data ready for review.
+INFO:     127.0.0.1:37092 - "POST /reports/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37092 - "GET /reports/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37102 - "GET /reports/13/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37092 - "GET /reports/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37102 - "GET /reports/13/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44934 - "OPTIONS /reports/13/approve HTTP/1.1" 200 OK
+✓ PDF generated successfully: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/13/output/NBS_Report_01072024.pdf
+INFO:     127.0.0.1:44934 - "POST /reports/13/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44934 - "GET /reports/13/download-pdf HTTP/1.1" 404 Not Found
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38936]
+INFO:     Started server process [39078]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+INFO:     127.0.0.1:53002 - "GET /reports/13/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52986 - "GET /reports/13/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52964 - "GET /reports/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52970 - "GET /reports/13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "OPTIONS /reports/13/approve HTTP/1.1" 200 OK
+✓ PDF generated successfully: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/13/output/NBS_Report_01072024.pdf
+INFO:     127.0.0.1:53008 - "POST /reports/13/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "GET /reports/13/download-pdf HTTP/1.1" 200 OK
