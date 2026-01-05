@@ -1,0 +1,26 @@
+INFO:     Will watch for changes in these directories: ['/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [30523] using WatchFiles
+INFO:     Started server process [30532]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+INFO:     127.0.0.1:44458 - "POST /api/analyzer/analyze-batch HTTP/1.1" 200 OK
