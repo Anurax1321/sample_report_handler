@@ -28,7 +28,14 @@
       "Bash(docker system prune:*)",
       "Bash(docker info:*)",
       "Bash(docker logout:*)",
-      "Bash(docker login:*)"
+      "Bash(docker login:*)",
+      "Bash(docker-compose:*)",
+      "Bash(chmod:*)",
+      "Bash(docker exec:*)",
+      "Bash(frontend/src/App.tsx)",
+      "Bash(git checkout:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []

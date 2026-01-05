@@ -17,7 +17,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 50%, #e0e7ef 100%);
+  background: linear-gradient(135deg, #f8f9fc 0%, #f3f4f8 50%, #f5f6fa 100%);
   color: #2d3748;
 }
 
