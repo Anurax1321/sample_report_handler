@@ -439,3 +439,123 @@ INFO:     127.0.0.1:53008 - "OPTIONS /reports/13/approve HTTP/1.1" 200 OK
 ✓ PDF generated successfully: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/13/output/NBS_Report_01072024.pdf
 INFO:     127.0.0.1:53008 - "POST /reports/13/approve HTTP/1.1" 200 OK
 INFO:     127.0.0.1:53008 - "GET /reports/13/download-pdf HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/services/pdf_generation.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39078]
+INFO:     Started server process [39250]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Report processing completed successfully. Data ready for review.
+INFO:     127.0.0.1:51034 - "POST /reports/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51034 - "GET /reports/14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51048 - "GET /reports/14/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51034 - "GET /reports/14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51048 - "GET /reports/14/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51048 - "OPTIONS /reports/14/approve HTTP/1.1" 200 OK
+✓ PDF generated successfully: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/14/output/NBS_Report_BABY_OF_KALYANI_3432.pdf
+INFO:     127.0.0.1:51034 - "POST /reports/14/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51034 - "GET /reports/14/download-pdf HTTP/1.1" 200 OK
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Report processing completed successfully. Data ready for review.
+INFO:     127.0.0.1:35686 - "POST /reports/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35694 - "GET /reports/15/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35686 - "GET /reports/15 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35694 - "GET /reports/15/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35686 - "GET /reports/15 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35686 - "OPTIONS /reports/15/approve HTTP/1.1" 200 OK
+✓ PDF generated successfully: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/15/output/NBS_Report_BABY_OF_KALYANI_3432.pdf
+INFO:     127.0.0.1:35694 - "POST /reports/15/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35694 - "GET /reports/15/download-pdf HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in '.venv/Lib/python3.10/site-packages/openpyxl_image_loader/sheet_image_loader.py', '.venv/Lib/python3.10/site-packages/openpyxl_image_loader/__init__.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39250]
+INFO:     Started server process [39525]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in '.venv/lib64/python3.10/site-packages/openpyxl_image_loader/sheet_image_loader.py', '.venv/lib64/python3.10/site-packages/openpyxl_image_loader/__init__.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39525]
+INFO:     Started server process [39580]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
