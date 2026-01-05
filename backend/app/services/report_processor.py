@@ -11,16 +11,16 @@ class ReportProcessingError(Exception):
 
 def process_report_files(
     file_paths: List[str],
-    num_patients: int,
-    template_path: str,
-    output_dir: str
+    num_patients: int = None,
+    template_path: str = None,
+    output_dir: str = None
 ) -> str:
     """
     Main processing pipeline for NBS report files
 
     Args:
         file_paths: List of 3 file paths [AA, AC, AC_EXT files]
-        num_patients: Number of patients (excluding 4 controls)
+        num_patients: Number of patients (excluding 4 controls). If None, auto-detect from files.
         template_path: Path to Excel template file
         output_dir: Directory where output files should be saved
 
@@ -42,16 +42,31 @@ def process_report_files(
                     f"Date mismatch: {date_code} vs {file_date}. All files must have the same date."
                 )
 
-        # Data extraction phase
+        # Data extraction phase - auto-detect patient count and validate consistency
         data = []
         names = None
+        patient_counts = []
 
-        actual_patients_with_controls = num_patients + 4  # Add 4 controls
-
-        for file_path in file_paths:
-            df, patient_names = data_extraction.extraction(file_path, actual_patients_with_controls)
+        # Extract data from all 3 files and track patient counts
+        for i, file_path in enumerate(file_paths):
+            df, patient_names, patient_count = data_extraction.extraction(file_path, None)
             data.append(df)
             names = patient_names  # Same names for all files
+            patient_counts.append(patient_count)
+
+            file_type = os.path.basename(file_path).split("_")[-1].replace(".txt", "")
+            print(f"{file_type} file: Found {patient_count} patients/samples")
+
+        # Validate all files have the same patient count
+        if len(set(patient_counts)) > 1:
+            file_types = ["AA", "AC", "AC_EXT"]
+            count_details = ", ".join([f"{file_types[i]}: {patient_counts[i]}" for i in range(3)])
+            raise ReportProcessingError(
+                f"Patient count mismatch across files. {count_details}. "
+                f"All three files must contain data for the same number of patients."
+            )
+
+        print(f"✓ Patient count validation passed: All files contain {patient_counts[0]} patients/samples")
 
         # Combine all data into final DataFrame
         final_data_frame = data_extraction.get_final_data(data[0], data[1], data[2], names)

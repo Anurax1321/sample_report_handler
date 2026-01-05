@@ -4,9 +4,15 @@ import './Header.css';
 export default function Header() {
   const location = useLocation();
 
-  // Show "Report Analyser" only on the report analyser page
+  // Show appropriate title based on current page
   const isReportAnalyserPage = location.pathname === '/report-analyser';
-  const headerTitle = isReportAnalyserPage ? 'Report Analyser' : 'Vijayrekha Life Science';
+  const isReportHandlingPage = location.pathname === '/report-handling';
+
+  const headerTitle = isReportAnalyserPage
+    ? 'Report Analyser'
+    : isReportHandlingPage
+    ? 'Report Handling'
+    : 'Report Handling';
 
   return (
     <header className="header">

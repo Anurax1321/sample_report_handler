@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey
 from datetime import datetime
+from typing import Optional
 import enum
 
 from app.db.base import Base
@@ -37,17 +38,17 @@ class Sample(Base):
 class Report(Base):
     __tablename__ = "reports"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    sample_id: Mapped[int] = mapped_column(Integer, ForeignKey("samples.id"), nullable=False, index=True)
+    sample_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("samples.id"), nullable=True, index=True)
     upload_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     uploaded_by: Mapped[str] = mapped_column(String(128), default="anonymous")
-    num_patients: Mapped[int] = mapped_column(Integer)
+    num_patients: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     processing_status: Mapped[ReportStatus] = mapped_column(Enum(ReportStatus), default=ReportStatus.pending)
     error_message: Mapped[str] = mapped_column(String(2048), default="")
     output_directory: Mapped[str] = mapped_column(String(512), default="")
     date_code: Mapped[str] = mapped_column(String(16), default="")  # DDMMYYYY from filename
 
     # Relationships
-    sample: Mapped["Sample"] = relationship("Sample", backref="reports")
+    sample: Mapped[Optional["Sample"]] = relationship("Sample", backref="reports")
     files: Mapped[list["ReportFile"]] = relationship("ReportFile", back_populates="report", cascade="all, delete-orphan")
 
 class ReportFile(Base):

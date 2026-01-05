@@ -1,16 +1,26 @@
 #!/bin/bash
-# Quick script to force frontend refresh when CSS changes aren't appearing
+# Force refresh frontend with cache clearing
 
-echo "🔄 Restarting frontend container to apply changes..."
-docker-compose -f docker-compose.dev.yml restart frontend
+echo "Stopping frontend server..."
+pkill -f "vite"
+sleep 2
 
-echo "⏳ Waiting for Vite to start..."
-sleep 6
+echo "Clearing Vite cache..."
+cd "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/frontend"
+rm -rf node_modules/.vite
+rm -rf dist
 
-echo "✅ Frontend restarted!"
+echo "Starting frontend server..."
+nohup npm run dev > ../frontend.log 2>&1 &
+sleep 3
+
 echo ""
-echo "📌 NOW DO THIS IN YOUR BROWSER:"
-echo "   Windows/Linux: Ctrl + Shift + R"
-echo "   Mac: Cmd + Shift + R"
+echo "Frontend server restarted!"
 echo ""
-echo "🌐 Frontend: http://localhost:5173"
+echo "IMPORTANT: In your browser, do a HARD REFRESH:"
+echo "  - Chrome/Edge: Ctrl + Shift + R (or Cmd + Shift + R on Mac)"
+echo "  - Firefox: Ctrl + F5 (or Cmd + Shift + R on Mac)"
+echo ""
+echo "Or open DevTools (F12) and right-click the refresh button, select 'Empty Cache and Hard Reload'"
+echo ""
+echo "Frontend: http://localhost:5173"

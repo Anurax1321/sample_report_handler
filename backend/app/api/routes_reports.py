@@ -26,21 +26,16 @@ def get_db():
 
 @router.post("/upload", response_model=ReportRead)
 async def upload_report(
-    sample_id: int = Form(...),
-    num_patients: int = Form(...),
     uploaded_by: str = Form("anonymous"),
     file1: UploadFile = File(...),
     file2: UploadFile = File(...),
-    file3: UploadFile = File(...)
-    ,
+    file3: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     """
     Upload 3 NBS report files and process them
 
     Expects:
-    - sample_id: ID of the sample this report belongs to
-    - num_patients: Number of patients to process (excluding 4 controls)
     - file1, file2, file3: Three text files (AA, AC, AC_EXT)
     - uploaded_by: Name of person uploading (optional)
 
@@ -48,10 +43,6 @@ async def upload_report(
     - Report object with processing status
     """
     try:
-        # Validate sample exists
-        sample = db.get(model.Sample, sample_id)
-        if not sample:
-            raise HTTPException(404, f"Sample with ID {sample_id} not found")
 
         # Validate filenames
         try:
@@ -61,10 +52,10 @@ async def upload_report(
         except file_validator.FileValidationError as e:
             raise HTTPException(400, str(e))
 
-        # Create report record
+        # Create report record (sample_id and num_patients are now nullable)
         report = model.Report(
-            sample_id=sample_id,
-            num_patients=num_patients,
+            sample_id=None,
+            num_patients=None,
             uploaded_by=uploaded_by,
             date_code=date_code,
             processing_status=model.ReportStatus.processing
@@ -115,12 +106,12 @@ async def upload_report(
 
         db.commit()
 
-        # Process files
+        # Process files (num_patients will be auto-detected)
         try:
             output_dir = os.path.join(UPLOAD_DIR, str(report.id), "output")
             excel_path = report_processor.process_report_files(
                 file_paths,
-                num_patients,
+                None,  # Auto-detect patient count from files
                 TEMPLATE_PATH,
                 output_dir
             )

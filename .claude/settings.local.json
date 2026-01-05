@@ -35,7 +35,12 @@
       "Bash(frontend/src/App.tsx)",
       "Bash(git checkout:*)",
       "Bash(source .venv/bin/activate)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(alembic revision:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(\"/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/refresh-frontend.sh\")"
     ],
     "deny": [],
     "ask": []

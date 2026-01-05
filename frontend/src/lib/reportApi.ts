@@ -9,10 +9,10 @@ export interface ReportFile {
 
 export interface Report {
   id: number;
-  sample_id: number;
+  sample_id: number | null;
   upload_date: string;
   uploaded_by: string;
-  num_patients: number;
+  num_patients: number | null;
   processing_status: 'pending' | 'processing' | 'completed' | 'failed';
   error_message: string;
   output_directory: string;
@@ -24,16 +24,12 @@ export interface Report {
  * Upload report files and process them
  */
 export async function uploadReport(
-  sampleId: number,
-  numPatients: number,
   file1: File,
   file2: File,
   file3: File,
   uploadedBy: string = 'anonymous'
 ): Promise<Report> {
   const formData = new FormData();
-  formData.append('sample_id', sampleId.toString());
-  formData.append('num_patients', numPatients.toString());
   formData.append('uploaded_by', uploadedBy);
   formData.append('file1', file1);
   formData.append('file2', file2);

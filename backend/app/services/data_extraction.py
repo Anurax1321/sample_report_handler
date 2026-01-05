@@ -28,16 +28,19 @@ def get_final_data(AA, AC, AC_EXT, name):
     final.insert(0, 'Sample text', name)
     return final.apply(lambda col: pd.to_numeric(col) if col.name != 'Sample text' else col)
 
-def extraction(file_path: str, actual_no_of_patients: int):
+def extraction(file_path: str, actual_no_of_patients: int = None):
     """
     Extract data from a single NBS laboratory text file
 
     Args:
         file_path: Path to the text file (_AA.txt, _AC.txt, or _AC_EXT.txt)
-        actual_no_of_patients: Expected number of patients (includes 4 controls)
+        actual_no_of_patients: Expected number of patients (includes 4 controls). If None, auto-detect from file.
 
     Returns:
-        Tuple of (DataFrame, list of names)
+        Tuple of (DataFrame, list of names, patient_count)
+            - DataFrame: Processed data with compounds as columns
+            - list of names: Patient/sample names
+            - patient_count: Total number of patients found (including controls)
 
     Raises:
         DataExtractionError: If file format is invalid or data doesn't match expectations
@@ -92,8 +95,8 @@ def extraction(file_path: str, actual_no_of_patients: int):
                     # Extract response value (last column)
                     response.append(line_parts[-1].strip())
 
-        # Validate patient count
-        if actual_no_of_patients != no_of_patients:
+        # Validate patient count if provided
+        if actual_no_of_patients is not None and actual_no_of_patients != no_of_patients:
             raise DataExtractionError(
                 f"Patient count mismatch. Expected {actual_no_of_patients}, found {no_of_patients}"
             )
@@ -106,8 +109,9 @@ def extraction(file_path: str, actual_no_of_patients: int):
         raise DataExtractionError(f"Unexpected error during extraction: {str(e)}")
 
     # Apply multiplication factors and manipulate data
+    # Use detected patient count (no_of_patients) instead of actual_no_of_patients
     final_result = _apply_multiplication_factors(
-        compound, response, actual_no_of_patients, file_path
+        compound, response, no_of_patients, file_path
     )
 
     # Reshape data into 2D array (Fortran order - column-major)
@@ -115,7 +119,7 @@ def extraction(file_path: str, actual_no_of_patients: int):
         reshaped_array = np.array(final_result).reshape(
             len(name), len(compound), order='F'
         )
-        return pd.DataFrame(reshaped_array, columns=compound), name
+        return pd.DataFrame(reshaped_array, columns=compound), name, no_of_patients
 
     except ValueError as e:
         raise DataExtractionError(f"Error reshaping data: {str(e)}")
