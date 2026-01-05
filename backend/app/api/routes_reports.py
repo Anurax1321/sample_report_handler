@@ -13,9 +13,10 @@ from io import BytesIO
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-# Configuration
-UPLOAD_DIR = os.path.join("backend", "uploads")
-TEMPLATE_PATH = os.path.join("backend", "templates", "template.xlsx")
+# Configuration - use absolute paths
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Project backend dir
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "template.xlsx")
 
 def get_db():
     db = SessionLocal()
@@ -129,6 +130,9 @@ async def upload_report(
             report.error_message = str(e)
             db.commit()
             db.refresh(report)
+            import traceback
+            print(f"ERROR: {str(e)}")
+            print(f"TRACEBACK: {traceback.format_exc()}")
             raise HTTPException(500, f"Processing failed: {str(e)}")
 
         return report

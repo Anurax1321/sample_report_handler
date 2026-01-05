@@ -1,0 +1,210 @@
+INFO:     Will watch for changes in these directories: ['/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [37897] using WatchFiles
+INFO:     Started server process [37922]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+INFO:     127.0.0.1:40210 - "POST /reports/upload HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37922]
+INFO:     Started server process [38056]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+ERROR: Processing failed: Error generating Excel files: Template file not found: backend/templates/template.xlsx
+TRACEBACK: Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/excel_generation.py", line 91, in write_to_excel
+    raise ExcelGenerationError(f"Template file not found: {template_path}")
+app.services.excel_generation.ExcelGenerationError: Template file not found: backend/templates/template.xlsx
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/report_processor.py", line 211, in process_report_files
+    excel_path = excel_generation.write_to_excel(
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/excel_generation.py", line 126, in write_to_excel
+    raise ExcelGenerationError(f"Error generating Excel files: {str(e)}")
+app.services.excel_generation.ExcelGenerationError: Error generating Excel files: Template file not found: backend/templates/template.xlsx
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/api/routes_reports.py", line 112, in upload_report
+    excel_path, processed_data_json = report_processor.process_report_files(
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/report_processor.py", line 223, in process_report_files
+    raise ReportProcessingError(f"Processing failed: {str(e)}")
+app.services.report_processor.ReportProcessingError: Processing failed: Error generating Excel files: Template file not found: backend/templates/template.xlsx
+
+INFO:     127.0.0.1:57454 - "POST /reports/upload HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'app/api/routes_reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38056]
+INFO:     Started server process [38124]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58390 - "POST /reports/upload HTTP/1.1" 500 Internal Server Error
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Excel File for Formatted File: /mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/uploads/10/output/01072024/final_results.xlsx
+ERROR: Processing failed: Error generating Excel files: 'Worksheet Sheet1 does not exist.'
+TRACEBACK: Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/excel_generation.py", line 121, in write_to_excel
+    _generate_patient_files(final_df[2], excel_path, template_path)
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/excel_generation.py", line 227, in _generate_patient_files
+    temp_sheet1 = temp_wb['Sheet1']
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/.venv/lib/python3.10/site-packages/openpyxl/workbook/workbook.py", line 287, in __getitem__
+    raise KeyError("Worksheet {0} does not exist.".format(key))
+KeyError: 'Worksheet Sheet1 does not exist.'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/report_processor.py", line 211, in process_report_files
+    excel_path = excel_generation.write_to_excel(
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/excel_generation.py", line 126, in write_to_excel
+    raise ExcelGenerationError(f"Error generating Excel files: {str(e)}")
+app.services.excel_generation.ExcelGenerationError: Error generating Excel files: 'Worksheet Sheet1 does not exist.'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/api/routes_reports.py", line 113, in upload_report
+    excel_path, processed_data_json = report_processor.process_report_files(
+  File "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/app/services/report_processor.py", line 223, in process_report_files
+    raise ReportProcessingError(f"Processing failed: {str(e)}")
+app.services.report_processor.ReportProcessingError: Processing failed: Error generating Excel files: 'Worksheet Sheet1 does not exist.'
+
+INFO:     127.0.0.1:41738 - "POST /reports/upload HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'app/services/report_processor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+👋 Shutting down Sample Report Handler...
+
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38124]
+INFO:     Started server process [38290]
+INFO:     Waiting for application startup.
+
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         🚀 Sample Report Handler - READY TO USE 🚀        ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  📍 Backend API:       http://localhost:8000              ║
+║  📚 API Docs:          http://localhost:8000/docs         ║
+║  ❤️  Health Check:     http://localhost:8000/health       ║
+║                                                            ║
+║  🎨 Frontend:          http://localhost:3000              ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║  💡 Tip: Open the API docs to test endpoints interactively║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+INFO:     Application startup complete.
+AA file: Found 11 patients/samples
+AC file: Found 11 patients/samples
+EXT file: Found 11 patients/samples
+✓ Patient count validation passed: All files contain 11 patients/samples
+Final Data Frame Created - 11 Rows X 48 Columns
+Report processing completed successfully. Data ready for review.
+INFO:     127.0.0.1:46466 - "POST /reports/upload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46466 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46470 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46466 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46470 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35246 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35238 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35246 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35238 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42578 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42574 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42578 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42574 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52696 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52700 - "GET /reports/11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52696 - "GET /reports/11/processed-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52700 - "GET /reports/11 HTTP/1.1" 200 OK

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProcessedData, getReport, ProcessedReportData, Report } from '../lib/reportApi';
+import { getProcessedData, getReport } from '../lib/reportApi';
+import type { ProcessedReportData, Report } from '../lib/reportApi';
 import './ReportReview.css';
 
 export default function ReportReview() {

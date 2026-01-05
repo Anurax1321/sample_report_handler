@@ -206,17 +206,17 @@ def process_report_files(
             date_code
         )
 
-        # Generate Excel files
-        output_path = os.path.join(output_dir, date_code, 'final_results.xlsx')
-        excel_path = excel_generation.write_to_excel(
-            final_data_frame_list,
-            output_path,
-            date_code,
-            template_path
-        )
+        # Skip Excel generation - we'll generate PDF after user approval (Phase 6)
+        # For now, just create the output directory and return a placeholder path
+        os.makedirs(os.path.join(output_dir, date_code), exist_ok=True)
+        placeholder_path = os.path.join(output_dir, date_code, 'pending_approval.txt')
 
-        print(f"Report processing completed successfully: {excel_path}")
-        return excel_path, processed_data_json
+        # Write a placeholder file
+        with open(placeholder_path, 'w') as f:
+            f.write(f"Report processed on {date_code}\nAwaiting user approval for PDF generation.\n")
+
+        print(f"Report processing completed successfully. Data ready for review.")
+        return placeholder_path, processed_data_json
 
     except (data_extraction.DataExtractionError, structure.StructureError,
             excel_generation.ExcelGenerationError) as e:
