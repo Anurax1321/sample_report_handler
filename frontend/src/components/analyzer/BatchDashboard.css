@@ -52,13 +52,13 @@
 .sidebar-stat-card:hover {
   transform: translateX(4px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
+  border-color: #d4a574;
 }
 
 .sidebar-stat-card.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: #d4a574;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(200, 150, 100, 0.15) 100%);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
 }
 
 .stat-icon {
@@ -72,7 +72,7 @@
 }
 
 .sidebar-stat-card.total .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #d4a574 0%, #c89664 100%);
   color: white;
 }
 
@@ -134,7 +134,7 @@
 
 .batch-search {
   padding: 0.75rem 1.25rem;
-  border: 2px solid #667eea;
+  border: 2px solid #d4a574;
   border-radius: 8px;
   font-size: 1rem;
   width: 100%;
@@ -144,7 +144,7 @@
 
 .batch-search:focus {
   outline: none;
-  border-color: #764ba2;
+  border-color: #c49563;
 }
 
 .failed-reports-section {
