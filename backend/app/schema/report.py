@@ -18,10 +18,10 @@ class ReportCreate(BaseModel):
 
 class ReportRead(BaseModel):
     id: int
-    sample_id: int
+    sample_id: Optional[int] = None
     upload_date: datetime
     uploaded_by: str
-    num_patients: int
+    num_patients: Optional[int] = None
     processing_status: Literal["pending", "processing", "completed", "failed"]
     error_message: str
     output_directory: str

@@ -109,16 +109,17 @@ async def upload_report(
         # Process files (num_patients will be auto-detected)
         try:
             output_dir = os.path.join(UPLOAD_DIR, str(report.id), "output")
-            excel_path = report_processor.process_report_files(
+            excel_path, processed_data_json = report_processor.process_report_files(
                 file_paths,
                 None,  # Auto-detect patient count from files
                 TEMPLATE_PATH,
                 output_dir
             )
 
-            # Update report status
+            # Update report status and store processed data
             report.processing_status = model.ReportStatus.completed
             report.output_directory = os.path.dirname(excel_path)
+            report.processed_data = processed_data_json
             db.commit()
             db.refresh(report)
 
@@ -157,6 +158,34 @@ def get_report(report_id: int, db: Session = Depends(get_db)):
     if not report:
         raise HTTPException(404, "Report not found")
     return report
+
+@router.get("/{report_id}/processed-data")
+def get_processed_data(report_id: int, db: Session = Depends(get_db)):
+    """
+    Get processed data for a report in JSON format
+
+    This endpoint returns the processed report data with:
+    - Sample names and patient information
+    - All compound values with color coding (green/yellow/red)
+    - Reference ranges for validation
+    - Structured dataframes ready for frontend display
+
+    Returns:
+    - JSON object with processed data
+    """
+    report = db.get(model.Report, report_id)
+    if not report:
+        raise HTTPException(404, "Report not found")
+
+    if report.processing_status != model.ReportStatus.completed:
+        raise HTTPException(400, f"Report is not ready. Status: {report.processing_status}")
+
+    if not report.processed_data:
+        raise HTTPException(404, "Processed data not found for this report")
+
+    # Return the JSON data (it's already a JSON string in the database)
+    import json
+    return json.loads(report.processed_data)
 
 @router.get("/{report_id}/download")
 async def download_report(report_id: int, db: Session = Depends(get_db)):

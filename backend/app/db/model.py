@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey
+from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey, Text
 from datetime import datetime
 from typing import Optional
 import enum
@@ -46,6 +46,7 @@ class Report(Base):
     error_message: Mapped[str] = mapped_column(String(2048), default="")
     output_directory: Mapped[str] = mapped_column(String(512), default="")
     date_code: Mapped[str] = mapped_column(String(16), default="")  # DDMMYYYY from filename
+    processed_data: Mapped[str] = mapped_column(Text, default="")  # JSON string of processed report data
 
     # Relationships
     sample: Mapped[Optional["Sample"]] = relationship("Sample", backref="reports")

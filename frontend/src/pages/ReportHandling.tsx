@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ReportHandling.css';
 import { uploadReport, downloadReport } from '../lib/reportApi';
 import type { Report } from '../lib/reportApi';
@@ -6,6 +7,8 @@ import type { Report } from '../lib/reportApi';
 const MEMBERS_STORAGE_KEY = 'report_handling_members';
 
 export default function ReportHandling() {
+  const navigate = useNavigate();
+
   const [files, setFiles] = useState<{[key: string]: File | null}>({
     file1: null,
     file2: null,
@@ -145,15 +148,14 @@ export default function ReportHandling() {
       );
 
       setUploadProgress('Processing complete!');
-      setUploadedReport(report);
 
       // Save the name to members list after successful upload
       if (uploadedBy && uploadedBy !== 'anonymous' && !members.includes(uploadedBy)) {
         setMembers([...members, uploadedBy]);
       }
 
-      // Reset form after successful upload
-      setFiles({ file1: null, file2: null, file3: null });
+      // Navigate to review page instead of showing download
+      navigate(`/report-review/${report.id}`);
 
     } catch (err: any) {
       console.error('Upload failed:', err);

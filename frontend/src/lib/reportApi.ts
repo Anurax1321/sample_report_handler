@@ -20,6 +20,42 @@ export interface Report {
   files: ReportFile[];
 }
 
+export interface CompoundValue {
+  value: number | null;
+  color: 'green' | 'yellow' | 'red' | 'none';
+}
+
+export interface ProcessedDataRow {
+  sample_name: string;
+  is_control_1: boolean;
+  is_control_2: boolean;
+  is_patient: boolean;
+  values: Record<string, CompoundValue>;
+}
+
+export interface StructuredDataFrame {
+  columns: string[];
+  data: (string | number | null)[][];
+}
+
+export interface ProcessedReportData {
+  date_code: string;
+  patient_count: number;
+  patient_names: string[];
+  compounds: string[];
+  reference_ranges: {
+    patient: Record<string, [number, number]>;
+    control_1: Record<string, [number, number]>;
+    control_2: Record<string, [number, number]>;
+  };
+  processed_data: ProcessedDataRow[];
+  structured_dataframes: {
+    control_1: StructuredDataFrame;
+    control_2: StructuredDataFrame;
+    patients: StructuredDataFrame;
+  };
+}
+
 /**
  * Upload report files and process them
  */
@@ -85,4 +121,12 @@ export async function downloadReport(reportId: number, dateCode: string): Promis
  */
 export async function deleteReport(reportId: number): Promise<void> {
   await api.delete(`/reports/${reportId}`);
+}
+
+/**
+ * Get processed data for a report (for review page)
+ */
+export async function getProcessedData(reportId: number): Promise<ProcessedReportData> {
+  const response = await api.get<ProcessedReportData>(`/reports/${reportId}/processed-data`);
+  return response.data;
 }

@@ -6,6 +6,7 @@ import SampleEntryForm from './pages/SampleEntryForm';
 import SampleTracking from './pages/SampleTracking';
 import ReportHandling from './pages/ReportHandling';
 import ReportAnalyser from './pages/ReportAnalyser';
+import ReportReview from './pages/ReportReview';
 import './App.css';
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/sample-entry/form" element={<SampleEntryForm />} />
           <Route path="/sample-entry/tracking" element={<SampleTracking />} />
           <Route path="/report-handling" element={<ReportHandling />} />
+          <Route path="/report-review/:reportId" element={<ReportReview />} />
           <Route path="/report-analyser" element={<ReportAnalyser />} />
         </Routes>
       </div>

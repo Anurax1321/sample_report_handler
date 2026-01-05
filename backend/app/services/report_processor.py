@@ -2,19 +2,135 @@
 # Coordinates data extraction, structuring, and Excel generation
 
 import os
-from typing import List
+import json
+from typing import List, Dict, Any, Tuple
 from app.services import data_extraction, structure, excel_generation
+from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict
 
 class ReportProcessingError(Exception):
     """Custom exception for report processing errors"""
     pass
+
+def serialize_processed_data(
+    final_data_frame_list: List,
+    raw_combined_df,
+    patient_names: List[str],
+    date_code: str
+) -> str:
+    """
+    Serialize processed report data to JSON format for frontend review
+
+    Args:
+        final_data_frame_list: List of 3 DataFrames [Control I, Control II, Patients]
+        raw_combined_df: The raw combined DataFrame before restructuring
+        patient_names: List of patient/sample names
+        date_code: Date code from filename
+
+    Returns:
+        JSON string containing all processed data with metadata
+    """
+    import pandas as pd
+    import numpy as np
+
+    # Helper to convert DataFrame to serializable dict
+    def df_to_dict(df):
+        # Replace NaN with None for JSON compatibility
+        df_copy = df.copy()
+        df_copy = df_copy.replace({np.nan: None})
+        return {
+            'columns': df_copy.columns.tolist(),
+            'data': df_copy.values.tolist()
+        }
+
+    # Helper to determine color coding for a value
+    def get_color_code(compound: str, value, is_control_1: bool = False, is_control_2: bool = False):
+        """
+        Determine color code based on value and reference ranges
+        Returns: 'green' (normal), 'yellow' (out of range), 'red' (critical)
+        """
+        try:
+            val = float(value)
+        except (ValueError, TypeError):
+            return 'none'  # Not a number
+
+        if is_control_1:
+            ranges = control_1_range_dict
+        elif is_control_2:
+            ranges = control_2_range_dict
+        else:
+            ranges = range_dict
+
+        if compound not in ranges:
+            return 'none'
+
+        min_val, max_val = ranges[compound]
+
+        if min_val <= val <= max_val:
+            return 'green'  # Within range
+        else:
+            # Check if critically out of range (>50% beyond limits)
+            lower_critical = min_val * 0.5
+            upper_critical = max_val * 1.5
+            if val < lower_critical or val > upper_critical:
+                return 'red'  # Critical
+            return 'yellow'  # Out of range but not critical
+
+    # Process raw data with color coding
+    compound_columns = [col for col in raw_combined_df.columns if col != 'Sample text']
+
+    # Build data array with color codes
+    processed_data_with_colors = []
+    for idx, row in raw_combined_df.iterrows():
+        row_data = {
+            'sample_name': row['Sample text'],
+            'is_control_1': idx in [0, 1],
+            'is_control_2': idx in [2, 3],
+            'is_patient': idx >= 4,
+            'values': {}
+        }
+
+        for compound in compound_columns:
+            value = row[compound]
+            color = get_color_code(
+                compound,
+                value,
+                is_control_1=row_data['is_control_1'],
+                is_control_2=row_data['is_control_2']
+            )
+            row_data['values'][compound] = {
+                'value': value if pd.notna(value) else None,
+                'color': color
+            }
+
+        processed_data_with_colors.append(row_data)
+
+    # Build final JSON structure
+    result = {
+        'date_code': date_code,
+        'patient_count': len(patient_names),
+        'patient_names': patient_names,
+        'compounds': compound_columns,
+        'reference_ranges': {
+            'patient': range_dict,
+            'control_1': control_1_range_dict,
+            'control_2': control_2_range_dict
+        },
+        'processed_data': processed_data_with_colors,
+        'structured_dataframes': {
+            'control_1': df_to_dict(final_data_frame_list[0]),
+            'control_2': df_to_dict(final_data_frame_list[1]),
+            'patients': df_to_dict(final_data_frame_list[2])
+        }
+    }
+
+    return json.dumps(result)
 
 def process_report_files(
     file_paths: List[str],
     num_patients: int = None,
     template_path: str = None,
     output_dir: str = None
-) -> str:
+) -> Tuple[str, str]:
     """
     Main processing pipeline for NBS report files
 
@@ -25,7 +141,9 @@ def process_report_files(
         output_dir: Directory where output files should be saved
 
     Returns:
-        Path to the generated final_results.xlsx file
+        Tuple of (excel_path, processed_data_json)
+            - excel_path: Path to the generated final_results.xlsx file
+            - processed_data_json: JSON string with processed data for frontend
 
     Raises:
         ReportProcessingError: If processing fails at any stage
@@ -69,28 +187,36 @@ def process_report_files(
         print(f"✓ Patient count validation passed: All files contain {patient_counts[0]} patients/samples")
 
         # Combine all data into final DataFrame
-        final_data_frame = data_extraction.get_final_data(data[0], data[1], data[2], names)
+        raw_combined_df = data_extraction.get_final_data(data[0], data[1], data[2], names)
 
-        print(f"Final Data Frame Created - {final_data_frame.shape[0]} Rows X {final_data_frame.shape[1]} Columns")
+        print(f"Final Data Frame Created - {raw_combined_df.shape[0]} Rows X {raw_combined_df.shape[1]} Columns")
 
         # Restructure data frames for controls and patients
-        final_data_frame = [
-            structure.redefine_dataframe(final_data_frame[:2].copy(), c1_flag=True),
-            structure.redefine_dataframe(final_data_frame[2:4].copy(), c2_flag=True),
-            structure.redefine_dataframe(final_data_frame[4:].copy())
+        final_data_frame_list = [
+            structure.redefine_dataframe(raw_combined_df[:2].copy(), c1_flag=True),
+            structure.redefine_dataframe(raw_combined_df[2:4].copy(), c2_flag=True),
+            structure.redefine_dataframe(raw_combined_df[4:].copy())
         ]
+
+        # Serialize data to JSON for frontend review
+        processed_data_json = serialize_processed_data(
+            final_data_frame_list,
+            raw_combined_df,
+            names,
+            date_code
+        )
 
         # Generate Excel files
         output_path = os.path.join(output_dir, date_code, 'final_results.xlsx')
         excel_path = excel_generation.write_to_excel(
-            final_data_frame,
+            final_data_frame_list,
             output_path,
             date_code,
             template_path
         )
 
         print(f"Report processing completed successfully: {excel_path}")
-        return excel_path
+        return excel_path, processed_data_json
 
     except (data_extraction.DataExtractionError, structure.StructureError,
             excel_generation.ExcelGenerationError) as e:
