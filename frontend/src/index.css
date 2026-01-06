@@ -17,7 +17,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 50%, #e0e7ef 100%);
+  background: linear-gradient(135deg, #fff9f0 0%, #fef5e7 50%, #fff8e8 100%);
   color: #2d3748;
 }
 
@@ -34,16 +34,16 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #667eea;
+  background-color: #d4a574;
   color: white;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 button:hover {
-  background-color: #5568d3;
+  background-color: #c49563;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 8px rgba(212, 165, 116, 0.3);
 }
 
 button:active {
@@ -52,7 +52,7 @@ button:active {
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid #d4a574;
   outline-offset: 2px;
 }
 
@@ -63,11 +63,20 @@ button:disabled {
 }
 
 a {
-  color: #667eea;
+  color: #d4a574;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #5568d3;
+  color: #c49563;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

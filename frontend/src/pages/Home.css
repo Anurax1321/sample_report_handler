@@ -1,5 +1,6 @@
 @import '../components/SampleEntry.css';
 @import '../components/ReportHandling.css';
+@import '../components/ReportAnalyser.css';
 
 .main-content {
   flex: 1;
@@ -19,60 +20,15 @@
 
 .divisions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  height: 100%;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
   align-items: stretch;
 }
 
 .division {
   display: flex;
   flex-direction: column;
-  min-height: 500px;
-}
-
-/* Tablet and smaller */
-@media (max-width: 1024px) {
-  .main-content {
-    padding: 2.5rem 2rem;
-  }
-
-  .divisions {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
-
-  .division {
-    min-height: 400px;
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .main-content {
-    padding: 2rem 1.5rem;
-  }
-
-  .divisions {
-    gap: 2rem;
-  }
-
-  .division {
-    min-height: 350px;
-  }
-}
-
-/* Small mobile */
-@media (max-width: 480px) {
-  .main-content {
-    padding: 1.5rem 1rem;
-  }
-
-  .divisions {
-    gap: 1.5rem;
-  }
-
-  .division {
-    min-height: 300px;
-  }
+  min-height: 280px;
 }

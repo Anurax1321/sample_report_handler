@@ -1,6 +1,17 @@
 # Sample Report Handler
 
-A full-stack application for managing diagnostic sample entries with React frontend and FastAPI backend.
+A full-stack application for managing diagnostic sample entries and processing NBS (Newborn Screening) laboratory reports with React frontend and FastAPI backend.
+
+## Features
+
+- **Sample Management**: Create, track, and manage diagnostic samples
+- **Report Processing**: Upload and process NBS laboratory text files
+  - Automated Excel report generation with color-coded highlighting
+  - Support for Amino Acid (AA), Acylcarnitine (AC), and Extended Acylcarnitine (AC_EXT) data
+  - Medical reference range validation
+  - Individual patient reports with template-based formatting
+- **ZIP Download**: Download all generated Excel reports in one ZIP file
+- **Database Tracking**: Complete audit trail of all uploads and processing
 
 ## Tech Stack
 
@@ -16,38 +27,27 @@ A full-stack application for managing diagnostic sample entries with React front
 - Alembic for migrations
 - SQLite (development) / PostgreSQL (production)
 
-## Docker Setup
+## 🚀 Quick Start with Docker (Recommended)
 
-### Prerequisites
-- Docker Desktop installed and running
-- Docker Compose v3.8+
+### One Command Setup!
 
-### Quick Start
-
-1. **Clone the repository**
 ```bash
-git clone <your-repo-url>
-cd sample_report_handler
+docker compose up --build
 ```
 
-2. **Set up environment variables**
-```bash
-# Backend
-cp backend/.env.example backend/.env
+That's it! The system automatically:
+- ✅ Installs all dependencies
+- ✅ Runs database migrations
+- ✅ Creates required directories
+- ✅ Starts backend on http://localhost:8000
+- ✅ Starts frontend on http://localhost:3000
 
-# Frontend
-cp frontend/.env.example frontend/.env
-```
+**For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER_SETUP.md](DOCKER_SETUP.md)**
 
-3. **Build and run with Docker Compose**
-```bash
-docker-compose up --build
-```
-
-4. **Access the application**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+### Access Points
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs (Interactive API testing)
 
 ### Docker Commands
 
@@ -145,29 +145,61 @@ npm run dev
 - `PATCH /samples/{id}/status` - Update sample status
 - `DELETE /samples/{id}` - Delete sample
 
+### Report Processing (NEW!)
+- `POST /reports/upload` - Upload and process 3 NBS report files
+- `GET /reports` - List all reports (optional filter by sample_id)
+- `GET /reports/{id}` - Get specific report details
+- `GET /reports/{id}/download` - Download ZIP of generated Excel files
+- `DELETE /reports/{id}` - Delete report and associated files
+
+**For detailed report handler documentation, see [REPORT_HANDLER_IMPLEMENTATION.md](REPORT_HANDLER_IMPLEMENTATION.md)**
+
 ## Project Structure
 
 ```
 sample_report_handler/
 ├── backend/
 │   ├── app/
-│   │   ├── api/          # API routes
-│   │   ├── core/         # Configuration
-│   │   ├── db/           # Database models
-│   │   ├── schema/       # Pydantic schemas
-│   │   └── main.py       # FastAPI app
-│   ├── alembic/          # Database migrations
+│   │   ├── api/                   # API routes
+│   │   │   ├── routes_samples.py
+│   │   │   └── routes_reports.py  # NEW: Report endpoints
+│   │   ├── core/                  # Configuration
+│   │   │   ├── config.py
+│   │   │   └── reference_ranges.py  # NEW: Medical reference values
+│   │   ├── db/                    # Database models
+│   │   │   └── model.py           # Sample, Report, ReportFile models
+│   │   ├── schema/                # Pydantic schemas
+│   │   │   ├── sample.py
+│   │   │   └── report.py          # NEW: Report schemas
+│   │   ├── services/              # NEW: Report processing
+│   │   │   ├── data_extraction.py
+│   │   │   ├── structure.py
+│   │   │   ├── excel_generation.py
+│   │   │   ├── file_validator.py
+│   │   │   └── report_processor.py
+│   │   └── main.py                # FastAPI app
+│   ├── alembic/                   # Database migrations
+│   ├── templates/                 # NEW: Excel template
+│   ├── uploads/                   # NEW: Uploaded report files
+│   ├── entrypoint.sh              # NEW: Docker startup script
 │   ├── Dockerfile
-│   └── requirements.txt
+│   └── requirements.txt           # Updated with pandas, openpyxl, numpy
 ├── frontend/
 │   ├── src/
-│   │   ├── lib/          # API client
-│   │   ├── App.tsx       # Main component
-│   │   └── main.tsx      # Entry point
+│   │   ├── lib/
+│   │   │   ├── api.ts
+│   │   │   └── reportApi.ts       # NEW: Report API client
+│   │   ├── pages/
+│   │   │   └── ReportHandling.tsx # NEW: Report upload UI
+│   │   ├── App.tsx
+│   │   └── main.tsx
 │   ├── Dockerfile
-│   ├── nginx.conf        # Production server config
+│   ├── nginx.conf
 │   └── package.json
-└── docker-compose.yml
+├── docker-compose.yml             # Updated with volumes
+├── DOCKER_SETUP.md                # NEW: Comprehensive Docker guide
+├── REPORT_HANDLER_IMPLEMENTATION.md  # NEW: Report handler docs
+└── README.md
 ```
 
 ## Environment Variables

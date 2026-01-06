@@ -1,12 +1,24 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './Header.css';
 
 export default function Header() {
+  const location = useLocation();
+
+  // Show appropriate title based on current page
+  const isReportAnalyserPage = location.pathname === '/report-analyser';
+  const isReportHandlingPage = location.pathname === '/report-handling';
+
+  const headerTitle = isReportAnalyserPage
+    ? 'Report Analyser'
+    : isReportHandlingPage
+    ? 'Report Handling'
+    : 'Report Handling';
+
   return (
     <header className="header">
       <div className="header-content">
         <div className="header-left">
-          <h1 className="header-title">Vijayrekha Life Science</h1>
+          <h1 className="header-title">{headerTitle}</h1>
         </div>
         <div className="header-right">
           <Link to="/" className="home-link">

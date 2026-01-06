@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 import asyncio
 from app.core.config import settings
 from app.api.routes_samples import router as samples_router
+from app.api.routes_reports import router as reports_router
+from app.api.routes_analyzer import router as analyzer_router
 
 
 @asynccontextmanager
@@ -42,13 +44,15 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.CORS_ORIGINS],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(samples_router)
+app.include_router(reports_router)
+app.include_router(analyzer_router)
 
 @app.get("/health")
 def health():
