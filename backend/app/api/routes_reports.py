@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
 from app.schema.report import ReportCreate, ReportRead
-from app.services import file_validator, report_processor, pdf_generation
+from app.services import file_validator, report_processor, pdf_generation, excel_export
 from typing import List
 import os
 import shutil
@@ -321,6 +321,46 @@ async def download_pdf(report_id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={pdf_files[0]}"}
     )
+
+@router.post("/{report_id}/download-excel")
+async def download_excel(report_id: int, edited_data: dict = None, db: Session = Depends(get_db)):
+    """
+    Download the review grid as an Excel file with color coding and reference ranges
+
+    Body:
+    - edited_data: Optional dictionary of edited cell values {cellKey: value}
+
+    Returns:
+    - Excel file with formatted data, colors, and reference ranges
+    """
+    report = db.get(model.Report, report_id)
+    if not report:
+        raise HTTPException(404, "Report not found")
+
+    if report.processing_status != model.ReportStatus.completed:
+        raise HTTPException(400, f"Report is not ready. Status: {report.processing_status}")
+
+    if not report.processed_data:
+        raise HTTPException(404, "Processed data not found for this report")
+
+    try:
+        # Parse processed data
+        processed_data = json.loads(report.processed_data)
+
+        # Generate Excel file
+        excel_buffer = excel_export.export_review_data_to_excel(processed_data, edited_data)
+
+        # Return as downloadable file
+        return StreamingResponse(
+            excel_buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=report_{report_id}_{processed_data['date_code']}_review.xlsx"}
+        )
+
+    except excel_export.ExcelExportError as e:
+        raise HTTPException(500, f"Excel export failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(500, f"Unexpected error during Excel export: {str(e)}")
 
 @router.delete("/{report_id}")
 def delete_report(report_id: int, db: Session = Depends(get_db)):

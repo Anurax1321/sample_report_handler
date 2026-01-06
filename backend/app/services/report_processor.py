@@ -5,7 +5,7 @@ import os
 import json
 from typing import List, Dict, Any, Tuple
 from app.services import data_extraction, structure, excel_generation
-from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict, ratio_range_dict
+from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict, ratio_range_dict, biochemical_params_ranges
 
 class ReportProcessingError(Exception):
     """Custom exception for report processing errors"""
@@ -85,7 +85,11 @@ def serialize_processed_data(
         'C4/C3', 'C3/C0', 'C3/C2', 'C8/C10', 'C8/C2',  # Acylcarnitine ratios
         'C0/(C16+C18)', 'C5/C2', 'C5/C3', 'C5DC/C3', 'C5DC/C16'
     ]
-    all_columns = compound_columns + ratio_columns
+
+    # Add biochemical parameters (manually entered by user)
+    biochemical_params = ['TSH', '17-OHP', 'G6PD', 'TGAL', 'IRT', 'BIOT']
+
+    all_columns = compound_columns + ratio_columns + biochemical_params
 
     # Build data array with color codes
     processed_data_with_colors = []
@@ -229,6 +233,16 @@ def serialize_processed_data(
                 'color': ratio_color
             }
 
+        # Add biochemical parameters (blank for all rows, user will fill them in)
+        # Only patients get biochemical parameters in the PDF, so we keep controls blank
+        for param in biochemical_params:
+            # All rows (controls and patients) start with blank values
+            # User will manually enter these values
+            row_data['values'][param] = {
+                'value': None,
+                'color': 'none'
+            }
+
         processed_data_with_colors.append(row_data)
 
     # Build final JSON structure
@@ -236,12 +250,13 @@ def serialize_processed_data(
         'date_code': date_code,
         'patient_count': len(patient_names),
         'patient_names': patient_names,
-        'compounds': all_columns,  # Include both compounds and ratios
+        'compounds': all_columns,  # Include compounds, ratios, and biochemical params
         'reference_ranges': {
             'patient': range_dict,
             'control_1': control_1_range_dict,
             'control_2': control_2_range_dict,
-            'ratios': ratio_range_dict  # Add ratio ranges
+            'ratios': ratio_range_dict,  # Ratio ranges
+            'biochemical': biochemical_params_ranges  # Biochemical parameters ranges
         },
         'processed_data': processed_data_with_colors,
         'structured_dataframes': {

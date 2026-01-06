@@ -48,6 +48,7 @@ export interface ProcessedReportData {
     control_1: Record<string, [number, number]>;
     control_2: Record<string, [number, number]>;
     ratios: Record<string, [number, number]>;
+    biochemical: Record<string, [number, number]>;
   };
   processed_data: ProcessedDataRow[];
   structured_dataframes: {
@@ -153,6 +154,25 @@ export async function downloadPDF(reportId: number, filename: string): Promise<v
   const link = document.createElement('a');
   link.href = url;
   link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Download the review grid as an Excel file with colors and reference ranges
+ */
+export async function downloadExcel(reportId: number, dateCode: string, editedData?: Record<string, number>): Promise<void> {
+  const response = await api.post(`/reports/${reportId}/download-excel`, editedData || {}, {
+    responseType: 'blob',
+  });
+
+  // Create download link
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `report_${reportId}_${dateCode}_review.xlsx`);
   document.body.appendChild(link);
   link.click();
   link.remove();

@@ -113,3 +113,14 @@ ratio_range_dict = {
     'C5DC/C3': (0, 0.27),        # C5DC / C3 ratio - max 0.27
     'C5DC/C16': (0, 0.68),       # C5DC / C16 ratio - max 0.68
 }
+
+# Biochemical Parameters reference ranges
+# These are screening values for various metabolic and endocrine disorders
+biochemical_params_ranges = {
+    'TSH': (0, 15),              # Thyroid Stimulating Hormone - ulU/mL - Congenital Hypothyroidism (CH)
+    '17-OHP': (0, 50),           # 17-hydroxyprogesterone - ng/mL - Congenital Adrenal Hyperplasia (CAH) - <30 for BW>2250g, <50 for BW<2250g
+    'G6PD': (1.5, 1000),         # G6PD enzyme activity - U/gHb - G6PD Deficiency - >1.5
+    'TGAL': (0, 15),             # Total Galactose - mg/dL - Galactosemia (GAL)
+    'IRT': (0, 90),              # Immunoreactive trypsinogen - µg/L - Cystic Fibrosis (CF)
+    'BIOT': (31.6, 388),         # Biotinidase - U - Biotinidase Deficiency
+}

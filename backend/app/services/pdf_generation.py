@@ -14,6 +14,58 @@ class PDFGenerationError(Exception):
     """Custom exception for PDF generation errors"""
     pass
 
+def _is_value_abnormal(compound: str, value, ranges: Dict, range_type: str = 'patient') -> bool:
+    """
+    Check if a value is abnormal (outside normal limits)
+
+    Args:
+        compound: Compound name
+        value: The value to check
+        ranges: Reference ranges dictionary from processed_data
+        range_type: Type of range to check ('patient', 'ratios', 'biochemical')
+
+    Returns:
+        True if value is outside normal range (yellow or red), False otherwise
+    """
+    if value is None or value == '':
+        return False
+
+    try:
+        val = float(value)
+    except (ValueError, TypeError):
+        return False
+
+    # Get the appropriate range dictionary
+    range_dict = ranges.get(range_type, {})
+
+    if compound not in range_dict:
+        return False
+
+    min_val, max_val = range_dict[compound]
+
+    # Bold if outside the normal range (yellow or red in the frontend)
+    return val < min_val or val > max_val
+
+def _format_value_with_bold(value, is_abnormal: bool) -> str:
+    """
+    Format a value, making it bold if abnormal using HTML tags
+
+    Args:
+        value: The value to format
+        is_abnormal: Whether the value is abnormal
+
+    Returns:
+        Formatted string with bold HTML tags if abnormal
+    """
+    if value is None or value == '':
+        return '—'
+
+    try:
+        formatted = f"{float(value):.2f}"
+        return f"<b>{formatted}</b>" if is_abnormal else formatted
+    except (ValueError, TypeError):
+        return '—'
+
 # Compound name mapping from data to display names
 COMPOUND_DISPLAY_NAMES = {
     'Ala': 'Alanine',
@@ -211,10 +263,14 @@ def _create_amino_acids_table(patient_data: Dict, processed_data: Dict) -> Table
             value = patient_data['values'].get(compound, {}).get('value', '')
             ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], 'patient')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(i + 1),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -226,10 +282,14 @@ def _create_amino_acids_table(patient_data: Dict, processed_data: Dict) -> Table
             value = patient_data['values'].get(compound, {}).get('value', '')
             ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], 'patient')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(i + 8),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -273,10 +333,14 @@ def _create_amino_ratios_table(patient_data: Dict, processed_data: Dict) -> Tabl
         ratio_key, display_name, ref_range = ratios_info[i]
         value = patient_data['values'].get(ratio_key, {}).get('value', '')
 
+        # Check if abnormal
+        is_abnormal = _is_value_abnormal(ratio_key, value, processed_data['reference_ranges'], 'ratios')
+        formatted_value = _format_value_with_bold(value, is_abnormal)
+
         row.extend([
             str(i + 1),
             display_name,
-            f"{float(value):.2f}" if value is not None and value != '' else '—',
+            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
             ref_range
         ])
 
@@ -285,10 +349,14 @@ def _create_amino_ratios_table(patient_data: Dict, processed_data: Dict) -> Tabl
             ratio_key, display_name, ref_range = ratios_info[i + 3]
             value = patient_data['values'].get(ratio_key, {}).get('value', '')
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(ratio_key, value, processed_data['reference_ranges'], 'ratios')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(i + 4) if ratio_key else '',
                 display_name,
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 ref_range
             ])
         else:
@@ -333,13 +401,19 @@ def _create_acylcarnitines_table_page1(patient_data: Dict, processed_data: Dict)
             # TotalCN uses ratio ranges, others use patient ranges
             if compound == 'TotalCN':
                 ranges = processed_data['reference_ranges']['ratios'].get(compound, ['', ''])
+                range_type = 'ratios'
             else:
                 ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
+                range_type = 'patient'
+
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], range_type)
+            formatted_value = _format_value_with_bold(value, is_abnormal)
 
             row.extend([
                 str(i + 1),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
 
@@ -351,13 +425,19 @@ def _create_acylcarnitines_table_page1(patient_data: Dict, processed_data: Dict)
             # TotalCN uses ratio ranges, others use patient ranges
             if compound == 'TotalCN':
                 ranges = processed_data['reference_ranges']['ratios'].get(compound, ['', ''])
+                range_type = 'ratios'
             else:
                 ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
+                range_type = 'patient'
+
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], range_type)
+            formatted_value = _format_value_with_bold(value, is_abnormal)
 
             row.extend([
                 str(i + 8),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
 
@@ -424,10 +504,14 @@ def _create_acylcarnitines_table_page2(patient_data: Dict, processed_data: Dict)
             value = patient_data['values'].get(compound, {}).get('value', '')
             ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], 'patient')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(15 + i),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -440,10 +524,14 @@ def _create_acylcarnitines_table_page2(patient_data: Dict, processed_data: Dict)
             value = patient_data['values'].get(compound, {}).get('value', '')
             ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(compound, value, processed_data['reference_ranges'], 'patient')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(15 + right_idx),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -491,10 +579,14 @@ def _create_acyl_ratios_table(patient_data: Dict, processed_data: Dict) -> Table
         ratio_key, display_name, ref_range = ratios_info[i]
         value = patient_data['values'].get(ratio_key, {}).get('value', '')
 
+        # Check if abnormal
+        is_abnormal = _is_value_abnormal(ratio_key, value, processed_data['reference_ranges'], 'ratios')
+        formatted_value = _format_value_with_bold(value, is_abnormal)
+
         row.extend([
             str(i + 1),
             display_name,
-            f"{float(value):.2f}" if value is not None and value != '' else '—',
+            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
             ref_range
         ])
 
@@ -503,10 +595,14 @@ def _create_acyl_ratios_table(patient_data: Dict, processed_data: Dict) -> Table
             ratio_key, display_name, ref_range = ratios_info[i + 5]
             value = patient_data['values'].get(ratio_key, {}).get('value', '')
 
+            # Check if abnormal
+            is_abnormal = _is_value_abnormal(ratio_key, value, processed_data['reference_ranges'], 'ratios')
+            formatted_value = _format_value_with_bold(value, is_abnormal)
+
             row.extend([
                 str(i + 6),
                 display_name,
-                f"{float(value):.2f}" if value is not None and value != '' else '—',
+                formatted_value,
                 ref_range
             ])
 
@@ -587,9 +683,14 @@ def _create_biochemical_params_table(patient_data: Dict, processed_data: Dict) -
 
     for param_key, assay_name, ref_range in params:
         value = patient_data['values'].get(param_key, {}).get('value', '')
+
+        # Check if abnormal
+        is_abnormal = _is_value_abnormal(param_key, value, processed_data['reference_ranges'], 'biochemical')
+        formatted_value = _format_value_with_bold(value, is_abnormal)
+
         table_data.append([
             assay_name,
-            f"{float(value):.2f}" if value is not None and value != '' else '—',
+            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
             ref_range
         ])
 
