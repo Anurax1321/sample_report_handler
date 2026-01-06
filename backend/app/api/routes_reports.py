@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
 from app.schema.report import ReportCreate, ReportRead
-from app.services import file_validator, report_processor, pdf_generation
+from app.services import file_validator, report_processor, pdf_generation, excel_export
 from typing import List
 import os
 import shutil
@@ -262,27 +262,36 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
         # Save updated processed data
         report.processed_data = json.dumps(processed_data)
 
-        # Generate PDF with updated data
+        # Generate PDFs with updated data (one per patient)
         date_code = processed_data['date_code']
-        output_dir = os.path.join(UPLOAD_DIR, str(report_id), "output")
+        output_dir = os.path.join(UPLOAD_DIR, str(report_id), "output", date_code)
 
-        pdf_path = pdf_generation.generate_nbs_report_pdf(
+        pdf_paths = pdf_generation.generate_nbs_report_pdf(
             processed_data,
             output_dir,
             date_code
         )
 
-        # Update report with PDF path - always set to ensure it's correct
+        # Create a ZIP file containing all PDFs
+        zip_filename = f"NBS_Reports_{date_code}.zip"
+        zip_path = os.path.join(output_dir, zip_filename)
+
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for pdf_path in pdf_paths:
+                zip_file.write(pdf_path, arcname=os.path.basename(pdf_path))
+
+        # Update report with output directory
         report.output_directory = output_dir
 
         db.commit()
         db.refresh(report)
 
-        # Return report with pdf_path for frontend
+        # Return report with zip info for frontend
         return {
             **report.__dict__,
-            "pdf_path": pdf_path,
-            "pdf_filename": os.path.basename(pdf_path)
+            "pdf_count": len(pdf_paths),
+            "zip_path": zip_path,
+            "zip_filename": zip_filename
         }
 
     except pdf_generation.PDFGenerationError as e:
@@ -293,10 +302,10 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
 @router.get("/{report_id}/download-pdf")
 async def download_pdf(report_id: int, db: Session = Depends(get_db)):
     """
-    Download the generated PDF for a report
+    Download the generated PDFs as a ZIP file
 
     Returns:
-    - PDF file
+    - ZIP file containing all patient PDF reports
     """
     report = db.get(model.Report, report_id)
     if not report:
@@ -305,22 +314,62 @@ async def download_pdf(report_id: int, db: Session = Depends(get_db)):
     if not report.output_directory or not os.path.exists(report.output_directory):
         raise HTTPException(404, "Output directory not found")
 
-    # Find PDF file in output directory
-    pdf_files = [f for f in os.listdir(report.output_directory) if f.endswith('.pdf')]
+    # Find ZIP file in output directory
+    zip_files = [f for f in os.listdir(report.output_directory) if f.endswith('.zip')]
 
-    if not pdf_files:
-        raise HTTPException(404, "PDF file not found. Please approve the report first.")
+    if not zip_files:
+        raise HTTPException(404, "ZIP file not found. Please approve the report first.")
 
-    pdf_path = os.path.join(report.output_directory, pdf_files[0])
+    zip_path = os.path.join(report.output_directory, zip_files[0])
 
-    if not os.path.exists(pdf_path):
-        raise HTTPException(404, "PDF file not found")
+    if not os.path.exists(zip_path):
+        raise HTTPException(404, "ZIP file not found")
 
     return FileResponse(
-        pdf_path,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={pdf_files[0]}"}
+        zip_path,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={zip_files[0]}"}
     )
+
+@router.post("/{report_id}/download-excel")
+async def download_excel(report_id: int, edited_data: dict = None, db: Session = Depends(get_db)):
+    """
+    Download the review grid as an Excel file with color coding and reference ranges
+
+    Body:
+    - edited_data: Optional dictionary of edited cell values {cellKey: value}
+
+    Returns:
+    - Excel file with formatted data, colors, and reference ranges
+    """
+    report = db.get(model.Report, report_id)
+    if not report:
+        raise HTTPException(404, "Report not found")
+
+    if report.processing_status != model.ReportStatus.completed:
+        raise HTTPException(400, f"Report is not ready. Status: {report.processing_status}")
+
+    if not report.processed_data:
+        raise HTTPException(404, "Processed data not found for this report")
+
+    try:
+        # Parse processed data
+        processed_data = json.loads(report.processed_data)
+
+        # Generate Excel file
+        excel_buffer = excel_export.export_review_data_to_excel(processed_data, edited_data)
+
+        # Return as downloadable file
+        return StreamingResponse(
+            excel_buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=report_{report_id}_{processed_data['date_code']}_review.xlsx"}
+        )
+
+    except excel_export.ExcelExportError as e:
+        raise HTTPException(500, f"Excel export failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(500, f"Unexpected error during Excel export: {str(e)}")
 
 @router.delete("/{report_id}")
 def delete_report(report_id: int, db: Session = Depends(get_db)):

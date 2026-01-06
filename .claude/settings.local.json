@@ -50,7 +50,8 @@
       "Bash(pip search:*)",
       "Bash(uvicorn app.main:app:*)",
       "Bash(pdftotext:*)",
-      "Bash(.gitignore)"
+      "Bash(.gitignore)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

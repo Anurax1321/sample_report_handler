@@ -5,7 +5,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import type { ColDef, CellStyle } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { getProcessedData, getReport, approveReport, downloadPDF } from '../lib/reportApi';
+import { getProcessedData, getReport, approveReport, downloadPDF, downloadExcel } from '../lib/reportApi';
 import type { ProcessedReportData, Report } from '../lib/reportApi';
 import './ReportReview.css';
 
@@ -23,6 +23,7 @@ export default function ReportReview() {
   const [editedCells, setEditedCells] = useState<Set<string>>(new Set());
   const [rowData, setRowData] = useState<any[]>([]);
   const [approving, setApproving] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
@@ -89,12 +90,15 @@ export default function ReportReview() {
   }, [processedData]);
 
   // Function to recalculate color based on new value
-  const getColorForValue = useCallback((compound: string, value: number | null, isControl1: boolean, isControl2: boolean, isRatio: boolean = false) => {
+  const getColorForValue = useCallback((compound: string, value: number | null, isControl1: boolean, isControl2: boolean, isRatio: boolean = false, isBiochemical: boolean = false) => {
     if (!processedData || value === null || value === undefined) return 'none';
 
     let ranges;
-    // Check if this is a ratio field
-    if (isRatio) {
+    // Check if this is a biochemical parameter
+    if (isBiochemical) {
+      ranges = processedData.reference_ranges.biochemical?.[compound];
+    } else if (isRatio) {
+      // Check if this is a ratio field
       ranges = processedData.reference_ranges.ratios?.[compound];
     } else if (isControl1) {
       ranges = processedData.reference_ranges.control_1[compound];
@@ -139,11 +143,19 @@ export default function ReportReview() {
     }
 
     // Check if this is a ratio column
-    const ratioColumns = ['TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr'];
+    const ratioColumns = [
+      'TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr',
+      'C4/C3', 'C3/C0', 'C3/C2', 'C8/C10', 'C8/C2',
+      'C0/(C16+C18)', 'C5/C2', 'C5/C3', 'C5DC/C3', 'C5DC/C16'
+    ];
     const isRatio = ratioColumns.includes(field);
 
+    // Check if this is a biochemical parameter
+    const biochemicalParams = ['TSH', '17-OHP', 'G6PD', 'TGAL', 'IRT', 'BIOT'];
+    const isBiochemical = biochemicalParams.includes(field);
+
     // Recalculate color
-    const newColor = getColorForValue(field, numValue, data.isControl1, data.isControl2, isRatio);
+    const newColor = getColorForValue(field, numValue, data.isControl1, data.isControl2, isRatio, isBiochemical);
 
     // Update the row data with new value and color
     const updatedData = [...rowData];
@@ -227,18 +239,16 @@ export default function ReportReview() {
       // Get edited data
       const editedData = getEditedData();
 
-      // Send to backend and generate PDF
+      // Send to backend and generate PDFs
       const result = await approveReport(parseInt(reportId), editedData);
 
-      // Download the generated PDF
-      const pdfFilename = result.pdf_filename || `NBS_Report_${processedData.date_code}.pdf`;
-      await downloadPDF(parseInt(reportId), pdfFilename);
+      // Download the generated ZIP file containing all PDFs
+      const zipFilename = result.zip_filename || `NBS_Reports_${processedData.date_code}.zip`;
+      await downloadPDF(parseInt(reportId), zipFilename);
 
       // Show success message
-      alert(`Report approved successfully! PDF "${pdfFilename}" has been downloaded.`);
-
-      // Navigate back to upload page
-      navigate('/report-handling');
+      const patientCount = result.pdf_count || processedData.patient_count;
+      alert(`Report approved successfully! Generated ${patientCount} patient PDF(s) in "${zipFilename}". The ZIP file has been downloaded. You can continue working with the data or download as Excel.`);
 
     } catch (err: any) {
       console.error('Error approving report:', err);
@@ -252,6 +262,27 @@ export default function ReportReview() {
   const handleApproveClick = () => {
     setShowConfirmDialog(true);
   };
+
+  // Handle Excel download
+  const handleDownloadExcel = useCallback(async () => {
+    if (!reportId || !processedData) return;
+
+    try {
+      setDownloadingExcel(true);
+
+      // Get edited data
+      const editedData = getEditedData();
+
+      // Download Excel with current data and edits
+      await downloadExcel(parseInt(reportId), processedData.date_code, editedData);
+
+    } catch (err: any) {
+      console.error('Error downloading Excel:', err);
+      alert(err.response?.data?.detail || err.message || 'Failed to download Excel file');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  }, [reportId, processedData, getEditedData]);
 
   // Column definitions
   const columnDefs = useMemo<ColDef[]>(() => {
@@ -469,13 +500,21 @@ export default function ReportReview() {
         </div>
 
         <div className="review-actions">
-          <button onClick={handleGoBack} className="secondary-button" disabled={approving}>
+          <button onClick={handleGoBack} className="secondary-button" disabled={approving || downloadingExcel}>
             Cancel & Go Back
+          </button>
+          <button
+            onClick={handleDownloadExcel}
+            className="secondary-button"
+            disabled={approving || downloadingExcel}
+            style={{ backgroundColor: '#28a745', color: 'white', border: 'none' }}
+          >
+            {downloadingExcel ? 'Downloading...' : 'Download as Excel'}
           </button>
           <button
             onClick={handleApproveClick}
             className="primary-button"
-            disabled={approving}
+            disabled={approving || downloadingExcel}
           >
             {approving ? 'Generating PDF...' : 'Approve & Generate PDF'}
           </button>

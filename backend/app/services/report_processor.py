@@ -5,7 +5,7 @@ import os
 import json
 from typing import List, Dict, Any, Tuple
 from app.services import data_extraction, structure, excel_generation
-from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict, ratio_range_dict
+from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict, ratio_range_dict, biochemical_params_ranges
 
 class ReportProcessingError(Exception):
     """Custom exception for report processing errors"""
@@ -79,8 +79,17 @@ def serialize_processed_data(
     compound_columns = [col for col in raw_combined_df.columns if col != 'Sample text']
 
     # Add ratio columns that will be calculated or manually entered
-    ratio_columns = ['TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr']
-    all_columns = compound_columns + ratio_columns
+    ratio_columns = [
+        'TotalCN',              # Total Carnitines
+        'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr',  # Amino acid ratios
+        'C4/C3', 'C3/C0', 'C3/C2', 'C8/C10', 'C8/C2',  # Acylcarnitine ratios
+        'C0/(C16+C18)', 'C5/C2', 'C5/C3', 'C5DC/C3', 'C5DC/C16'
+    ]
+
+    # Add biochemical parameters (manually entered by user)
+    biochemical_params = ['TSH', '17-OHP', 'G6PD', 'TGAL', 'IRT', 'BIOT']
+
+    all_columns = compound_columns + ratio_columns + biochemical_params
 
     # Build data array with color codes
     processed_data_with_colors = []
@@ -119,40 +128,86 @@ def serialize_processed_data(
                 return None
             return numerator / denominator
 
-        # Calculate TotalCN: sum of all compounds starting with 'C'
-        total_cn = 0
-        total_cn_count = 0
-        for compound in compound_columns:
-            if compound.startswith('C'):
-                val = safe_get_value(compound)
-                if val is not None:
-                    total_cn += val
-                    total_cn_count += 1
+        # Skip ratio calculations for control samples - they're only for quality control
+        # Controls won't be included in the PDF, so no need to calculate their ratios
+        if row_data['is_control_1'] or row_data['is_control_2']:
+            # For controls, set all ratios to None (blank)
+            ratio_values = {ratio_col: None for ratio_col in ratio_columns}
+        else:
+            # Calculate ratios only for patient samples
+            # Calculate TotalCN: sum of all compounds starting with 'C'
+            total_cn = 0
+            total_cn_count = 0
+            for compound in compound_columns:
+                if compound.startswith('C'):
+                    val = safe_get_value(compound)
+                    if val is not None:
+                        total_cn += val
+                        total_cn_count += 1
 
-        total_cn_value = total_cn if total_cn_count > 0 else None
+            total_cn_value = total_cn if total_cn_count > 0 else None
 
-        # Calculate amino acid ratios
-        met = safe_get_value('Met')
-        leu = safe_get_value('Leu')
-        phe = safe_get_value('Phe')
-        tyr = safe_get_value('Tyr')
-        ala = safe_get_value('Ala')
+            # Calculate amino acid ratios
+            met = safe_get_value('Met')
+            leu = safe_get_value('Leu')
+            phe = safe_get_value('Phe')
+            tyr = safe_get_value('Tyr')
+            ala = safe_get_value('Ala')
 
-        met_leu_ratio = safe_divide(met, leu)
-        met_phe_ratio = safe_divide(met, phe)
-        phe_tyr_ratio = safe_divide(phe, tyr)
-        leu_ala_ratio = safe_divide(leu, ala)
-        leu_tyr_ratio = safe_divide(leu, tyr)
+            met_leu_ratio = safe_divide(met, leu)
+            met_phe_ratio = safe_divide(met, phe)
+            phe_tyr_ratio = safe_divide(phe, tyr)
+            leu_ala_ratio = safe_divide(leu, ala)
+            leu_tyr_ratio = safe_divide(leu, tyr)
 
-        # Map calculated values to ratio columns
-        ratio_values = {
-            'TotalCN': total_cn_value,
-            'Met/Leu': met_leu_ratio,
-            'Met/Phe': met_phe_ratio,
-            'Phe/Tyr': phe_tyr_ratio,
-            'Leu/Ala': leu_ala_ratio,
-            'Leu/Tyr': leu_tyr_ratio
-        }
+            # Calculate acylcarnitine ratios
+            c0 = safe_get_value('C0')
+            c2 = safe_get_value('C2')
+            c3 = safe_get_value('C3')
+            c4 = safe_get_value('C4')
+            c5 = safe_get_value('C5')
+            c5dc = safe_get_value('C5DC')
+            c8 = safe_get_value('C8')
+            c10 = safe_get_value('C10')
+            c16 = safe_get_value('C16')
+            c18 = safe_get_value('C18')
+
+            c4_c3_ratio = safe_divide(c4, c3)
+            c3_c0_ratio = safe_divide(c3, c0)
+            c3_c2_ratio = safe_divide(c3, c2)
+            c8_c10_ratio = safe_divide(c8, c10)
+            c8_c2_ratio = safe_divide(c8, c2)
+
+            # C0/(C16+C18) - special case with sum in denominator
+            c16_c18_sum = (c16 if c16 is not None else 0) + (c18 if c18 is not None else 0)
+            c0_c16c18_ratio = safe_divide(c0, c16_c18_sum if c16_c18_sum > 0 else None)
+
+            c5_c2_ratio = safe_divide(c5, c2)
+            c5_c3_ratio = safe_divide(c5, c3)
+            c5dc_c3_ratio = safe_divide(c5dc, c3)
+            c5dc_c16_ratio = safe_divide(c5dc, c16)
+
+            # Map calculated values to ratio columns
+            ratio_values = {
+                'TotalCN': total_cn_value,
+                # Amino acid ratios
+                'Met/Leu': met_leu_ratio,
+                'Met/Phe': met_phe_ratio,
+                'Phe/Tyr': phe_tyr_ratio,
+                'Leu/Ala': leu_ala_ratio,
+                'Leu/Tyr': leu_tyr_ratio,
+                # Acylcarnitine ratios
+                'C4/C3': c4_c3_ratio,
+                'C3/C0': c3_c0_ratio,
+                'C3/C2': c3_c2_ratio,
+                'C8/C10': c8_c10_ratio,
+                'C8/C2': c8_c2_ratio,
+                'C0/(C16+C18)': c0_c16c18_ratio,
+                'C5/C2': c5_c2_ratio,
+                'C5/C3': c5_c3_ratio,
+                'C5DC/C3': c5dc_c3_ratio,
+                'C5DC/C16': c5dc_c16_ratio
+            }
 
         # Add ratio columns with calculated values and color coding
         for ratio in ratio_columns:
@@ -178,6 +233,16 @@ def serialize_processed_data(
                 'color': ratio_color
             }
 
+        # Add biochemical parameters (blank for all rows, user will fill them in)
+        # Only patients get biochemical parameters in the PDF, so we keep controls blank
+        for param in biochemical_params:
+            # All rows (controls and patients) start with blank values
+            # User will manually enter these values
+            row_data['values'][param] = {
+                'value': None,
+                'color': 'none'
+            }
+
         processed_data_with_colors.append(row_data)
 
     # Build final JSON structure
@@ -185,12 +250,13 @@ def serialize_processed_data(
         'date_code': date_code,
         'patient_count': len(patient_names),
         'patient_names': patient_names,
-        'compounds': all_columns,  # Include both compounds and ratios
+        'compounds': all_columns,  # Include compounds, ratios, and biochemical params
         'reference_ranges': {
             'patient': range_dict,
             'control_1': control_1_range_dict,
             'control_2': control_2_range_dict,
-            'ratios': ratio_range_dict  # Add ratio ranges
+            'ratios': ratio_range_dict,  # Ratio ranges
+            'biochemical': biochemical_params_ranges  # Biochemical parameters ranges
         },
         'processed_data': processed_data_with_colors,
         'structured_dataframes': {
