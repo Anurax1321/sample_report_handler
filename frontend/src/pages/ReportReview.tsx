@@ -138,8 +138,12 @@ export default function ReportReview() {
       return;
     }
 
+    // Check if this is a ratio column
+    const ratioColumns = ['TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr'];
+    const isRatio = ratioColumns.includes(field);
+
     // Recalculate color
-    const newColor = getColorForValue(field, numValue, data.isControl1, data.isControl2);
+    const newColor = getColorForValue(field, numValue, data.isControl1, data.isControl2, isRatio);
 
     // Update the row data with new value and color
     const updatedData = [...rowData];

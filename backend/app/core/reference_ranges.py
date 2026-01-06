@@ -91,7 +91,7 @@ MULTIPLICATION_FACTORS = {
 # Ratio reference ranges for additional calculated fields
 # These are based on amino acid ratio thresholds from the PDF template
 ratio_range_dict = {
-    'TotalCN': (0, 1000),        # Total Carnitines - to be determined
+    'TotalCN': (10, 184),        # Total Carnitines (sum of all C* compounds)
     'Met/Leu': (0, 0.42),        # Met / Leu ratio - max 0.42
     'Met/Phe': (0, 0.70),        # Met / Phe ratio - max 0.70
     'Phe/Tyr': (0, 2.00),        # Phe / Tyr (PKU) ratio - max 2.00

@@ -107,11 +107,75 @@ def serialize_processed_data(
                 'color': color
             }
 
-        # Add ratio columns with blank/null values (to be filled by user or calculated later)
+        # Calculate ratio values
+        def safe_get_value(compound_name):
+            """Safely get compound value, return None if not available"""
+            val = row_data['values'].get(compound_name, {}).get('value')
+            return float(val) if val is not None and pd.notna(val) else None
+
+        def safe_divide(numerator, denominator):
+            """Safely divide two values, return None if either is None or denominator is 0"""
+            if numerator is None or denominator is None or denominator == 0:
+                return None
+            return numerator / denominator
+
+        # Calculate TotalCN: sum of all compounds starting with 'C'
+        total_cn = 0
+        total_cn_count = 0
+        for compound in compound_columns:
+            if compound.startswith('C'):
+                val = safe_get_value(compound)
+                if val is not None:
+                    total_cn += val
+                    total_cn_count += 1
+
+        total_cn_value = total_cn if total_cn_count > 0 else None
+
+        # Calculate amino acid ratios
+        met = safe_get_value('Met')
+        leu = safe_get_value('Leu')
+        phe = safe_get_value('Phe')
+        tyr = safe_get_value('Tyr')
+        ala = safe_get_value('Ala')
+
+        met_leu_ratio = safe_divide(met, leu)
+        met_phe_ratio = safe_divide(met, phe)
+        phe_tyr_ratio = safe_divide(phe, tyr)
+        leu_ala_ratio = safe_divide(leu, ala)
+        leu_tyr_ratio = safe_divide(leu, tyr)
+
+        # Map calculated values to ratio columns
+        ratio_values = {
+            'TotalCN': total_cn_value,
+            'Met/Leu': met_leu_ratio,
+            'Met/Phe': met_phe_ratio,
+            'Phe/Tyr': phe_tyr_ratio,
+            'Leu/Ala': leu_ala_ratio,
+            'Leu/Tyr': leu_tyr_ratio
+        }
+
+        # Add ratio columns with calculated values and color coding
         for ratio in ratio_columns:
+            ratio_value = ratio_values.get(ratio)
+
+            # Determine color for ratio value using ratio reference ranges
+            ratio_color = 'none'
+            if ratio_value is not None and ratio in ratio_range_dict:
+                min_val, max_val = ratio_range_dict[ratio]
+                if min_val <= ratio_value <= max_val:
+                    ratio_color = 'green'
+                else:
+                    # Check if critically out of range (>50% beyond limits)
+                    lower_critical = min_val * 0.5
+                    upper_critical = max_val * 1.5
+                    if ratio_value < lower_critical or ratio_value > upper_critical:
+                        ratio_color = 'red'
+                    else:
+                        ratio_color = 'yellow'
+
             row_data['values'][ratio] = {
-                'value': None,  # Start as blank
-                'color': 'none'
+                'value': ratio_value,
+                'color': ratio_color
             }
 
         processed_data_with_colors.append(row_data)
