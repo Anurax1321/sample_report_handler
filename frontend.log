@@ -1,0 +1,17 @@
+
+> frontend@0.0.0 dev
+> vite
+
+
+  VITE v7.1.12  ready in 2999 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://10.255.255.254:5173/
+  ➜  Network: http://172.27.127.118:5173/
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[BABEL] Note: The code generator has deoptimised the styling of /tmp/vite-cache/deps/react-dom_client.js?v=524d577a as it exceeds the max of 500KB.
+[BABEL] Note: The code generator has deoptimised the styling of /tmp/vite-cache/deps/chunk-3K7N53FP.js?v=524d577a as it exceeds the max of 500KB.
+9:42:56 PM [vite] (client) hmr update /src/pages/ReportReview.tsx
+9:46:28 PM [vite] (client) hmr update /src/pages/ReportReview.tsx
+9:52:06 PM [vite] (client) hmr update /src/pages/ReportReview.tsx
+10:24:34 PM [vite] (client) hmr update /src/pages/ReportReview.tsx

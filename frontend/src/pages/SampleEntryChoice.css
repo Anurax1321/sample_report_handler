@@ -1,0 +1,255 @@
+.main-content {
+  flex: 1;
+  padding: 3rem;
+  display: flex;
+  align-items: stretch;
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-title-section {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+}
+
+.divisions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  height: 100%;
+  align-items: stretch;
+}
+
+.division {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+}
+
+.choice-card {
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.choice-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Light Green Gradient */
+.green-light {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+.green-light:hover {
+  box-shadow: 0 15px 40px rgba(52, 211, 153, 0.4);
+}
+
+/* Dark Green Gradient */
+.green-dark {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.green-dark:hover {
+  box-shadow: 0 15px 40px rgba(5, 150, 105, 0.4);
+}
+
+.choice-card .section-header {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  margin-bottom: 0;
+  border-bottom: none;
+  padding: 2rem;
+  color: white;
+}
+
+.choice-card .section-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.choice-card .section-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.choice-card .section-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.choice-card .placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.choice-card .placeholder-icon {
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+  animation: float 3s ease-in-out infinite;
+}
+
+.choice-card .placeholder-text {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: white;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 2.5rem 2rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .divisions {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .division {
+    min-height: 400px;
+  }
+
+  .choice-card .section-title {
+    font-size: 1.7rem;
+  }
+
+  .choice-card .section-description {
+    font-size: 0.95rem;
+  }
+
+  .choice-card .placeholder-text {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .choice-card {
+    border-radius: 12px;
+  }
+
+  .choice-card .section-header {
+    padding: 1.5rem;
+  }
+
+  .choice-card .section-title {
+    font-size: 1.5rem;
+  }
+
+  .choice-card .section-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .choice-card .placeholder-text {
+    font-size: 1rem;
+  }
+
+  .divisions {
+    gap: 2rem;
+  }
+
+  .division {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .choice-card .section-header {
+    padding: 1.2rem;
+  }
+
+  .choice-card .section-title {
+    font-size: 1.3rem;
+  }
+
+  .choice-card .section-description {
+    font-size: 0.9rem;
+  }
+
+  .choice-card .section-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .choice-card .placeholder-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .choice-card .placeholder-text {
+    font-size: 0.95rem;
+  }
+
+  .divisions {
+    gap: 1.5rem;
+  }
+
+  .division {
+    min-height: 300px;
+  }
+}

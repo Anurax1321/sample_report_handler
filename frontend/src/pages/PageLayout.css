@@ -1,0 +1,130 @@
+.page-layout {
+  flex: 1;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+}
+
+.page-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content-card {
+  background: white;
+  border-radius: 16px;
+  padding: 4rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+}
+
+.placeholder-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.placeholder-message svg {
+  opacity: 0.8;
+}
+
+.placeholder-message h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.placeholder-message p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .page-layout {
+    padding: 2.5rem 2rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .content-card {
+    padding: 3rem;
+  }
+
+  .placeholder-message h2 {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-layout {
+    padding: 2rem 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .content-card {
+    padding: 2rem;
+  }
+
+  .placeholder-message h2 {
+    font-size: 1.5rem;
+  }
+
+  .placeholder-message p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-layout {
+    padding: 1.5rem 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .content-card {
+    padding: 1.5rem;
+  }
+
+  .placeholder-message svg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .placeholder-message h2 {
+    font-size: 1.3rem;
+  }
+
+  .placeholder-message p {
+    font-size: 0.95rem;
+  }
+}
