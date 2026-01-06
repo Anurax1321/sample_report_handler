@@ -164,10 +164,12 @@ def generate_nbs_report_pdf(
             _generate_patient_pdf(pdf_path, patient_name, row_data, processed_data)
             pdf_paths.append(pdf_path)
 
-        # Return the first PDF path (or create a combined one)
+        # Return all PDF paths
         if pdf_paths:
-            print(f"✓ PDF generated successfully: {pdf_paths[0]}")
-            return pdf_paths[0]
+            print(f"✓ PDF generated successfully for {len(pdf_paths)} patient(s)")
+            for pdf_path in pdf_paths:
+                print(f"  - {os.path.basename(pdf_path)}")
+            return pdf_paths
         else:
             raise PDFGenerationError("No patient samples found to generate PDF")
 

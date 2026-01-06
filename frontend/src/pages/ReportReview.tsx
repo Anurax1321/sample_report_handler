@@ -239,15 +239,16 @@ export default function ReportReview() {
       // Get edited data
       const editedData = getEditedData();
 
-      // Send to backend and generate PDF
+      // Send to backend and generate PDFs
       const result = await approveReport(parseInt(reportId), editedData);
 
-      // Download the generated PDF
-      const pdfFilename = result.pdf_filename || `NBS_Report_${processedData.date_code}.pdf`;
-      await downloadPDF(parseInt(reportId), pdfFilename);
+      // Download the generated ZIP file containing all PDFs
+      const zipFilename = result.zip_filename || `NBS_Reports_${processedData.date_code}.zip`;
+      await downloadPDF(parseInt(reportId), zipFilename);
 
       // Show success message
-      alert(`Report approved successfully! PDF "${pdfFilename}" has been downloaded. You can continue working with the data or download as Excel.`);
+      const patientCount = result.pdf_count || processedData.patient_count;
+      alert(`Report approved successfully! Generated ${patientCount} patient PDF(s) in "${zipFilename}". The ZIP file has been downloaded. You can continue working with the data or download as Excel.`);
 
     } catch (err: any) {
       console.error('Error approving report:', err);
