@@ -46,25 +46,36 @@ def _is_value_abnormal(compound: str, value, ranges: Dict, range_type: str = 'pa
     # Bold if outside the normal range (yellow or red in the frontend)
     return val < min_val or val > max_val
 
-def _format_value_with_bold(value, is_abnormal: bool) -> str:
+def _format_value_with_bold(value, is_abnormal: bool, font_size: int = 8) -> Paragraph:
     """
-    Format a value, making it bold if abnormal using HTML tags
+    Format a value as a Paragraph, making it bold if abnormal using HTML tags
 
     Args:
         value: The value to format
         is_abnormal: Whether the value is abnormal
+        font_size: Font size for the value
 
     Returns:
-        Formatted string with bold HTML tags if abnormal
+        Paragraph object with the formatted value
     """
     if value is None or value == '':
-        return '—'
+        text = '—'
+    else:
+        try:
+            formatted = f"{float(value):.2f}"
+            text = f"<b>{formatted}</b>" if is_abnormal else formatted
+        except (ValueError, TypeError):
+            text = '—'
 
-    try:
-        formatted = f"{float(value):.2f}"
-        return f"<b>{formatted}</b>" if is_abnormal else formatted
-    except (ValueError, TypeError):
-        return '—'
+    # Create a centered paragraph style with specified font size
+    style = ParagraphStyle(
+        'ValueCell',
+        fontSize=font_size,
+        alignment=TA_CENTER,
+        leading=font_size + 2,
+        fontName='Helvetica'
+    )
+    return Paragraph(text, style)
 
 # Compound name mapping from data to display names
 COMPOUND_DISPLAY_NAMES = {
@@ -340,7 +351,7 @@ def _create_amino_ratios_table(patient_data: Dict, processed_data: Dict) -> Tabl
         row.extend([
             str(i + 1),
             display_name,
-            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
+            formatted_value,
             ref_range
         ])
 
@@ -586,7 +597,7 @@ def _create_acyl_ratios_table(patient_data: Dict, processed_data: Dict) -> Table
         row.extend([
             str(i + 1),
             display_name,
-            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
+            formatted_value,
             ref_range
         ])
 
@@ -690,7 +701,7 @@ def _create_biochemical_params_table(patient_data: Dict, processed_data: Dict) -
 
         table_data.append([
             assay_name,
-            Paragraph(formatted_value, getSampleStyleSheet()['Normal']) if is_abnormal else formatted_value,
+            formatted_value,
             ref_range
         ])
 
