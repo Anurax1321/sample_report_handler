@@ -47,6 +47,7 @@ export interface ProcessedReportData {
     patient: Record<string, [number, number]>;
     control_1: Record<string, [number, number]>;
     control_2: Record<string, [number, number]>;
+    ratios: Record<string, [number, number]>;
   };
   processed_data: ProcessedDataRow[];
   structured_dataframes: {

@@ -5,7 +5,7 @@ import os
 import json
 from typing import List, Dict, Any, Tuple
 from app.services import data_extraction, structure, excel_generation
-from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict
+from app.core.reference_ranges import range_dict, control_1_range_dict, control_2_range_dict, ratio_range_dict
 
 class ReportProcessingError(Exception):
     """Custom exception for report processing errors"""
@@ -78,6 +78,10 @@ def serialize_processed_data(
     # Process raw data with color coding
     compound_columns = [col for col in raw_combined_df.columns if col != 'Sample text']
 
+    # Add ratio columns that will be calculated or manually entered
+    ratio_columns = ['TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr']
+    all_columns = compound_columns + ratio_columns
+
     # Build data array with color codes
     processed_data_with_colors = []
     for idx, row in raw_combined_df.iterrows():
@@ -89,6 +93,7 @@ def serialize_processed_data(
             'values': {}
         }
 
+        # Process existing compound values
         for compound in compound_columns:
             value = row[compound]
             color = get_color_code(
@@ -102,6 +107,13 @@ def serialize_processed_data(
                 'color': color
             }
 
+        # Add ratio columns with blank/null values (to be filled by user or calculated later)
+        for ratio in ratio_columns:
+            row_data['values'][ratio] = {
+                'value': None,  # Start as blank
+                'color': 'none'
+            }
+
         processed_data_with_colors.append(row_data)
 
     # Build final JSON structure
@@ -109,11 +121,12 @@ def serialize_processed_data(
         'date_code': date_code,
         'patient_count': len(patient_names),
         'patient_names': patient_names,
-        'compounds': compound_columns,
+        'compounds': all_columns,  # Include both compounds and ratios
         'reference_ranges': {
             'patient': range_dict,
             'control_1': control_1_range_dict,
-            'control_2': control_2_range_dict
+            'control_2': control_2_range_dict,
+            'ratios': ratio_range_dict  # Add ratio ranges
         },
         'processed_data': processed_data_with_colors,
         'structured_dataframes': {

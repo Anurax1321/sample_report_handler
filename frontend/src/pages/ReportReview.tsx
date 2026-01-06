@@ -89,11 +89,14 @@ export default function ReportReview() {
   }, [processedData]);
 
   // Function to recalculate color based on new value
-  const getColorForValue = useCallback((compound: string, value: number | null, isControl1: boolean, isControl2: boolean) => {
+  const getColorForValue = useCallback((compound: string, value: number | null, isControl1: boolean, isControl2: boolean, isRatio: boolean = false) => {
     if (!processedData || value === null || value === undefined) return 'none';
 
     let ranges;
-    if (isControl1) {
+    // Check if this is a ratio field
+    if (isRatio) {
+      ranges = processedData.reference_ranges.ratios?.[compound];
+    } else if (isControl1) {
       ranges = processedData.reference_ranges.control_1[compound];
     } else if (isControl2) {
       ranges = processedData.reference_ranges.control_2[compound];
@@ -401,6 +404,28 @@ export default function ReportReview() {
               </span>
             )}
           </div>
+
+          <div className="color-legend" style={{ marginTop: '1.5rem' }}>
+            <h3>Color Legend:</h3>
+            <div className="legend-items">
+              <div className="legend-item">
+                <span className="legend-color color-green"></span>
+                <span>Normal Range</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color color-yellow"></span>
+                <span>Out of Range</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color color-red"></span>
+                <span>Critical</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color" style={{border: '2px solid #d4a574', background: 'white', width: '38px'}}></span>
+                <span>Edited Cell</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -436,28 +461,6 @@ export default function ReportReview() {
               singleClickEdit={false}
               stopEditingWhenCellsLoseFocus={true}
             />
-          </div>
-
-          <div className="color-legend">
-            <h3>Color Legend:</h3>
-            <div className="legend-items">
-              <div className="legend-item">
-                <span className="legend-color color-green"></span>
-                <span>Normal Range</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color color-yellow"></span>
-                <span>Out of Range</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color color-red"></span>
-                <span>Critical</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color" style={{border: '2px solid #d4a574', background: 'white', width: '38px'}}></span>
-                <span>Edited Cell</span>
-              </div>
-            </div>
           </div>
         </div>
 

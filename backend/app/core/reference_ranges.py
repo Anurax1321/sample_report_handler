@@ -87,3 +87,14 @@ MULTIPLICATION_FACTORS = {
         "C18:1": 2.58, "C18:2OH": 2.58, "C18:1OH": 2.58, "C18OH": 2.58
     }
 }
+
+# Ratio reference ranges for additional calculated fields
+# These are based on amino acid ratio thresholds from the PDF template
+ratio_range_dict = {
+    'TotalCN': (0, 1000),        # Total Carnitines - to be determined
+    'Met/Leu': (0, 0.42),        # Met / Leu ratio - max 0.42
+    'Met/Phe': (0, 0.70),        # Met / Phe ratio - max 0.70
+    'Phe/Tyr': (0, 2.00),        # Phe / Tyr (PKU) ratio - max 2.00
+    'Leu/Ala': (0.12, 1.00),     # Leu / Ala ratio - 0.12-1.00
+    'Leu/Tyr': (0.50, 3.50),     # Leu / Tyr ratio - 0.50-3.50
+}
