@@ -44,7 +44,12 @@
       "Bash(\"/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/backend/templates/template.xlsx\")",
       "Bash(bash refresh-frontend.sh:*)",
       "Bash(sudo chown:*)",
-      "Bash(sudo chmod:*)"
+      "Bash(sudo chmod:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(pip search:*)",
+      "Bash(uvicorn app.main:app:*)",
+      "Bash(pdftotext:*)"
     ],
     "deny": [],
     "ask": []

@@ -622,20 +622,58 @@ def _create_page4(patient_name: str, styles) -> List:
 def _create_disorders_table() -> Table:
     """Create the disorders table matching the template"""
 
-    # This would be a large static table - simplified version
+    # Complete disorders list from template
     table_data = [
         ['S.No', 'Amino Acid Disorders', 'S.No', 'Acylcarnitine and Organic acid Disorders'],
         ['1', '(ARG) Argininemia', '1', '(CACT) Carnitine Acylcarnitine Translocase Deficiency'],
-        # ... (rest of the rows from the template)
-        # For brevity, showing structure only
+        ['2', '(ASA) Argininosuccinic Aciduria', '2', '(CPT-IA) Carnitine Palmitoyltransferase Type I Deficiency'],
+        ['3', '(CIT-I) Citrullinemia, Type I', '3', '(CPT-II) Carnitine Palmitoyltransferase Type II Deficiency'],
+        ['4', '(CIT-II) Citrullinemia Type II', '4', '(LCHAD) Long-Chain L-3 Hydroxyacyl-CoA Dehydrogenase Deficiency'],
+        ['5', '(CPS-1) Carbomyl phosphate synthetase 1 deficiency', '5', '(DE-RED) 2,4-Dienoyl-CoA Reductase Deficiency'],
+        ['6', '(BIOPT-BS) defects of biopterin cofactor biosynthesis', '6', '(CUD) Carnitine Uptake Defect'],
+        ['7', '(BIOPT-RG) defects of biopterin cofactor regeneration', '7', '(MCAD) Medium-Chain Acyl-CoA Dehydrogenase Def.'],
+        ['8', '(HCY) Homocystinuria', '8', '(MADD) Multiple Acy-CoA Dehydrogenase Deficiency'],
+        ['9', '(H-PHE) Hyperphenylalaninemia', '9', '(SCAD) Short-chain Acyl-CoA Dehydrogenase Deficiency'],
+        ['10', '(HHH syndrome 1) Hyperammonemia, Hyperornithinemia and Homocitrullinemia', '10', '(M/SCHAD) Medium/Short-Chain L-3-Hydroxyacyl-CoA Dehydrogenase Deficiency'],
+        ['11', '(HOGA) Hyperornithinemia with Gyral Atrophy', '11', '(TFP) Trifunctional Protein Deficiency'],
+        ['12', '(H-PHE) Benign Hyperphenylalaninemia', '12', '(CBL C, D) Methylmalonic acidemia with homocystinuria'],
+        ['13', 'Hyperprolinemia', '13', '(IVA) Isovaleric Acidemia'],
+        ['14', 'Hyperalimentation', '14', '(GA1) Glutaric Acidemia, Type I'],
+        ['15', '(MET) Hypermethioninemia', '15', '(2MBG) 2-Methylbutyryl-CoA Dehydrogenase Deficiency'],
+        ['16', '(MSUD) Maple Syrup Urine Disease', '16', '(MCD) Mutiple CoA Carboxylase Deficiency'],
+        ['17', '(5-OXO) 5-Oxoprolinurial', '17', '(3MCC) 3-Methylcrotonyl-CoA Carboxylase Deficiency'],
+        ['18', 'Ornithine transcarbamylase deficiency', '18', '(3MGA) 3-Methylglutaconyl-CoA Hydratase Deficiency'],
+        ['19', '(PKU) Classic Phenylketonuria', '19', '(MMA) Methylmalonic Acidemias'],
+        ['20', 'Pyruvate decarboxylase deficiency', '20', '(MUT) Methylmalonyl-CoA Mutase Deficiency'],
+        ['21', '(TYR-1) Tyrosinemia', '21', '(VLCAD) Very Long-Chain Acyl-CoA Dehydrogenase Deficiency'],
+        ['22', '(TYR-II) Tyrosinemia', '22', '(BKT) Mitochondrial Acetoacetyl-CoA Thiolase Deficiency'],
+        ['23', '(TYR-III) Tyrosinemia', '23', '(MCAT) Medium-chain Ketoacyl-CoA Thiolase Deficiency'],
+        ['24', 'Liver Disease', '24', 'Short chain Hydroxy Acyl-CoA Dehydrogenase Deficiency'],
+        ['', '', '25', 'Maternal Vitamin B12 Deficiency'],
+        ['', '', '26', '(MAL) Malonic Aciduria'],
+        ['', '', '27', '(PROP) Propionic Acidemia'],
+        ['', '', '28', 'GA-II Multiple Acyl-CoA Dehydrogenase Deficiency GAII'],
+        ['', '', '29', '(HMG) 3-Hydroxy-3-methylglutaryl-CoA Lyase Deficiency'],
+        ['', '', '30', '(IBG) Isobutyrl-CoA Dehydrogenase Deficiency'],
+        ['', '', '31', '(MCT )Medium Chain Triglyceride Oil Administration'],
+        ['', '', '32', 'Methylmalonic Acidemia (Cobalamin disorders) Cbl A, B'],
     ]
 
-    # Create a simple placeholder table
-    table = Table([['Disorders list would go here']], colWidths=[7*inch])
+    table = Table(table_data, colWidths=[0.5*inch, 3*inch, 0.5*inch, 3*inch])
     table.setStyle(TableStyle([
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTSIZE', (0, 0), (-1, -1), 8),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # S.No columns centered
+        ('ALIGN', (2, 0), (2, -1), 'CENTER'),  # S.No columns centered
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),    # Disorder names left aligned
+        ('ALIGN', (3, 0), (3, -1), 'LEFT'),    # Disorder names left aligned
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('LEFTPADDING', (1, 1), (1, -1), 5),
+        ('LEFTPADDING', (3, 1), (3, -1), 5),
+        ('RIGHTPADDING', (1, 1), (1, -1), 5),
+        ('RIGHTPADDING', (3, 1), (3, -1), 5),
     ]))
 
     return table
