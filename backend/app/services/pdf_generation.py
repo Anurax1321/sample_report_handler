@@ -214,7 +214,7 @@ def _create_amino_acids_table(patient_data: Dict, processed_data: Dict) -> Table
             row.extend([
                 str(i + 1),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -229,7 +229,7 @@ def _create_amino_acids_table(patient_data: Dict, processed_data: Dict) -> Table
             row.extend([
                 str(i + 8),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -276,7 +276,7 @@ def _create_amino_ratios_table(patient_data: Dict, processed_data: Dict) -> Tabl
         row.extend([
             str(i + 1),
             display_name,
-            f"{float(value):.2f}" if value else '—',
+            f"{float(value):.2f}" if value is not None and value != '' else '—',
             ref_range
         ])
 
@@ -288,7 +288,7 @@ def _create_amino_ratios_table(patient_data: Dict, processed_data: Dict) -> Tabl
             row.extend([
                 str(i + 4) if ratio_key else '',
                 display_name,
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 ref_range
             ])
         else:
@@ -329,12 +329,17 @@ def _create_acylcarnitines_table_page1(patient_data: Dict, processed_data: Dict)
         if i < 7:
             compound = acyl_compounds[i]
             value = patient_data['values'].get(compound, {}).get('value', '')
-            ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
+
+            # TotalCN uses ratio ranges, others use patient ranges
+            if compound == 'TotalCN':
+                ranges = processed_data['reference_ranges']['ratios'].get(compound, ['', ''])
+            else:
+                ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
             row.extend([
                 str(i + 1),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
 
@@ -342,12 +347,17 @@ def _create_acylcarnitines_table_page1(patient_data: Dict, processed_data: Dict)
         if i + 7 < len(acyl_compounds):
             compound = acyl_compounds[i + 7]
             value = patient_data['values'].get(compound, {}).get('value', '')
-            ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
+
+            # TotalCN uses ratio ranges, others use patient ranges
+            if compound == 'TotalCN':
+                ranges = processed_data['reference_ranges']['ratios'].get(compound, ['', ''])
+            else:
+                ranges = processed_data['reference_ranges']['patient'].get(compound, ['', ''])
 
             row.extend([
                 str(i + 8),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
 
@@ -417,7 +427,7 @@ def _create_acylcarnitines_table_page2(patient_data: Dict, processed_data: Dict)
             row.extend([
                 str(15 + i),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -433,7 +443,7 @@ def _create_acylcarnitines_table_page2(patient_data: Dict, processed_data: Dict)
             row.extend([
                 str(15 + right_idx),
                 COMPOUND_DISPLAY_NAMES.get(compound, compound),
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 f"{ranges[0]}-{ranges[1]}" if len(ranges) == 2 else ''
             ])
         else:
@@ -484,7 +494,7 @@ def _create_acyl_ratios_table(patient_data: Dict, processed_data: Dict) -> Table
         row.extend([
             str(i + 1),
             display_name,
-            f"{float(value):.2f}" if value else '—',
+            f"{float(value):.2f}" if value is not None and value != '' else '—',
             ref_range
         ])
 
@@ -496,7 +506,7 @@ def _create_acyl_ratios_table(patient_data: Dict, processed_data: Dict) -> Table
             row.extend([
                 str(i + 6),
                 display_name,
-                f"{float(value):.2f}" if value else '—',
+                f"{float(value):.2f}" if value is not None and value != '' else '—',
                 ref_range
             ])
 
@@ -579,7 +589,7 @@ def _create_biochemical_params_table(patient_data: Dict, processed_data: Dict) -
         value = patient_data['values'].get(param_key, {}).get('value', '')
         table_data.append([
             assay_name,
-            f"{float(value):.2f}" if value else '—',
+            f"{float(value):.2f}" if value is not None and value != '' else '—',
             ref_range
         ])
 

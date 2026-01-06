@@ -89,12 +89,27 @@ MULTIPLICATION_FACTORS = {
 }
 
 # Ratio reference ranges for additional calculated fields
-# These are based on amino acid ratio thresholds from the PDF template
+# These are based on amino acid and acylcarnitine ratio thresholds from the PDF template
 ratio_range_dict = {
+    # Total Carnitines
     'TotalCN': (10, 184),        # Total Carnitines (sum of all C* compounds)
+
+    # Amino Acid Ratios
     'Met/Leu': (0, 0.42),        # Met / Leu ratio - max 0.42
     'Met/Phe': (0, 0.70),        # Met / Phe ratio - max 0.70
     'Phe/Tyr': (0, 2.00),        # Phe / Tyr (PKU) ratio - max 2.00
     'Leu/Ala': (0.12, 1.00),     # Leu / Ala ratio - 0.12-1.00
     'Leu/Tyr': (0.50, 3.50),     # Leu / Tyr ratio - 0.50-3.50
+
+    # Acylcarnitine Molar Ratios (from NBS screening protocol)
+    'C4/C3': (0, 1.18),          # C4 / C3 ratio - max 1.18
+    'C3/C0': (0, 0.27),          # C3 / C0 ratio - max 0.27
+    'C3/C2': (0, 0.45),          # C3 / C2 ratio - max 0.45
+    'C8/C10': (0, 1.50),         # C8 / C10 ratio - max 1.50
+    'C8/C2': (0, 0.03),          # C8 / C2 ratio - max 0.03
+    'C0/(C16+C18)': (0, 70),     # C0 / (C16 + C18) ratio - max 70
+    'C5/C2': (0, 0.16),          # C5 / C2 ratio - max 0.16
+    'C5/C3': (0, 0.29),          # C5 / C3 ratio - max 0.29
+    'C5DC/C3': (0, 0.27),        # C5DC / C3 ratio - max 0.27
+    'C5DC/C16': (0, 0.68),       # C5DC / C16 ratio - max 0.68
 }

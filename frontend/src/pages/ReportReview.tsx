@@ -139,7 +139,11 @@ export default function ReportReview() {
     }
 
     // Check if this is a ratio column
-    const ratioColumns = ['TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr'];
+    const ratioColumns = [
+      'TotalCN', 'Met/Leu', 'Met/Phe', 'Phe/Tyr', 'Leu/Ala', 'Leu/Tyr',
+      'C4/C3', 'C3/C0', 'C3/C2', 'C8/C10', 'C8/C2',
+      'C0/(C16+C18)', 'C5/C2', 'C5/C3', 'C5DC/C3', 'C5DC/C16'
+    ];
     const isRatio = ratioColumns.includes(field);
 
     // Recalculate color
