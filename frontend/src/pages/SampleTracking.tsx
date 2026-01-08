@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getSamples, updateSampleStatus, deleteSample, Sample } from '../lib/sampleApi';
+import { getSamples, updateSampleStatus, deleteSample } from '../lib/sampleApi';
+import type { Sample } from '../lib/sampleApi';
 import './SampleTracking.css';
 
 export default function SampleTracking() {
@@ -162,7 +163,6 @@ export default function SampleTracking() {
   return (
     <div className="sample-tracking-page">
       <div className="tracking-header">
-        <h1 className="page-title">Sample Tracking</h1>
         <div className="header-actions">
           <button onClick={exportToCSV} className="btn-export" disabled={filteredSamples.length === 0}>
             Export to CSV ({filteredSamples.length})
