@@ -26,10 +26,25 @@ class ReportFileType(str, enum.Enum):
 class Sample(Base):
     __tablename__ = "samples"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    sample_code: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    test_type: Mapped[str] = mapped_column(String(128))
+
+    # Core identification
+    sample_code: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # VRL serial number
+    patient_id: Mapped[str] = mapped_column(String(256), default="")  # Sample ID (e.g., "B/O najiya 378981")
+
+    # Sample details
+    age_gender: Mapped[str] = mapped_column(String(64), default="")  # Format: "10D/F", "3D/M 2.64"
+    from_hospital: Mapped[str] = mapped_column(String(256), default="")  # Hospital/clinic name
+    type_of_analysis: Mapped[str] = mapped_column(String(64), default="")  # e.g., "BIO7", "BIO6"
+    type_of_sample: Mapped[str] = mapped_column(String(64), default="")  # e.g., "DBS" (Dried Blood Spot)
+
+    # Dates
+    collection_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    reported_on: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # Legacy/Additional fields
+    test_type: Mapped[str] = mapped_column(String(128), default="")  # Kept for backward compatibility
     collected_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    collected_by: Mapped[str] = mapped_column(String(128))
+    collected_by: Mapped[str] = mapped_column(String(128), default="")
     priority: Mapped[str] = mapped_column(String(16), default="normal")  # low|normal|high
     status: Mapped[SampleStatus] = mapped_column(Enum(SampleStatus), default=SampleStatus.received)
     notes: Mapped[str] = mapped_column(String(1024), default="")
