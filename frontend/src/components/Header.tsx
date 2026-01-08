@@ -4,21 +4,32 @@ import './Header.css';
 export default function Header() {
   const location = useLocation();
 
-  // Show appropriate title based on current page
-  const isReportAnalyserPage = location.pathname === '/report-analyser';
-  const isReportHandlingPage = location.pathname === '/report-handling';
+  // Determine header title based on current path
+  const getHeaderTitle = () => {
+    const path = location.pathname;
 
-  const headerTitle = isReportAnalyserPage
-    ? 'Report Analyser'
-    : isReportHandlingPage
-    ? 'Report Handling'
-    : 'Report Handling';
+    if (path === '/' || path === '/home') {
+      return 'Vijayrekha Life Sciences';
+    } else if (path.startsWith('/report-handling') || path.startsWith('/report-review')) {
+      return 'Report Handling';
+    } else if (path.startsWith('/report-analyser')) {
+      return 'Report Analyser';
+    } else if (path === '/sample-entry/form') {
+      return 'New Sample Entry';
+    } else if (path === '/sample-entry/tracking') {
+      return 'Sample Tracking';
+    } else if (path.startsWith('/sample-entry')) {
+      return 'Sample Management';
+    }
+
+    return 'Vijayrekha Life Sciences';
+  };
 
   return (
     <header className="header">
       <div className="header-content">
         <div className="header-left">
-          <h1 className="header-title">{headerTitle}</h1>
+          <h1 className="header-title">{getHeaderTitle()}</h1>
         </div>
         <div className="header-right">
           <Link to="/" className="home-link">

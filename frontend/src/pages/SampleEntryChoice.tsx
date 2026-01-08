@@ -7,9 +7,6 @@ export default function SampleEntryChoice() {
   return (
     <main className="main-content">
       <div className="container">
-        <div className="page-title-section">
-          <h1 className="page-title">Sample Management</h1>
-        </div>
         <div className="divisions">
           <div className="division">
             <div className="choice-card green-light" onClick={() => navigate('/sample-entry/form')}>

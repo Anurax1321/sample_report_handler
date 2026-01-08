@@ -107,10 +107,29 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. **Run migrations**
-```bash
-alembic upgrade head
-```
+4. **Set up database**
+
+   **Quick method (recommended):**
+   ```bash
+   # Run from project root
+   ./setup-database.sh  # Linux/macOS/WSL
+   # OR
+   setup-database.bat   # Windows
+   ```
+
+   **Manual method:**
+   ```bash
+   # Copy environment file
+   cp .env.example .env  # Windows: copy .env.example .env
+
+   # Run migrations to create database
+   alembic upgrade head
+
+   # Optional: Add sample data
+   python seed_data.py
+   ```
+
+   **For detailed database setup instructions, see [DATABASE_SETUP.md](DATABASE_SETUP.md)**
 
 5. **Start server**
 ```bash
