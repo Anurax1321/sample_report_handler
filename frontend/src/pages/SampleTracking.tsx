@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSamples, updateSampleStatus, deleteSample } from '../lib/sampleApi';
+import { getSamples, updateSampleStatus, deleteSample, updateReportedDate } from '../lib/sampleApi';
 import type { Sample } from '../lib/sampleApi';
 import './SampleTracking.css';
 
@@ -80,11 +80,24 @@ export default function SampleTracking() {
 
   const handleStatusChange = async (sampleId: number, newStatus: Sample['status']) => {
     try {
-      await updateSampleStatus(sampleId, { status: newStatus });
-      setSamples(prev => prev.map(s => s.id === sampleId ? { ...s, status: newStatus } : s));
+      const updatedSample = await updateSampleStatus(sampleId, { status: newStatus });
+      // Update local state with the response (includes auto-set reported_on if changed to completed)
+      setSamples(prev => prev.map(s => s.id === sampleId ? updatedSample : s));
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status');
+    }
+  };
+
+  const handleReportedDateChange = async (sampleId: number, newDate: string) => {
+    try {
+      const updatedSample = await updateReportedDate(sampleId, {
+        reported_on: newDate || null
+      });
+      setSamples(prev => prev.map(s => s.id === sampleId ? updatedSample : s));
+    } catch (error) {
+      console.error('Error updating reported date:', error);
+      alert('Failed to update reported date');
     }
   };
 
@@ -101,15 +114,17 @@ export default function SampleTracking() {
   };
 
   const exportToCSV = () => {
-    const headers = ['VRL Serial No', 'Sample ID', 'Age/Gender', 'Hospital', 'Type of Analysis', 'Type of Sample', 'Collection Date', 'Reported On', 'Status', 'Notes'];
+    const headers = ['VRL Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
 
     const rows = filteredSamples.map(sample => [
       sample.sample_code,
       sample.patient_id,
+      '',  // Sample ID (not stored separately in current structure)
       sample.age_gender,
       sample.from_hospital,
       sample.type_of_analysis,
       sample.type_of_sample,
+      sample.sample_metadata?.price || '',
       new Date(sample.collection_date).toLocaleString(),
       sample.reported_on ? new Date(sample.reported_on).toLocaleString() : '',
       sample.status,
@@ -178,7 +193,7 @@ export default function SampleTracking() {
           </svg>
           <input
             type="text"
-            placeholder="Search by VRL serial no, sample ID, hospital, or age/gender..."
+            placeholder="Search by VRL serial no, patient name, client name, or age/gender..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -236,18 +251,19 @@ export default function SampleTracking() {
         ) : (
           filteredSamples.map(sample => {
             const isExpanded = expandedCards.has(sample.id);
+            const statusClass = getStatusBadgeClass(sample.status);
             return (
-              <div key={sample.id} className={`sample-card ${isExpanded ? 'expanded' : ''}`}>
+              <div key={sample.id} className={`sample-card ${isExpanded ? 'expanded' : ''} ${statusClass}`}>
                 <div className="card-header" onClick={() => toggleCard(sample.id)}>
                   <div className="header-left">
                     <h3 className="sample-code">VRL: {sample.sample_code}</h3>
                     <span className="patient-name">{sample.patient_id || 'N/A'}</span>
                   </div>
                   <div className="header-right">
+                    <span className="hospital-badge">{sample.from_hospital || 'N/A'}</span>
                     <span className={`status-badge ${getStatusBadgeClass(sample.status)}`}>
                       {sample.status}
                     </span>
-                    <span className="hospital-badge">{sample.from_hospital || 'N/A'}</span>
                     <span className="collection-date">
                       {new Date(sample.collection_date).toLocaleDateString()}
                     </span>
@@ -273,16 +289,24 @@ export default function SampleTracking() {
                         <span>{sample.sample_code}</span>
                       </div>
                       <div className="info-item">
-                        <label>Sample ID</label>
+                        <label>Patient Name</label>
                         <span>{sample.patient_id || 'N/A'}</span>
                       </div>
                       <div className="info-item">
-                        <label>Age / Gender</label>
-                        <span>{sample.age_gender || 'N/A'}</span>
+                        <label>Client Name</label>
+                        <span>{sample.from_hospital || 'N/A'}</span>
                       </div>
                       <div className="info-item">
-                        <label>Hospital / Clinic</label>
-                        <span>{sample.from_hospital || 'N/A'}</span>
+                        <label>Age</label>
+                        <span>{sample.age_gender ? sample.age_gender.split('/')[0] : 'N/A'}</span>
+                      </div>
+                      <div className="info-item">
+                        <label>Gender</label>
+                        <span>{sample.age_gender && sample.age_gender.split('/')[1] ? sample.age_gender.split('/')[1] : 'N/A'}</span>
+                      </div>
+                      <div className="info-item">
+                        <label>Weight</label>
+                        <span>{sample.age_gender && sample.age_gender.split('/')[2] ? sample.age_gender.split('/')[2] : 'N/A'}</span>
                       </div>
                       <div className="info-item">
                         <label>Type of Analysis</label>
@@ -293,12 +317,21 @@ export default function SampleTracking() {
                         <span>{sample.type_of_sample || 'N/A'}</span>
                       </div>
                       <div className="info-item">
+                        <label>Price</label>
+                        <span>{sample.sample_metadata?.price ? `₹${sample.sample_metadata.price}` : 'N/A'}</span>
+                      </div>
+                      <div className="info-item">
                         <label>Collection Date</label>
                         <span>{new Date(sample.collection_date).toLocaleString()}</span>
                       </div>
                       <div className="info-item">
                         <label>Reported On</label>
-                        <span>{sample.reported_on ? new Date(sample.reported_on).toLocaleString() : 'Not yet reported'}</span>
+                        <input
+                          type="datetime-local"
+                          value={sample.reported_on ? new Date(sample.reported_on).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => handleReportedDateChange(sample.id, e.target.value)}
+                          className="reported-date-input"
+                        />
                       </div>
                       <div className="info-item">
                         <label>Status</label>

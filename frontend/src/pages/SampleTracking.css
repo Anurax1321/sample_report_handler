@@ -141,6 +141,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: all 0.3s ease;
+  border: 3px solid transparent;
 }
 
 .sample-card:hover {
@@ -149,6 +150,23 @@
 
 .sample-card.expanded {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Status-based borders */
+.sample-card.status-received {
+  border-color: #3b82f6;
+}
+
+.sample-card.status-processing {
+  border-color: #f59e0b;
+}
+
+.sample-card.status-completed {
+  border-color: #10b981;
+}
+
+.sample-card.status-rejected {
+  border-color: #ef4444;
 }
 
 /* Card Header */
@@ -319,6 +337,29 @@
 .info-item span {
   font-size: 1rem;
   color: #1f2937;
+}
+
+/* Reported Date Input */
+.reported-date-input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  color: #1f2937;
+}
+
+.reported-date-input:hover {
+  border-color: #10b981;
+}
+
+.reported-date-input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 /* Card Actions */

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
-from app.schema.sample import SampleCreate, SampleRead, SampleUpdateStatus
+from app.schema.sample import SampleCreate, SampleRead, SampleUpdateStatus, SampleUpdateReportedDate
 from datetime import datetime
 
 router = APIRouter(prefix="/samples", tags=["samples"])
@@ -86,7 +86,21 @@ def update_status(sample_id: int, payload: SampleUpdateStatus, db: Session = Dep
     s = db.get(model.Sample, sample_id)
     if not s:
         raise HTTPException(404, "sample not found")
+
+    # Automatically set reported_on when status changes to completed
+    if payload.status == "completed" and s.status != "completed":
+        s.reported_on = datetime.now()
+
     s.status = payload.status
+    db.commit(); db.refresh(s)
+    return s
+
+@router.patch("/{sample_id}/reported-date", response_model=SampleRead)
+def update_reported_date(sample_id: int, payload: SampleUpdateReportedDate, db: Session = Depends(get_db)):
+    s = db.get(model.Sample, sample_id)
+    if not s:
+        raise HTTPException(404, "sample not found")
+    s.reported_on = payload.reported_on
     db.commit(); db.refresh(s)
     return s
 

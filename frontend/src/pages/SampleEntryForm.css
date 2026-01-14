@@ -63,6 +63,13 @@
   gap: 1.5rem;
 }
 
+.form-grid-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -115,6 +122,30 @@
 
 .input-with-button input {
   flex: 1;
+}
+
+.input-with-prefix {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 1;
+  background: white;
+  padding-right: 0.25rem;
+}
+
+.input-with-prefix input {
+  padding-left: 3.5rem;
+  width: 100%;
 }
 
 .btn-generate {
@@ -270,7 +301,8 @@
     padding: 1.5rem;
   }
 
-  .form-grid {
+  .form-grid,
+  .form-grid-three {
     grid-template-columns: 1fr;
     gap: 1rem;
   }

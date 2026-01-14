@@ -13,6 +13,7 @@ interface SampleFormData {
   from_hospital: string;        // Client name
   type_of_analysis: string;     // e.g., "BIO7", "BIO6"
   type_of_sample: string;       // e.g., "DBS" (Dried Blood Spot)
+  price: string;                // Price
   collection_date: string;      // Collection date
   reported_on: string;          // Report date
   notes: string;
@@ -42,6 +43,7 @@ export default function SampleEntryForm() {
     from_hospital: '',
     type_of_analysis: '',
     type_of_sample: 'DBS',
+    price: '',
     collection_date: new Date().toISOString().slice(0, 16),
     reported_on: '',
     notes: '',
@@ -62,7 +64,14 @@ export default function SampleEntryForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Handle VRL Serial No - strip "VRL-" prefix if user types it
+    if (name === 'sample_code') {
+      const cleanedValue = value.replace(/^VRL-/i, '');
+      setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleGenerateCode = async () => {
@@ -95,13 +104,13 @@ export default function SampleEntryForm() {
   const handleAnalysisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, type_of_analysis: value }));
-    setShowAnalysisSuggestions(value.length > 0);
+    setShowAnalysisSuggestions(true);
   };
 
   const handleSampleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, type_of_sample: value }));
-    setShowSampleTypeSuggestions(value.length > 0);
+    setShowSampleTypeSuggestions(true);
   };
 
   const selectAnalysisSuggestion = (value: string) => {
@@ -151,6 +160,9 @@ export default function SampleEntryForm() {
         collection_date: formData.collection_date,
         reported_on: formData.reported_on || null,
         notes: formData.notes,
+        sample_metadata: {
+          price: formData.price,
+        }
       };
 
       const response = await fetch('http://localhost:8000/samples', {
@@ -180,6 +192,7 @@ export default function SampleEntryForm() {
         from_hospital: '',
         type_of_analysis: '',
         type_of_sample: 'DBS',
+        price: '',
         collection_date: new Date().toISOString().slice(0, 16),
         reported_on: '',
         notes: '',
@@ -195,13 +208,18 @@ export default function SampleEntryForm() {
     }
   };
 
-  const filteredAnalysisSuggestions = analysisSuggestions.filter(s =>
-    s.toLowerCase().includes(formData.type_of_analysis.toLowerCase())
-  );
+  // Show all suggestions if empty, otherwise filter
+  const filteredAnalysisSuggestions = formData.type_of_analysis === ''
+    ? analysisSuggestions
+    : analysisSuggestions.filter(s =>
+        s.toLowerCase().includes(formData.type_of_analysis.toLowerCase())
+      );
 
-  const filteredSampleTypeSuggestions = sampleTypeSuggestions.filter(s =>
-    s.toLowerCase().includes(formData.type_of_sample.toLowerCase())
-  );
+  const filteredSampleTypeSuggestions = formData.type_of_sample === ''
+    ? sampleTypeSuggestions
+    : sampleTypeSuggestions.filter(s =>
+        s.toLowerCase().includes(formData.type_of_sample.toLowerCase())
+      );
 
   return (
     <div className="sample-entry-form-page">
@@ -219,15 +237,18 @@ export default function SampleEntryForm() {
               <div className="form-group">
                 <label htmlFor="sample_code">VRL Serial No. *</label>
                 <div className="input-with-button">
-                  <input
-                    type="text"
-                    id="sample_code"
-                    name="sample_code"
-                    value={formData.sample_code}
-                    onChange={handleChange}
-                    placeholder="e.g., 6684"
-                    required
-                  />
+                  <div className="input-with-prefix">
+                    <span className="input-prefix">VRL-</span>
+                    <input
+                      type="text"
+                      id="sample_code"
+                      name="sample_code"
+                      value={formData.sample_code}
+                      onChange={handleChange}
+                      placeholder="e.g., 6684 or NBS-2025-001"
+                      required
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={handleGenerateCode}
@@ -253,6 +274,19 @@ export default function SampleEntryForm() {
               </div>
 
               <div className="form-group">
+                <label htmlFor="from_hospital">Client Name *</label>
+                <input
+                  type="text"
+                  id="from_hospital"
+                  name="from_hospital"
+                  value={formData.from_hospital}
+                  onChange={handleChange}
+                  placeholder="e.g., MEDICIS, LIKITHA"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="sample_id">Sample ID</label>
                 <input
                   type="text"
@@ -263,7 +297,10 @@ export default function SampleEntryForm() {
                   placeholder="e.g., 378981"
                 />
               </div>
+            </div>
 
+            {/* Age, Gender, Weight on same row */}
+            <div className="form-grid-three">
               <div className="form-group">
                 <label htmlFor="age">Age</label>
                 <input
@@ -300,19 +337,6 @@ export default function SampleEntryForm() {
                   value={formData.weight}
                   onChange={handleChange}
                   placeholder="e.g., 2.64, 3.2"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="from_hospital">Client Name *</label>
-                <input
-                  type="text"
-                  id="from_hospital"
-                  name="from_hospital"
-                  value={formData.from_hospital}
-                  onChange={handleChange}
-                  placeholder="e.g., MEDICIS, LIKITHA"
-                  required
                 />
               </div>
             </div>
@@ -386,6 +410,18 @@ export default function SampleEntryForm() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="price">Price (₹)</label>
+                <input
+                  type="text"
+                  id="price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="e.g., 1500, 2000"
+                />
               </div>
 
               <div className="form-group">

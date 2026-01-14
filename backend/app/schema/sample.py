@@ -55,3 +55,6 @@ class SampleRead(BaseModel):
 
 class SampleUpdateStatus(BaseModel):
     status: Literal["received","processing","completed","rejected"]
+
+class SampleUpdateReportedDate(BaseModel):
+    reported_on: Optional[datetime]
