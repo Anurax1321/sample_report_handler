@@ -1,100 +1,42 @@
-# OS / Editors
-.DS_Store
-Thumbs.db
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-
-# Python - Cache Files
-*.pyc
-*.pyo
-*.pyd
+# Python
 __pycache__/
-**/__pycache__/
 *.py[cod]
-*$py.class
-
-# Python - Virtual Environments
-.venv/
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Python - Build
-dist/
-build/
-.eggs/
 *.egg-info/
 *.egg
+.venv/
 
-# Python - Database Files
-*.db
-*.sqlite
-*.sqlite3
-backend/dev.db
-backend/sample_reports.db
-
-# Node / React
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-
-# Log Files
-*.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-backend.log
-frontend.log
-backend/backend.log
-
-# PID Files
-*.pid
-backend.pid
-frontend.pid
-
-# Env / Secrets
+# Environment variables
 .env
 .env.*
-!.env.example
-frontend/.env
-frontend/.env.development
-frontend/.env.local
-frontend/.env.production
-backend/.env
 
-# Docker
-**/.dockerignore
-docker-data/
-db_data/
+# Databases
+*.db
 
-# Uploads / User Generated Files
+# Logs and PID files
+*.log
+*.pid
+
+# Uploads (runtime data)
 backend/uploads/
-backend/backend/uploads/
 
-# Coverage / Test
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-.nox/
+# Vite cache
+frontend/.vite/
+
+# Excel temp files
+~$*.xlsx
+~$*.xls
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
+.vscode/
 .idea/
-*.swp
-*.swo
-*~
 
-# Local Settings
-.claude/settings.local.json
-frontend/.claude/settings.local.json
+# Duplicate/accidental directories
+backend/backend/
 
-# Test/Development Files
-frontend/src/test-changes.html
+# Test HTML files
 frontend/public/test.html
-**/test-changes.html
-**/test.html
+frontend/src/test-changes.html

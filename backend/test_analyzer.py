@@ -102,6 +102,7 @@ def test_reference_range_parsing():
     print("=" * 80)
 
     # Create a dummy analyzer just to test the parsing method
+    # Note: File existence is checked in extract_text_from_pdf(), not __init__
     pdf_path = Path(__file__).parent / "test_reports" / "report1.pdf"
     analyzer = NeonatalReportAnalyzer(str(pdf_path))
 

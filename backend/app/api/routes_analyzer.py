@@ -6,6 +6,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Body, Background
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 import shutil
+import os
 from pathlib import Path
 from typing import List
 
@@ -196,7 +197,8 @@ async def analyze_single_pdf(file: UploadFile = File(...)):
         # Create temporary file to store uploaded PDF
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
             temp_file.write(content)
-            temp_file.flush()
+            temp_file.flush()  # Flush Python buffer to OS
+            os.fsync(temp_file.fileno())  # Force OS to write to disk (prevents race conditions)
             temp_path = temp_file.name
 
         # Create analyzer and process PDF
@@ -281,7 +283,8 @@ async def analyze_batch_pdfs(file: UploadFile = File(...)):
         # Create temporary file to store uploaded ZIP
         with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_zip:
             temp_zip.write(content)
-            temp_zip.flush()
+            temp_zip.flush()  # Flush Python buffer to OS
+            os.fsync(temp_zip.fileno())  # Force OS to write to disk (prevents race conditions)
             temp_zip_path = temp_zip.name
 
         # Extract ZIP and get PDF files

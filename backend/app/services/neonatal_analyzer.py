@@ -8,7 +8,7 @@ import re
 import zipfile
 import tempfile
 import shutil
-import signal
+import threading
 import logging
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
@@ -27,34 +27,46 @@ class TimeoutError(Exception):
     pass
 
 
-def timeout_handler(signum, frame):
-    """Signal handler for timeout."""
-    raise TimeoutError("PDF processing timed out")
+class TimeoutContext:
+    """Cross-platform context manager for adding timeout to operations.
 
-
-class timeout:
-    """Context manager for adding timeout to operations."""
-    def __init__(self, seconds=30):
+    Uses threading.Timer instead of signal.SIGALRM for Windows compatibility.
+    """
+    def __init__(self, seconds=30, error_message='Operation timed out'):
         self.seconds = seconds
+        self.error_message = error_message
+        self.timer = None
+        self.timed_out = False
+
+    def _timeout_handler(self):
+        """Called when timeout expires."""
+        self.timed_out = True
 
     def __enter__(self):
-        # Set the signal handler and alarm
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(self.seconds)
+        """Start the timeout timer."""
+        self.timer = threading.Timer(self.seconds, self._timeout_handler)
+        self.timer.start()
+        return self
 
-    def __exit__(self, type, value, traceback):
-        # Disable the alarm
-        signal.alarm(0)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Stop the timer and check if timeout occurred."""
+        if self.timer:
+            self.timer.cancel()
+        if self.timed_out:
+            raise TimeoutError(self.error_message)
+        return False
 
 
 class NeonatalReportAnalyzer:
     """Analyzes neonatal screening reports from PDF files."""
 
     def __init__(self, pdf_path: str, relative_path: str = None):
-        """Initialize with path to PDF file."""
+        """Initialize with path to PDF file.
+
+        Note: File existence is not checked here to avoid race conditions.
+        The file will be validated when extract_text_from_pdf() is called.
+        """
         self.pdf_path = Path(pdf_path)
-        if not self.pdf_path.exists():
-            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
 
         # Store relative path for display (e.g., "HYDERABAD/BABY OF X.pdf")
         self.relative_path = relative_path or self.pdf_path.name
@@ -70,15 +82,22 @@ class NeonatalReportAnalyzer:
 
     def extract_text_from_pdf(self, quiet: bool = True) -> str:
         """Extract all text from PDF with timeout protection."""
+        # Validate file exists (moved from __init__ to avoid race conditions)
+        if not self.pdf_path.exists():
+            raise FileNotFoundError(f"PDF file not found: {self.pdf_path}")
+
         all_text = []
         try:
-            with timeout(PDF_PROCESSING_TIMEOUT):
+            with TimeoutContext(
+                PDF_PROCESSING_TIMEOUT,
+                f"PDF processing timed out after {PDF_PROCESSING_TIMEOUT} seconds. The file may be too large or corrupted."
+            ):
                 with pdfplumber.open(self.pdf_path) as pdf:
                     for i, page in enumerate(pdf.pages, 1):
                         text = page.extract_text()
                         all_text.append(f"\n--- PAGE {i} ---\n{text}")
-        except TimeoutError:
-            raise RuntimeError(f"PDF processing timed out after {PDF_PROCESSING_TIMEOUT} seconds. The file may be too large or corrupted.")
+        except TimeoutError as e:
+            raise RuntimeError(str(e))
         except Exception as e:
             raise RuntimeError(f"Error reading PDF: {e}")
 
