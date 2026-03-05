@@ -43,24 +43,32 @@
   cursor: not-allowed;
 }
 
-/* Filters Section */
-.filters-section {
+/* Combined table panel — search, filters, table, pagination in one box */
+.table-panel {
   background: white;
-  padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.search-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  border-radius: 6px;
+  min-width: 180px;
+  max-width: 240px;
 }
 
 .search-bar svg {
@@ -72,50 +80,43 @@
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 1rem;
+  font-size: 0.85rem;
   outline: none;
   color: #1f2937;
+  min-width: 0;
 }
 
 .search-bar input::placeholder {
   color: #9ca3af;
 }
 
-.filter-row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.filter-row select {
-  flex: 1;
-  min-width: 180px;
-  padding: 0.75rem;
+.search-filter-row select {
+  padding: 0.45rem 0.5rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
   background: white;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.filter-row select:hover {
+.search-filter-row select:hover {
   border-color: #10b981;
 }
 
-.filter-row select:focus {
+.search-filter-row select:focus {
   outline: none;
   border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
 .btn-clear-filters {
-  padding: 0.75rem 1.5rem;
+  padding: 0.45rem 0.75rem;
   background: white;
   color: #6b7280;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -125,14 +126,6 @@
 .btn-clear-filters:hover {
   background: #f9fafb;
   border-color: #9ca3af;
-}
-
-/* Table */
-.table-wrapper {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
 }
 
 .samples-table {
@@ -422,32 +415,78 @@
   color: #6b7280;
 }
 
-/* Empty State */
+/* Empty State (inside table-panel) */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
   text-align: center;
-  background: white;
-  border-radius: 12px;
 }
 
 .empty-state svg {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .empty-state h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
+  margin: 0 0 0.3rem 0;
+  font-size: 1.2rem;
   color: #1f2937;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #6b7280;
+}
+
+/* Pagination (inside table-panel) */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination-info {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pagination-btn {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: white;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pagination-btn:hover:not(:disabled):not(.pagination-active) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-active {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
 }
 
 /* Responsive Design */
@@ -474,20 +513,18 @@
     width: 100%;
   }
 
-  .filters-section {
-    padding: 1rem;
+  .search-filter-row {
+    flex-wrap: wrap;
   }
 
-  .filter-row {
-    flex-direction: column;
+  .search-bar {
+    min-width: 100%;
+    max-width: 100%;
   }
 
-  .filter-row select {
-    width: 100%;
-  }
-
-  .btn-clear-filters {
-    width: 100%;
+  .search-filter-row select {
+    flex: 1;
+    min-width: 0;
   }
 
   /* Table responsive */

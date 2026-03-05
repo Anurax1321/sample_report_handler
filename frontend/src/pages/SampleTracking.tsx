@@ -3,7 +3,12 @@ import { getSamples, updateSampleStatus, deleteSample, updateReportedDate } from
 import type { Sample } from '../lib/sampleApi';
 import './SampleTracking.css';
 
-export default function SampleTracking() {
+interface SampleTrackingProps {
+  embedded?: boolean;
+  onSamplesChange?: (samples: Sample[], filteredSamples: Sample[]) => void;
+}
+
+export default function SampleTracking({ embedded, onSamplesChange }: SampleTrackingProps = {}) {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +17,8 @@ export default function SampleTracking() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [testTypeFilter, setTestTypeFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     fetchSamples();
@@ -20,6 +27,10 @@ export default function SampleTracking() {
   useEffect(() => {
     filterSamples();
   }, [samples, searchTerm, statusFilter, priorityFilter, testTypeFilter]);
+
+  useEffect(() => {
+    onSamplesChange?.(samples, filteredSamples);
+  }, [samples, filteredSamples]);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -77,6 +88,7 @@ export default function SampleTracking() {
     }
 
     setFilteredSamples(filtered);
+    setCurrentPage(1);
   };
 
   const handleStatusChange = async (sampleId: number, newStatus: Sample['status']) => {
@@ -157,41 +169,43 @@ export default function SampleTracking() {
   };
 
   if (loading) {
-    return (
-      <div className="sample-tracking-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading samples...</p>
-        </div>
+    const loadingContent = (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading samples...</p>
       </div>
     );
+    if (embedded) return loadingContent;
+    return <div className="sample-tracking-page">{loadingContent}</div>;
   }
 
-  return (
-    <div className="sample-tracking-page">
-      <div className="tracking-header">
-        <div className="header-actions">
-          <button onClick={exportToCSV} className="btn-export" disabled={filteredSamples.length === 0}>
-            Export to CSV ({filteredSamples.length})
-          </button>
+  const content = (
+    <>
+      {!embedded && (
+        <div className="tracking-header">
+          <div className="header-actions">
+            <button onClick={exportToCSV} className="btn-export" disabled={filteredSamples.length === 0}>
+              Export to CSV ({filteredSamples.length})
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="filters-section">
-        <div className="search-bar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by VRL serial no, patient name, client name, or age/gender..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <div className="table-panel">
+        <div className="search-filter-row">
+          <div className="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-        <div className="filter-row">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">All Statuses</option>
             <option value="received">Received</option>
@@ -224,49 +238,82 @@ export default function SampleTracking() {
                 setTestTypeFilter('all');
               }}
             >
-              Clear Filters
+              Clear
             </button>
           )}
         </div>
-      </div>
 
-      {filteredSamples.length === 0 ? (
-        <div className="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-          <h3>No samples found</h3>
-          <p>{samples.length === 0 ? 'No samples have been created yet' : 'Try adjusting your filters'}</p>
-        </div>
-      ) : (
-        <div className="table-wrapper">
-          <table className="samples-table">
-            <thead>
-              <tr>
-                <th>VRL Serial No</th>
-                <th>Patient Name</th>
-                <th>Status</th>
-                <th>Collection Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSamples.map(sample => (
-                <tr key={sample.id} onClick={() => setSelectedSample(sample)}>
-                  <td className="cell-code">{sample.sample_code}</td>
-                  <td>{sample.patient_id || 'N/A'}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusBadgeClass(sample.status)}`}>
-                      {sample.status}
-                    </span>
-                  </td>
-                  <td>{new Date(sample.collection_date).toLocaleDateString()}</td>
+        {filteredSamples.length === 0 ? (
+          <div className="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <h3>No samples found</h3>
+            <p>{samples.length === 0 ? 'No samples have been created yet' : 'Try adjusting your filters'}</p>
+          </div>
+        ) : (
+          <>
+            <table className="samples-table">
+              <thead>
+                <tr>
+                  <th>VRL Serial No</th>
+                  <th>Patient Name</th>
+                  <th>Status</th>
+                  <th>Collection Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {filteredSamples
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map(sample => (
+                    <tr key={sample.id} onClick={() => setSelectedSample(sample)}>
+                      <td className="cell-code">{sample.sample_code}</td>
+                      <td>{sample.patient_id || 'N/A'}</td>
+                      <td>
+                        <span className={`status-badge ${getStatusBadgeClass(sample.status)}`}>
+                          {sample.status}
+                        </span>
+                      </td>
+                      <td>{new Date(sample.collection_date).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+
+            <div className="pagination">
+              <span className="pagination-info">
+                Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredSamples.length)} of {filteredSamples.length}
+              </span>
+              <div className="pagination-controls">
+                <button
+                  className="pagination-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  Prev
+                </button>
+                {Array.from({ length: Math.ceil(filteredSamples.length / pageSize) }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    className={`pagination-btn ${currentPage === i + 1 ? 'pagination-active' : ''}`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  className="pagination-btn"
+                  disabled={currentPage === Math.ceil(filteredSamples.length / pageSize)}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {selectedSample && (
         <div className="modal-backdrop" onClick={() => setSelectedSample(null)}>
@@ -362,6 +409,9 @@ export default function SampleTracking() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
+
+  if (embedded) return content;
+  return <div className="sample-tracking-page">{content}</div>;
 }

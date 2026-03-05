@@ -1,76 +1,156 @@
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Sample } from '../lib/sampleApi';
+import SampleTracking from './SampleTracking';
 import './Home.css';
 
 export default function Home() {
   const navigate = useNavigate();
+  const [allSamples, setAllSamples] = useState<Sample[]>([]);
+  const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
+
+  const handleSamplesChange = useCallback((samples: Sample[], filtered: Sample[]) => {
+    setAllSamples(samples);
+    setFilteredSamples(filtered);
+  }, []);
+
+  const stats = useMemo(() => ({
+    total: allSamples.length,
+    received: allSamples.filter(s => s.status === 'received').length,
+    processing: allSamples.filter(s => s.status === 'processing').length,
+    completed: allSamples.filter(s => s.status === 'completed').length,
+    rejected: allSamples.filter(s => s.status === 'rejected').length,
+  }), [allSamples]);
+
+  const exportToCSV = () => {
+    const headers = ['VRL Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
+
+    const rows = filteredSamples.map(sample => [
+      sample.sample_code,
+      sample.patient_id,
+      '',
+      sample.age_gender,
+      sample.from_hospital,
+      sample.type_of_analysis,
+      sample.type_of_sample,
+      sample.sample_metadata?.price || '',
+      new Date(sample.collection_date).toLocaleString(),
+      sample.reported_on ? new Date(sample.reported_on).toLocaleString() : '',
+      sample.status,
+      sample.notes || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `samples-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
-    <main className="home-page">
-      <div className="home-container">
-        <div className="home-intro">
-          <h2 className="home-greeting">Hi there, Welcome to the Portal</h2>
-          <p className="home-subtitle">
-            Choose how you would like to proceed
-          </p>
+    <main className="dashboard">
+      <div className="dashboard-stats">
+        <div className="stat-card stat-total">
+          <span className="stat-count">{stats.total}</span>
+          <span className="stat-label">Total</span>
         </div>
-        <div className="home-cards">
-          <div className="home-card">
-            <div className="sample-entry" onClick={() => navigate('/sample-entry')}>
-              <div className="section-header">
-                <h2 className="section-title">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="12" y1="18" x2="12" y2="12"></line>
-                    <line x1="9" y1="15" x2="15" y2="15"></line>
-                  </svg>
-                  Sample Entry
-                </h2>
-                <p className="section-description">
-                  Register and track new sample submissions
-                </p>
-              </div>
+        <div className="stat-card stat-received">
+          <span className="stat-count">{stats.received}</span>
+          <span className="stat-label">Received</span>
+        </div>
+        <div className="stat-card stat-processing">
+          <span className="stat-count">{stats.processing}</span>
+          <span className="stat-label">Processing</span>
+        </div>
+        <div className="stat-card stat-completed">
+          <span className="stat-count">{stats.completed}</span>
+          <span className="stat-label">Completed</span>
+        </div>
+        <div className="stat-card stat-rejected">
+          <span className="stat-count">{stats.rejected}</span>
+          <span className="stat-label">Rejected</span>
+        </div>
+      </div>
+
+      <div className="dashboard-main">
+        <div className="dashboard-sidebar">
+          <div className="sample-entry" onClick={() => navigate('/sample-entry')}>
+            <div className="section-header">
+              <h2 className="section-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
+                </svg>
+                Sample Entry
+              </h2>
+              <p className="section-description">
+                Register and track new sample submissions
+              </p>
             </div>
           </div>
-          <div className="home-card">
-            <div className="report-handling" onClick={() => navigate('/report-handling')}>
-              <div className="section-header">
-                <h2 className="section-title">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>
-                  Report Handling
-                </h2>
-                <p className="section-description">
-                  View, manage, and process sample reports
-                </p>
-              </div>
+
+          <div className="report-handling" onClick={() => navigate('/report-handling')}>
+            <div className="section-header">
+              <h2 className="section-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Report Handling
+              </h2>
+              <p className="section-description">
+                View, manage, and process sample reports
+              </p>
             </div>
           </div>
-          <div className="home-card">
-            <div className="report-analyser" onClick={() => navigate('/report-analyser')}>
-              <div className="section-header">
-                <h2 className="section-title">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
-                    <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
-                    <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                  </svg>
-                  Report Analyser
-                </h2>
-                <p className="section-description">
-                  Analyze and visualize report data with advanced insights
-                </p>
-              </div>
+
+          <div className="report-analyser" onClick={() => navigate('/report-analyser')}>
+            <div className="section-header">
+              <h2 className="section-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                  <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                  <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Report Analyser
+              </h2>
+              <p className="section-description">
+                Analyze and visualize report data with advanced insights
+              </p>
             </div>
           </div>
+
+          <button
+            className="btn-export sidebar-export"
+            onClick={exportToCSV}
+            disabled={filteredSamples.length === 0}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export CSV ({filteredSamples.length})
+          </button>
+        </div>
+
+        <div className="dashboard-tracking">
+          <SampleTracking embedded onSamplesChange={handleSamplesChange} />
         </div>
       </div>
     </main>
