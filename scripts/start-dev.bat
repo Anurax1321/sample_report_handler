@@ -9,8 +9,8 @@ echo Starting Sample Report Handler (Development Mode)
 echo ========================================
 echo.
 
-REM Change to project directory
-cd /d "%~dp0"
+REM Change to project root (one level up from scripts\)
+cd /d "%~dp0.."
 
 REM ===================================================================
 REM STEP 1: Setup Backend
@@ -120,7 +120,7 @@ echo [3/5] Starting Backend Server...
 echo.
 
 REM Start backend in new window
-start "Backend - Sample Report Handler" cmd /k "cd /d "%~dp0backend" && call .venv\Scripts\activate.bat && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+start "Backend - Sample Report Handler" cmd /k "cd /d "%~dp0..\backend" && call .venv\Scripts\activate.bat && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 echo Backend server starting on http://localhost:8000
 echo.
@@ -136,7 +136,7 @@ echo [4/5] Starting Frontend Server...
 echo.
 
 REM Start frontend in new window
-start "Frontend - Sample Report Handler" cmd /k "cd /d "%~dp0frontend" && npm run dev"
+start "Frontend - Sample Report Handler" cmd /k "cd /d "%~dp0..\frontend" && npm run dev"
 
 echo Frontend server starting on http://localhost:5173
 echo.

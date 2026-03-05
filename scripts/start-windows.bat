@@ -6,8 +6,8 @@ echo Starting Sample Report Handler (Windows)
 echo ========================================
 echo.
 
-REM Get the script directory
-set "SCRIPT_DIR=%~dp0"
+REM Get the project root (one level up from scripts\)
+set "SCRIPT_DIR=%~dp0.."
 cd /d "%SCRIPT_DIR%"
 
 REM Check Python installation
@@ -38,7 +38,7 @@ echo.
 
 REM Setup Backend
 echo [3/6] Setting up Backend...
-cd "%SCRIPT_DIR%backend"
+cd "%SCRIPT_DIR%\backend"
 
 if not exist ".venv" (
     echo Creating Python virtual environment...
@@ -98,7 +98,7 @@ echo.
 
 REM Setup Frontend
 echo [5/6] Setting up Frontend...
-cd "%SCRIPT_DIR%frontend"
+cd "%SCRIPT_DIR%\frontend"
 
 if not exist "node_modules" (
     echo Installing frontend dependencies...
@@ -127,14 +127,14 @@ echo.
 pause
 
 REM Start backend in new window
-cd "%SCRIPT_DIR%backend"
+cd "%SCRIPT_DIR%\backend"
 start "Backend Server" cmd /k "call .venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 REM Wait a bit for backend to start
 timeout /t 3 /nobreak >nul
 
 REM Start frontend in new window
-cd "%SCRIPT_DIR%frontend"
+cd "%SCRIPT_DIR%\frontend"
 start "Frontend Server" cmd /k "npm run dev"
 
 echo.
