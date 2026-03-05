@@ -2,33 +2,103 @@
 @import '../components/ReportHandling.css';
 @import '../components/ReportAnalyser.css';
 
-.main-content {
+.home-page {
   flex: 1;
-  padding: 3rem;
+  padding: 5rem 2rem 2rem;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-.container {
+.home-container {
   width: 100%;
-  max-width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  align-items: center;
 }
 
-.divisions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr) !important;
+/* Intro text */
+.home-intro {
+  margin-bottom: 3.5rem;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-15px);
+  animation: fadeSlideDown 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.home-greeting {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary, #f1f5f9);
+  letter-spacing: 0.3px;
+}
+
+.home-subtitle {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Cards in one horizontal row — always */
+.home-cards {
+  display: flex;
+  flex-direction: row;
   gap: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  align-items: stretch;
+  width: 100%;
 }
 
-.division {
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
+.home-card {
+  flex: 1;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(-15px);
+  animation: fadeSlideDown 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.home-card:nth-child(1) {
+  animation-delay: 0.6s;
+}
+
+.home-card:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.home-card:nth-child(3) {
+  animation-delay: 1.4s;
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive — only stack on very small screens */
+@media (max-width: 480px) {
+  .home-page {
+    padding: 1.5rem 1rem;
+  }
+
+  .home-cards {
+    flex-direction: column;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .home-greeting {
+    font-size: 1.2rem;
+  }
+
+  .home-subtitle {
+    font-size: 1rem;
+  }
 }
