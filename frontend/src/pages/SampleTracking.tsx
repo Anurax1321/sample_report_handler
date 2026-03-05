@@ -7,7 +7,7 @@ export default function SampleTracking() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -20,6 +20,23 @@ export default function SampleTracking() {
   useEffect(() => {
     filterSamples();
   }, [samples, searchTerm, statusFilter, priorityFilter, testTypeFilter]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedSample(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Keep selectedSample in sync with samples state
+  useEffect(() => {
+    if (selectedSample) {
+      const updated = samples.find(s => s.id === selectedSample.id);
+      if (updated) setSelectedSample(updated);
+    }
+  }, [samples]);
 
   const fetchSamples = async () => {
     try {
@@ -37,7 +54,6 @@ export default function SampleTracking() {
   const filterSamples = () => {
     let filtered = [...samples];
 
-    // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(sample =>
@@ -48,17 +64,14 @@ export default function SampleTracking() {
       );
     }
 
-    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(sample => sample.status === statusFilter);
     }
 
-    // Priority filter
     if (priorityFilter !== 'all') {
       filtered = filtered.filter(sample => sample.priority === priorityFilter);
     }
 
-    // Test type filter
     if (testTypeFilter !== 'all') {
       filtered = filtered.filter(sample => sample.test_type === testTypeFilter);
     }
@@ -66,22 +79,9 @@ export default function SampleTracking() {
     setFilteredSamples(filtered);
   };
 
-  const toggleCard = (id: number) => {
-    setExpandedCards(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
   const handleStatusChange = async (sampleId: number, newStatus: Sample['status']) => {
     try {
       const updatedSample = await updateSampleStatus(sampleId, { status: newStatus });
-      // Update local state with the response (includes auto-set reported_on if changed to completed)
       setSamples(prev => prev.map(s => s.id === sampleId ? updatedSample : s));
     } catch (error) {
       console.error('Error updating status:', error);
@@ -106,6 +106,7 @@ export default function SampleTracking() {
 
     try {
       await deleteSample(sampleId);
+      setSelectedSample(null);
       setSamples(prev => prev.filter(s => s.id !== sampleId));
     } catch (error) {
       console.error('Error deleting sample:', error);
@@ -119,7 +120,7 @@ export default function SampleTracking() {
     const rows = filteredSamples.map(sample => [
       sample.sample_code,
       sample.patient_id,
-      '',  // Sample ID (not stored separately in current structure)
+      '',
       sample.age_gender,
       sample.from_hospital,
       sample.type_of_analysis,
@@ -229,139 +230,138 @@ export default function SampleTracking() {
         </div>
       </div>
 
-      <div className="samples-list">
-        {filteredSamples.length === 0 ? (
-          <div className="empty-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <h3>No samples found</h3>
-            <p>{samples.length === 0 ? 'No samples have been created yet' : 'Try adjusting your filters'}</p>
-          </div>
-        ) : (
-          filteredSamples.map(sample => {
-            const isExpanded = expandedCards.has(sample.id);
-            const statusClass = getStatusBadgeClass(sample.status);
-            return (
-              <div key={sample.id} className={`sample-card ${isExpanded ? 'expanded' : ''} ${statusClass}`}>
-                <div className="card-header" onClick={() => toggleCard(sample.id)}>
-                  <div className="header-left">
-                    <h3 className="sample-code">VRL: {sample.sample_code}</h3>
-                    <span className="patient-name">{sample.patient_id || 'N/A'}</span>
-                  </div>
-                  <div className="header-right">
-                    <span className="hospital-badge">{sample.from_hospital || 'N/A'}</span>
+      {filteredSamples.length === 0 ? (
+        <div className="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <h3>No samples found</h3>
+          <p>{samples.length === 0 ? 'No samples have been created yet' : 'Try adjusting your filters'}</p>
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="samples-table">
+            <thead>
+              <tr>
+                <th>VRL Serial No</th>
+                <th>Patient Name</th>
+                <th>Status</th>
+                <th>Collection Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSamples.map(sample => (
+                <tr key={sample.id} onClick={() => setSelectedSample(sample)}>
+                  <td className="cell-code">{sample.sample_code}</td>
+                  <td>{sample.patient_id || 'N/A'}</td>
+                  <td>
                     <span className={`status-badge ${getStatusBadgeClass(sample.status)}`}>
                       {sample.status}
                     </span>
-                    <span className="collection-date">
-                      {new Date(sample.collection_date).toLocaleDateString()}
-                    </span>
-                    <svg
-                      className={`expand-icon ${isExpanded ? 'rotated' : ''}`}
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
+                  </td>
+                  <td>{new Date(sample.collection_date).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {selectedSample && (
+        <div className="modal-backdrop" onClick={() => setSelectedSample(null)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>VRL: {selectedSample.sample_code}</h2>
+              <button className="modal-close" onClick={() => setSelectedSample(null)}>&times;</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="info-grid">
+                <div className="info-item">
+                  <label>VRL Serial No</label>
+                  <span>{selectedSample.sample_code}</span>
                 </div>
-
-                {isExpanded && (
-                  <div className="card-content">
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <label>VRL Serial No</label>
-                        <span>{sample.sample_code}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Patient Name</label>
-                        <span>{sample.patient_id || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Client Name</label>
-                        <span>{sample.from_hospital || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Age</label>
-                        <span>{sample.age_gender ? sample.age_gender.split('/')[0] : 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Gender</label>
-                        <span>{sample.age_gender && sample.age_gender.split('/')[1] ? sample.age_gender.split('/')[1] : 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Weight</label>
-                        <span>{sample.age_gender && sample.age_gender.split('/')[2] ? sample.age_gender.split('/')[2] : 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Type of Analysis</label>
-                        <span>{sample.type_of_analysis || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Type of Sample</label>
-                        <span>{sample.type_of_sample || 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Price</label>
-                        <span>{sample.sample_metadata?.price ? `₹${sample.sample_metadata.price}` : 'N/A'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Collection Date</label>
-                        <span>{new Date(sample.collection_date).toLocaleString()}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Reported On</label>
-                        <input
-                          type="datetime-local"
-                          value={sample.reported_on ? new Date(sample.reported_on).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => handleReportedDateChange(sample.id, e.target.value)}
-                          className="reported-date-input"
-                        />
-                      </div>
-                      <div className="info-item">
-                        <label>Status</label>
-                        <span className={`status-badge ${getStatusBadgeClass(sample.status)}`}>
-                          {sample.status}
-                        </span>
-                      </div>
-                      {sample.notes && (
-                        <div className="info-item full-width">
-                          <label>Notes</label>
-                          <span>{sample.notes}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="card-actions">
-                      <div className="status-changer">
-                        <label>Change Status:</label>
-                        <select
-                          value={sample.status}
-                          onChange={(e) => handleStatusChange(sample.id, e.target.value as Sample['status'])}
-                        >
-                          <option value="received">Received</option>
-                          <option value="processing">Processing</option>
-                          <option value="completed">Completed</option>
-                          <option value="rejected">Rejected</option>
-                        </select>
-                      </div>
-                      <button className="btn-delete" onClick={() => handleDelete(sample.id)}>
-                        Delete Sample
-                      </button>
-                    </div>
+                <div className="info-item">
+                  <label>Patient Name</label>
+                  <span>{selectedSample.patient_id || 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Client Name</label>
+                  <span>{selectedSample.from_hospital || 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Age</label>
+                  <span>{selectedSample.age_gender ? selectedSample.age_gender.split('/')[0] : 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Gender</label>
+                  <span>{selectedSample.age_gender && selectedSample.age_gender.split('/')[1] ? selectedSample.age_gender.split('/')[1] : 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Weight</label>
+                  <span>{selectedSample.age_gender && selectedSample.age_gender.split('/')[2] ? selectedSample.age_gender.split('/')[2] : 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Type of Analysis</label>
+                  <span>{selectedSample.type_of_analysis || 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Type of Sample</label>
+                  <span>{selectedSample.type_of_sample || 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Price</label>
+                  <span>{selectedSample.sample_metadata?.price ? `₹${selectedSample.sample_metadata.price}` : 'N/A'}</span>
+                </div>
+                <div className="info-item">
+                  <label>Collection Date</label>
+                  <span>{new Date(selectedSample.collection_date).toLocaleString()}</span>
+                </div>
+                <div className="info-item">
+                  <label>Reported On</label>
+                  <input
+                    type="datetime-local"
+                    value={selectedSample.reported_on ? new Date(selectedSample.reported_on).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => handleReportedDateChange(selectedSample.id, e.target.value)}
+                    className="reported-date-input"
+                  />
+                </div>
+                <div className="info-item">
+                  <label>Status</label>
+                  <span className={`status-badge ${getStatusBadgeClass(selectedSample.status)}`}>
+                    {selectedSample.status}
+                  </span>
+                </div>
+                {selectedSample.notes && (
+                  <div className="info-item full-width">
+                    <label>Notes</label>
+                    <span>{selectedSample.notes}</span>
                   </div>
                 )}
               </div>
-            );
-          })
-        )}
-      </div>
+            </div>
+
+            <div className="modal-actions">
+              <div className="status-changer">
+                <label>Change Status:</label>
+                <select
+                  value={selectedSample.status}
+                  onChange={(e) => handleStatusChange(selectedSample.id, e.target.value as Sample['status'])}
+                >
+                  <option value="received">Received</option>
+                  <option value="processing">Processing</option>
+                  <option value="completed">Completed</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+              <button className="btn-delete" onClick={() => handleDelete(selectedSample.id)}>
+                Delete Sample
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

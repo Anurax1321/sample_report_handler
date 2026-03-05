@@ -44,12 +44,12 @@ def create_sample(payload: SampleCreate, db: Session = Depends(get_db)):
 @router.get("/generate-code")
 def generate_sample_code(db: Session = Depends(get_db)):
     """
-    Generate next available sample code in format: NBS-YYYY-###
+    Generate next available sample code in format: VRL-YYYY-###
     """
     current_year = datetime.now().year
 
     # Find the highest sample code for current year
-    prefix = f"NBS-{current_year}-"
+    prefix = f"VRL-{current_year}-"
     samples = db.query(model.Sample).filter(
         model.Sample.sample_code.like(f"{prefix}%")
     ).all()

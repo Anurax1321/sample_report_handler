@@ -127,87 +127,53 @@
   border-color: #9ca3af;
 }
 
-/* Samples List */
-.samples-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Sample Card */
-.sample-card {
+/* Table */
+.table-wrapper {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: all 0.3s ease;
-  border: 3px solid transparent;
 }
 
-.sample-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.samples-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.sample-card.expanded {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-/* Status-based borders */
-.sample-card.status-received {
-  border-color: #3b82f6;
-}
-
-.sample-card.status-processing {
-  border-color: #f59e0b;
-}
-
-.sample-card.status-completed {
-  border-color: #10b981;
-}
-
-.sample-card.status-rejected {
-  border-color: #ef4444;
-}
-
-/* Card Header */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.card-header:hover {
-  background: #f9fafb;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex: 1;
-}
-
-.sample-code {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
-  min-width: 150px;
-}
-
-.patient-name {
-  font-size: 1rem;
+.samples-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #6b7280;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.samples-table td {
+  padding: 1rem 1.5rem;
+  font-size: 0.95rem;
+  color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.samples-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.samples-table tbody tr:hover {
+  background: #f0fdf4;
+}
+
+.samples-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cell-code {
+  font-weight: 600;
 }
 
 /* Status Badges */
@@ -217,6 +183,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .status-received {
@@ -239,81 +206,94 @@
   color: #991b1b;
 }
 
-/* Priority Badges */
-.priority-badge {
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: capitalize;
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
-.priority-high {
-  background: #fee2e2;
-  color: #991b1b;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.priority-normal {
-  background: #e0e7ff;
-  color: #3730a3;
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.25s ease;
 }
 
-.priority-low {
-  background: #f3f4f6;
-  color: #4b5563;
-}
-
-/* Hospital Badge */
-.hospital-badge {
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.collection-date {
-  font-size: 0.9rem;
-  color: #6b7280;
-  min-width: 100px;
-  text-align: right;
-}
-
-.expand-icon {
-  transition: transform 0.3s ease;
-  color: #6b7280;
-  flex-shrink: 0;
-}
-
-.expand-icon.rotated {
-  transform: rotate(180deg);
-}
-
-/* Card Content */
-.card-content {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
+@keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(20px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.modal-close:hover {
+  color: #1f2937;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  gap: 1rem;
+}
+
+/* Info Grid (used inside modal) */
 .info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .info-item {
@@ -362,16 +342,7 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-/* Card Actions */
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-  gap: 1rem;
-}
-
+/* Status Changer & Delete */
 .status-changer {
   display: flex;
   align-items: center;
@@ -484,10 +455,6 @@
   .info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .header-right {
-    gap: 0.75rem;
-  }
 }
 
 @media (max-width: 768px) {
@@ -523,29 +490,24 @@
     width: 100%;
   }
 
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem;
+  /* Table responsive */
+  .samples-table th,
+  .samples-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
   }
 
-  .header-left {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    width: 100%;
+  /* Modal responsive */
+  .modal-container {
+    width: 95%;
+    max-height: 95vh;
   }
 
-  .header-right {
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  .sample-code {
-    min-width: auto;
-    font-size: 1rem;
+  .modal-header,
+  .modal-body,
+  .modal-actions {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 
   .info-grid {
@@ -553,7 +515,7 @@
     gap: 1rem;
   }
 
-  .card-actions {
+  .modal-actions {
     flex-direction: column;
     align-items: stretch;
   }
@@ -567,11 +529,6 @@
   .btn-delete {
     width: 100%;
   }
-
-  .collection-date {
-    text-align: left;
-    min-width: auto;
-  }
 }
 
 @media (max-width: 480px) {
@@ -579,17 +536,18 @@
     padding: 1rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
+  .samples-table th,
+  .samples-table td {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
   }
 
-  .card-content {
-    padding: 0 1rem 1rem 1rem;
-  }
-
-  .status-badge,
-  .priority-badge {
+  .status-badge {
     padding: 0.3rem 0.7rem;
     font-size: 0.75rem;
+  }
+
+  .modal-body {
+    padding: 1.25rem;
   }
 }
