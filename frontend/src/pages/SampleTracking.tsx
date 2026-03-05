@@ -155,15 +155,6 @@ export default function SampleTracking() {
     }
   };
 
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'priority-high';
-      case 'normal': return 'priority-normal';
-      case 'low': return 'priority-low';
-      default: return '';
-    }
-  };
-
   if (loading) {
     return (
       <div className="sample-tracking-page">

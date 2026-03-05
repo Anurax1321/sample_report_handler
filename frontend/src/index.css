@@ -2,6 +2,126 @@
   box-sizing: border-box;
 }
 
+/* ==========================================
+   THEME DEFINITIONS
+   ========================================== */
+
+/* Glassmorphism Dark (default) */
+[data-theme="glass"] {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --card-blur: blur(20px);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent-1: #6366f1;
+  --accent-2: #a855f7;
+  --accent-3: #ec4899;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --glow-color: rgba(99, 102, 241, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --header-gradient-1: #1e1b4b;
+  --header-gradient-2: #312e81;
+  --card-1-gradient-1: #059669;
+  --card-1-gradient-2: #10b981;
+  --card-2-gradient-1: #2563eb;
+  --card-2-gradient-2: #3b82f6;
+  --card-3-gradient-1: #7c3aed;
+  --card-3-gradient-2: #8b5cf6;
+  --btn-bg: #6366f1;
+  --btn-hover: #4f46e5;
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.15);
+}
+
+/* Cyber Neon */
+[data-theme="cyber"] {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: rgba(0, 240, 255, 0.03);
+  --card-blur: blur(20px);
+  --text-primary: #e0f7fa;
+  --text-secondary: #80cbc4;
+  --accent-1: #00f0ff;
+  --accent-2: #bf00ff;
+  --accent-3: #ff006e;
+  --border-color: rgba(0, 240, 255, 0.15);
+  --glow-color: rgba(0, 240, 255, 0.4);
+  --shadow-color: rgba(0, 240, 255, 0.2);
+  --header-gradient-1: #0d0d1a;
+  --header-gradient-2: #1a0a2e;
+  --card-1-gradient-1: #00b8d4;
+  --card-1-gradient-2: #00e5ff;
+  --card-2-gradient-1: #7b1fa2;
+  --card-2-gradient-2: #bf00ff;
+  --card-3-gradient-1: #c2185b;
+  --card-3-gradient-2: #ff006e;
+  --btn-bg: #00f0ff;
+  --btn-hover: #00c8d4;
+  --input-bg: rgba(0, 240, 255, 0.05);
+  --input-border: rgba(0, 240, 255, 0.2);
+}
+
+/* Deep Space */
+[data-theme="space"] {
+  --bg-primary: #060b18;
+  --bg-secondary: #0c1524;
+  --bg-card: rgba(59, 130, 246, 0.05);
+  --card-blur: blur(20px);
+  --text-primary: #e2e8f0;
+  --text-secondary: #7dd3fc;
+  --accent-1: #3b82f6;
+  --accent-2: #06b6d4;
+  --accent-3: #8b5cf6;
+  --border-color: rgba(59, 130, 246, 0.15);
+  --glow-color: rgba(59, 130, 246, 0.3);
+  --shadow-color: rgba(59, 130, 246, 0.2);
+  --header-gradient-1: #0c1a3a;
+  --header-gradient-2: #0e2444;
+  --card-1-gradient-1: #0284c7;
+  --card-1-gradient-2: #06b6d4;
+  --card-2-gradient-1: #1d4ed8;
+  --card-2-gradient-2: #3b82f6;
+  --card-3-gradient-1: #6d28d9;
+  --card-3-gradient-2: #8b5cf6;
+  --btn-bg: #3b82f6;
+  --btn-hover: #2563eb;
+  --input-bg: rgba(59, 130, 246, 0.05);
+  --input-border: rgba(59, 130, 246, 0.2);
+}
+
+/* Matrix Green */
+[data-theme="matrix"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-card: rgba(0, 255, 65, 0.03);
+  --card-blur: blur(20px);
+  --text-primary: #b6ffb6;
+  --text-secondary: #66bb6a;
+  --accent-1: #00ff41;
+  --accent-2: #00cc33;
+  --accent-3: #39ff14;
+  --border-color: rgba(0, 255, 65, 0.15);
+  --glow-color: rgba(0, 255, 65, 0.3);
+  --shadow-color: rgba(0, 255, 65, 0.2);
+  --header-gradient-1: #0a1a0a;
+  --header-gradient-2: #0d260d;
+  --card-1-gradient-1: #00802b;
+  --card-1-gradient-2: #00cc33;
+  --card-2-gradient-1: #006622;
+  --card-2-gradient-2: #00991a;
+  --card-3-gradient-1: #1b5e20;
+  --card-3-gradient-2: #2e7d32;
+  --btn-bg: #00cc33;
+  --btn-hover: #00a82b;
+  --input-bg: rgba(0, 255, 65, 0.05);
+  --input-border: rgba(0, 255, 65, 0.2);
+}
+
+/* ==========================================
+   GLOBAL STYLES
+   ========================================== */
+
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
@@ -17,8 +137,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fff9f0 0%, #fef5e7 50%, #fff8e8 100%);
-  color: #2d3748;
+  background: var(--bg-primary, #0f0f1a);
+  color: var(--text-primary, #f1f5f9);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -34,16 +155,16 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #d4a574;
+  background-color: var(--btn-bg, #6366f1);
   color: white;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 button:hover {
-  background-color: #c49563;
+  background-color: var(--btn-hover, #4f46e5);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(212, 165, 116, 0.3);
+  box-shadow: 0 4px 8px var(--shadow-color, rgba(0, 0, 0, 0.3));
 }
 
 button:active {
@@ -52,7 +173,7 @@ button:active {
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid #d4a574;
+  outline: 2px solid var(--accent-1, #6366f1);
   outline-offset: 2px;
 }
 
@@ -63,13 +184,13 @@ button:disabled {
 }
 
 a {
-  color: #d4a574;
+  color: var(--accent-1, #6366f1);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #c49563;
+  color: var(--accent-2, #a855f7);
 }
 
 @keyframes spin {

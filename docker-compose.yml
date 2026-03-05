@@ -26,12 +26,17 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: sample-report-frontend
     ports:
-      - "3000:80"
+      - "3000:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
     depends_on:
       backend:
         condition: service_healthy           # Wait for backend to be healthy

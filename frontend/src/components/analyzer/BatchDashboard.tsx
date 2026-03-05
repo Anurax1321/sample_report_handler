@@ -9,7 +9,7 @@ interface BatchDashboardProps {
   uploadedZipFile: File | null;
 }
 
-export default function BatchDashboard({ batchResult, onReset, uploadedZipFile }: BatchDashboardProps) {
+export default function BatchDashboard({ batchResult, uploadedZipFile }: BatchDashboardProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'abnormal' | 'normal' | 'failed'>('abnormal');
   const [searchTerm, setSearchTerm] = useState('');
 
