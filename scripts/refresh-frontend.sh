@@ -6,7 +6,7 @@ pkill -f "vite"
 sleep 2
 
 echo "Clearing Vite cache..."
-cd "/mnt/d/ANURAG/USA/Wisconsin/UNIVERSITY OF WISCONSIN-MADISON/Projects/sample_report_handler/frontend"
+cd "$(dirname "$0")/../frontend"
 rm -rf node_modules/.vite
 rm -rf dist
 

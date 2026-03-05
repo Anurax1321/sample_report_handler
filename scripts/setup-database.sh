@@ -11,7 +11,7 @@ echo ""
 
 # Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BACKEND_DIR="$SCRIPT_DIR/backend"
+BACKEND_DIR="$SCRIPT_DIR/../backend"
 
 # Navigate to backend directory
 cd "$BACKEND_DIR"
@@ -113,5 +113,5 @@ echo "     cd backend && source .venv/bin/activate"
 echo "     uvicorn app.main:app --reload --port 8000"
 echo ""
 echo "  2. Or use the development script:"
-echo "     ./start-dev.sh"
+echo "     ./scripts/start-dev.sh"
 echo ""

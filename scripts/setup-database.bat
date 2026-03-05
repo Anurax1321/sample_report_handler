@@ -8,7 +8,7 @@ echo ================================================
 echo.
 
 REM Navigate to backend directory
-cd /d "%~dp0backend"
+cd /d "%~dp0..\backend"
 echo Working directory: %CD%
 echo.
 
@@ -109,6 +109,6 @@ echo      .venv\Scripts\activate
 echo      uvicorn app.main:app --reload --port 8000
 echo.
 echo   2. Or use the development script:
-echo      start-dev.bat
+echo      scripts\start-dev.bat
 echo.
 pause

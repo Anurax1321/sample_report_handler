@@ -1,0 +1,28 @@
+# Windows-optimized requirements
+# Use this file on Windows to avoid compilation issues
+
+# Core dependencies with known Windows wheel support
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx==0.28.1
+
+# File handling
+python-multipart==0.0.20
+openpyxl==3.1.5
+
+# Data processing - using versions with good Windows wheel availability
+numpy==1.26.4
+pandas==2.1.4
+
+# PDF processing
+pdfplumber>=0.9.0
+Pillow>=10.0.0
+reportlab>=4.0.0

@@ -18,8 +18,6 @@ export default function ReportHandling() {
   const [uploadedBy, setUploadedBy] = useState<string>('anonymous');
   const [members, setMembers] = useState<string[]>([]);
   const [showMemberManagement, setShowMemberManagement] = useState(false);
-  const [customName, setCustomName] = useState<string>('');
-
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [uploadedReport, setUploadedReport] = useState<Report | null>(null);

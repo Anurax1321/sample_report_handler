@@ -3,8 +3,8 @@ import './Header.css';
 
 export default function Header() {
   const location = useLocation();
+  const isHome = location.pathname === '/' || location.pathname === '/home';
 
-  // Determine header title based on current path
   const getHeaderTitle = () => {
     const path = location.pathname;
 
@@ -32,13 +32,15 @@ export default function Header() {
           <h1 className="header-title">{getHeaderTitle()}</h1>
         </div>
         <div className="header-right">
-          <Link to="/" className="home-link">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            Home
-          </Link>
+          {!isHome && (
+            <Link to="/" className="home-link">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              Home
+            </Link>
+          )}
         </div>
       </div>
     </header>

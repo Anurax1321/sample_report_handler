@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import SampleEntryChoice from './pages/SampleEntryChoice';
 import SampleEntryForm from './pages/SampleEntryForm';
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/report-review/:reportId" element={<ReportReview />} />
           <Route path="/report-analyser" element={<ReportAnalyser />} />
         </Routes>
+        <Footer />
       </div>
     </BrowserRouter>
   );

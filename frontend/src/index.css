@@ -7,6 +7,19 @@
   line-height: 1.6;
   font-weight: 400;
 
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --text-primary: #222222;
+  --text-secondary: #717171;
+  --accent-1: #FF385C;
+  --accent-2: #E31C5F;
+  --border-color: #dddddd;
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --btn-bg: #FF385C;
+  --btn-hover: #E31C5F;
+  --input-bg: #ffffff;
+  --input-border: #b0b0b0;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -17,8 +30,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fff9f0 0%, #fef5e7 50%, #fff8e8 100%);
-  color: #2d3748;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 #root {
@@ -34,16 +47,16 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #d4a574;
+  background-color: var(--btn-bg);
   color: white;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 button:hover {
-  background-color: #c49563;
+  background-color: var(--btn-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(212, 165, 116, 0.3);
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 button:active {
@@ -52,7 +65,7 @@ button:active {
 
 button:focus,
 button:focus-visible {
-  outline: 2px solid #d4a574;
+  outline: 2px solid var(--accent-1);
   outline-offset: 2px;
 }
 
@@ -63,13 +76,13 @@ button:disabled {
 }
 
 a {
-  color: #d4a574;
+  color: var(--accent-1);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #c49563;
+  color: var(--accent-2);
 }
 
 @keyframes spin {

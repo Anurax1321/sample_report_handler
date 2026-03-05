@@ -42,7 +42,7 @@ That's it! The system automatically:
 - ✅ Starts backend on http://localhost:8000
 - ✅ Starts frontend on http://localhost:3000
 
-**For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER_SETUP.md](DOCKER_SETUP.md)**
+**For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER_SETUP.md](docs/DOCKER_SETUP.md)**
 
 ### Access Points
 - **Frontend**: http://localhost:3000
@@ -112,9 +112,9 @@ pip install -r requirements.txt
    **Quick method (recommended):**
    ```bash
    # Run from project root
-   ./setup-database.sh  # Linux/macOS/WSL
+   ./scripts/setup-database.sh  # Linux/macOS/WSL
    # OR
-   setup-database.bat   # Windows
+   scripts\setup-database.bat   # Windows
    ```
 
    **Manual method:**
@@ -129,7 +129,7 @@ pip install -r requirements.txt
    python seed_data.py
    ```
 
-   **For detailed database setup instructions, see [DATABASE_SETUP.md](DATABASE_SETUP.md)**
+   **For detailed database setup instructions, see [DATABASE_SETUP.md](docs/DATABASE_SETUP.md)**
 
 5. **Start server**
 ```bash
@@ -171,7 +171,7 @@ npm run dev
 - `GET /reports/{id}/download` - Download ZIP of generated Excel files
 - `DELETE /reports/{id}` - Delete report and associated files
 
-**For detailed report handler documentation, see [REPORT_HANDLER_IMPLEMENTATION.md](REPORT_HANDLER_IMPLEMENTATION.md)**
+**For detailed report handler documentation, see [REPORT_HANDLER_IMPLEMENTATION.md](docs/REPORT_HANDLER_IMPLEMENTATION.md)**
 
 ## Project Structure
 
@@ -216,8 +216,21 @@ sample_report_handler/
 │   ├── nginx.conf
 │   └── package.json
 ├── docker-compose.yml             # Updated with volumes
-├── DOCKER_SETUP.md                # NEW: Comprehensive Docker guide
-├── REPORT_HANDLER_IMPLEMENTATION.md  # NEW: Report handler docs
+├── docs/                           # Documentation
+│   ├── DATABASE_SETUP.md
+│   ├── DEVELOPMENT-GUIDE.md
+│   ├── DOCKER_SETUP.md
+│   ├── DOCKER_MODES.md
+│   ├── QUICK_START.md
+│   ├── REPORT_HANDLER_IMPLEMENTATION.md
+│   ├── TESTING.md
+│   └── WINDOWS_SETUP.md
+├── scripts/                        # Shell & batch scripts
+│   ├── start-dev.sh / .bat
+│   ├── stop-dev.sh / .bat
+│   ├── setup-database.sh / .bat
+│   ├── start-windows.bat
+│   └── refresh-frontend.sh
 └── README.md
 ```
 
@@ -258,7 +271,7 @@ cd backend && pytest --cov=app
 cd frontend && npm run test:coverage
 ```
 
-For detailed testing instructions, see [TESTING.md](TESTING.md)
+For detailed testing instructions, see [TESTING.md](docs/TESTING.md)
 
 ## Contributing
 

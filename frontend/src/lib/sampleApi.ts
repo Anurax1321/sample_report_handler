@@ -61,6 +61,10 @@ export interface UpdateStatusData {
   status: 'received' | 'processing' | 'completed' | 'rejected';
 }
 
+export interface UpdateReportedDateData {
+  reported_on: string | null;
+}
+
 /**
  * Get all samples with optional status filter
  */
@@ -91,6 +95,14 @@ export async function updateSampleStatus(sampleId: number, data: UpdateStatusDat
  */
 export async function deleteSample(sampleId: number): Promise<void> {
   await api.delete(`/samples/${sampleId}`);
+}
+
+/**
+ * Update sample reported date
+ */
+export async function updateReportedDate(sampleId: number, data: UpdateReportedDateData): Promise<Sample> {
+  const response = await api.patch<Sample>(`/samples/${sampleId}/reported-date`, data);
+  return response.data;
 }
 
 /**

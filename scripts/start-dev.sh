@@ -11,8 +11,8 @@ echo "Starting Sample Report Handler (Development Mode)"
 echo "========================================"
 echo ""
 
-# Change to script directory
-cd "$(dirname "$0")"
+# Change to project root (one level up from scripts/)
+cd "$(dirname "$0")/.."
 PROJECT_ROOT="$(pwd)"
 
 # ===================================================================
@@ -144,7 +144,7 @@ echo "  - Backend:  tail -f backend.log"
 echo "  - Frontend: tail -f frontend.log"
 echo ""
 echo "To stop the servers:"
-echo "  ./stop-dev.sh"
+echo "  ./scripts/stop-dev.sh"
 echo ""
 echo "========================================"
 

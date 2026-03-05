@@ -7,8 +7,8 @@
 echo "Stopping Sample Report Handler servers..."
 echo ""
 
-# Change to script directory
-cd "$(dirname "$0")"
+# Change to project root (one level up from scripts/)
+cd "$(dirname "$0")/.."
 
 # Kill backend
 if [ -f "backend.pid" ]; then
