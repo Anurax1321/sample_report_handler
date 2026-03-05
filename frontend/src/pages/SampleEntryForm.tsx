@@ -49,7 +49,7 @@ export default function SampleEntryForm() {
     notes: '',
   });
 
-  // Load saved suggestions on mount
+  // Load saved suggestions and auto-generate serial number on mount
   useEffect(() => {
     const savedAnalysis = localStorage.getItem(STORAGE_KEY_ANALYSIS);
     const savedSampleType = localStorage.getItem(STORAGE_KEY_SAMPLE_TYPE);
@@ -60,18 +60,21 @@ export default function SampleEntryForm() {
     if (savedSampleType) {
       setSampleTypeSuggestions(JSON.parse(savedSampleType));
     }
+
+    // Auto-fetch next serial number
+    generateSampleCode()
+      .then(result => {
+        setFormData(prev => ({ ...prev, sample_code: result.sample_code }));
+      })
+      .catch(() => {
+        // Silently fail — user can type manually or click Generate
+      });
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    // Handle VRL Serial No - strip "VRL-" prefix if user types it
-    if (name === 'sample_code') {
-      const cleanedValue = value.replace(/^VRL-/i, '');
-      setFormData(prev => ({ ...prev, [name]: cleanedValue }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleGenerateCode = async () => {
@@ -237,18 +240,15 @@ export default function SampleEntryForm() {
               <div className="form-group">
                 <label htmlFor="sample_code">VRL Serial No. *</label>
                 <div className="input-with-button">
-                  <div className="input-with-prefix">
-                    <span className="input-prefix">VRL-</span>
-                    <input
-                      type="text"
-                      id="sample_code"
-                      name="sample_code"
-                      value={formData.sample_code}
-                      onChange={handleChange}
-                      placeholder="e.g., 6684 or NBS-2025-001"
-                      required
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    id="sample_code"
+                    name="sample_code"
+                    value={formData.sample_code}
+                    onChange={handleChange}
+                    placeholder="e.g., NBS-2026-001"
+                    required
+                  />
                   <button
                     type="button"
                     onClick={handleGenerateCode}

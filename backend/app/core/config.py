@@ -4,7 +4,7 @@ from typing import List
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Sample Report Handler API"
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://localhost:8080"
-    SQLALCHEMY_DATABASE_URI: str = "sqlite:///./dev.db"  # local default
+    SQLALCHEMY_DATABASE_URI: str = "postgresql://sample_user:sample_pass@localhost:5432/sample_report_db"
 
     class Config:
         env_file = ".env"

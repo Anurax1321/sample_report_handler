@@ -1,4 +1,25 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: sample-report-db-dev
+    environment:
+      - POSTGRES_USER=sample_user
+      - POSTGRES_PASSWORD=sample_pass
+      - POSTGRES_DB=sample_report_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sample_user -d sample_report_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -8,11 +29,13 @@ services:
       - "8000:8000"
     environment:
       - CORS_ORIGINS=http://localhost:5173
-      - SQLALCHEMY_DATABASE_URI=sqlite:///./dev.db
+      - SQLALCHEMY_DATABASE_URI=postgresql://sample_user:sample_pass@db:5432/sample_report_db
     volumes:
       - ./backend:/app
       - backend-uploads:/app/uploads
-      - backend-db:/app/db_data
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
@@ -47,7 +70,7 @@ networks:
     driver: bridge
 
 volumes:
-  backend-uploads:
+  postgres-data-dev:
     driver: local
-  backend-db:
+  backend-uploads:
     driver: local
