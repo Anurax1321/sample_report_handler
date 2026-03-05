@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateSampleCode } from '../lib/sampleApi';
+import { generateSampleCode, createSample } from '../lib/sampleApi';
 import './SampleEntryForm.css';
 
 interface SampleFormData {
@@ -161,27 +161,14 @@ export default function SampleEntryForm() {
         type_of_analysis: formData.type_of_analysis,
         type_of_sample: formData.type_of_sample,
         collection_date: formData.collection_date,
-        reported_on: formData.reported_on || null,
+        reported_on: formData.reported_on || undefined,
         notes: formData.notes,
         sample_metadata: {
           price: formData.price,
         }
       };
 
-      const response = await fetch('http://localhost:8000/samples', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to create sample');
-      }
-
-      const result = await response.json();
+      const result = await createSample(apiData);
       alert(`Sample created successfully! VRL Serial No: ${result.sample_code}`);
 
       // Reset form
@@ -205,7 +192,8 @@ export default function SampleEntryForm() {
       navigate('/sample-entry/tracking');
     } catch (error: any) {
       console.error('Error creating sample:', error);
-      alert(error.message || 'Failed to create sample');
+      const message = error.response?.data?.detail || error.message || 'Failed to create sample';
+      alert(message);
     } finally {
       setSubmitting(false);
     }

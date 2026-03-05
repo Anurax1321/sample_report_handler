@@ -7,8 +7,8 @@ from app.db.base import Base
 from app.db.model import *  # noqa: F401, import models so metadata is populated
 
 config = context.config
-if config.get_main_option("sqlalchemy.url") is None:
-    config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
+# Always use the app settings (reads from env var in Docker)
+config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
