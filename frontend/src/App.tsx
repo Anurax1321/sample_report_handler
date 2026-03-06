@@ -12,7 +12,7 @@ import './App.css';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/vijayrekha">
       <div className="app">
         <Header />
         <Routes>

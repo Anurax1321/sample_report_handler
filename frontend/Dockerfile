@@ -3,12 +3,14 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Accept build args
+ARG VITE_API_URL=/vijayrekha/api
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-# Using npm install (instead of npm ci) for development flexibility
-# This allows the build to succeed even if package-lock.json is out of sync
 RUN npm install
 
 # Copy source code
