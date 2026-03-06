@@ -22,7 +22,13 @@ interface SampleFormData {
 const STORAGE_KEY_ANALYSIS = 'sample_analysis_history';
 const STORAGE_KEY_SAMPLE_TYPE = 'sample_type_history';
 
-export default function SampleEntryForm() {
+interface SampleEntryFormProps {
+  embedded?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => void;
+}
+
+export default function SampleEntryForm({ embedded, onClose, onSuccess }: SampleEntryFormProps = {}) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -188,8 +194,12 @@ export default function SampleEntryForm() {
         notes: '',
       });
 
-      // Navigate to tracking page
-      navigate('/sample-entry/tracking');
+      if (embedded) {
+        onSuccess?.();
+        onClose?.();
+      } else {
+        navigate('/sample-entry/tracking');
+      }
     } catch (error: any) {
       console.error('Error creating sample:', error);
       const message = error.response?.data?.detail || error.message || 'Failed to create sample';
@@ -212,15 +222,14 @@ export default function SampleEntryForm() {
         s.toLowerCase().includes(formData.type_of_sample.toLowerCase())
       );
 
-  return (
-    <div className="sample-entry-form-page">
-      <div className="form-container">
-        <div className="form-header">
-          <h1>Sample Entry Form</h1>
-          <p className="form-subtitle">Enter sample information based on laboratory records</p>
-        </div>
+  const formContent = (
+    <div className="form-container">
+      <div className="form-header">
+        <h1>Sample Entry Form</h1>
+        <p className="form-subtitle">Enter sample information based on laboratory records</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="sample-form">
+      <form onSubmit={handleSubmit} className="sample-form">
           {/* Identification Section */}
           <div className="form-section">
             <h2 className="section-title">Sample Identification</h2>
@@ -456,7 +465,7 @@ export default function SampleEntryForm() {
           <div className="form-actions">
             <button
               type="button"
-              onClick={() => navigate('/sample-entry')}
+              onClick={() => embedded ? onClose?.() : navigate('/sample-entry')}
               className="btn-secondary"
               disabled={submitting}
             >
@@ -472,6 +481,8 @@ export default function SampleEntryForm() {
           </div>
         </form>
       </div>
-    </div>
   );
+
+  if (embedded) return formContent;
+  return <div className="sample-entry-form-page">{formContent}</div>;
 }

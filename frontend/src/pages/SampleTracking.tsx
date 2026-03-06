@@ -6,9 +6,10 @@ import './SampleTracking.css';
 interface SampleTrackingProps {
   embedded?: boolean;
   onSamplesChange?: (samples: Sample[], filteredSamples: Sample[]) => void;
+  refreshTrigger?: number;
 }
 
-export default function SampleTracking({ embedded, onSamplesChange }: SampleTrackingProps = {}) {
+export default function SampleTracking({ embedded, onSamplesChange, refreshTrigger }: SampleTrackingProps = {}) {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,10 @@ export default function SampleTracking({ embedded, onSamplesChange }: SampleTrac
   useEffect(() => {
     fetchSamples();
   }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) fetchSamples();
+  }, [refreshTrigger]);
 
   useEffect(() => {
     filterSamples();

@@ -2,12 +2,15 @@ import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Sample } from '../lib/sampleApi';
 import SampleTracking from './SampleTracking';
+import SampleEntryForm from './SampleEntryForm';
 import './Home.css';
 
 export default function Home() {
   const navigate = useNavigate();
   const [allSamples, setAllSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
+  const [showEntryModal, setShowEntryModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSamplesChange = useCallback((samples: Sample[], filtered: Sample[]) => {
     setAllSamples(samples);
@@ -81,7 +84,7 @@ export default function Home() {
 
       <div className="dashboard-main">
         <div className="dashboard-sidebar">
-          <div className="sample-entry" onClick={() => navigate('/sample-entry')}>
+          <div className="sample-entry" onClick={() => setShowEntryModal(true)}>
             <div className="section-header">
               <h2 className="section-title">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -150,9 +153,22 @@ export default function Home() {
         </div>
 
         <div className="dashboard-tracking">
-          <SampleTracking embedded onSamplesChange={handleSamplesChange} />
+          <SampleTracking embedded onSamplesChange={handleSamplesChange} refreshTrigger={refreshTrigger} />
         </div>
       </div>
+
+      {showEntryModal && (
+        <div className="modal-backdrop" onClick={() => setShowEntryModal(false)}>
+          <div className="entry-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowEntryModal(false)}>&times;</button>
+            <SampleEntryForm
+              embedded
+              onClose={() => setShowEntryModal(false)}
+              onSuccess={() => setRefreshTrigger(t => t + 1)}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }

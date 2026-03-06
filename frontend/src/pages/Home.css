@@ -117,6 +117,71 @@
   min-width: 0;
 }
 
+/* Sample Entry Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.entry-modal {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 92%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.entry-modal .modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #6b7280;
+  cursor: pointer;
+  z-index: 1;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.entry-modal .modal-close:hover {
+  color: #1f2937;
+}
+
+.entry-modal .form-container {
+  box-shadow: none;
+  margin: 0;
+  border-radius: 0;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .dashboard-main {
