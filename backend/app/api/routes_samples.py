@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
-from app.schema.sample import SampleCreate, SampleRead, SampleUpdateStatus, SampleUpdateReportedDate
+from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate
 from datetime import datetime
 
 router = APIRouter(prefix="/samples", tags=["samples"])
@@ -49,7 +49,7 @@ def generate_sample_code(db: Session = Depends(get_db)):
     current_year = datetime.now().year
 
     # Find the highest sample code for current year
-    prefix = f"VRL-{current_year}-"
+    prefix = f"VRLS-{current_year}-"
     samples = db.query(model.Sample).filter(
         model.Sample.sample_code.like(f"{prefix}%")
     ).all()
@@ -81,6 +81,22 @@ def list_samples(db: Session = Depends(get_db), status: str | None = None):
         q = q.filter(model.Sample.status == status)
     return q.order_by(model.Sample.id.desc()).all()
 
+@router.patch("/{sample_id}", response_model=SampleRead)
+def update_sample(sample_id: int, payload: SampleUpdate, db: Session = Depends(get_db)):
+    s = db.get(model.Sample, sample_id)
+    if not s:
+        raise HTTPException(404, "sample not found")
+    update_data = payload.model_dump(exclude_none=True)
+    for field, value in update_data.items():
+        if field == "sample_metadata":
+            existing = s.sample_metadata or {}
+            existing.update(value)
+            s.sample_metadata = existing
+        else:
+            setattr(s, field, value)
+    db.commit(); db.refresh(s)
+    return s
+
 @router.patch("/{sample_id}/status", response_model=SampleRead)
 def update_status(sample_id: int, payload: SampleUpdateStatus, db: Session = Depends(get_db)):
     s = db.get(model.Sample, sample_id)
@@ -103,6 +119,27 @@ def update_reported_date(sample_id: int, payload: SampleUpdateReportedDate, db: 
     s.reported_on = payload.reported_on
     db.commit(); db.refresh(s)
     return s
+
+@router.post("/{sample_id}/link-report/{report_id}")
+def link_report_to_sample(sample_id: int, report_id: int, db: Session = Depends(get_db)):
+    s = db.get(model.Sample, sample_id)
+    if not s:
+        raise HTTPException(404, "sample not found")
+    r = db.get(model.Report, report_id)
+    if not r:
+        raise HTTPException(404, "report not found")
+    # Check if already linked
+    existing = db.execute(
+        model.report_samples.select().where(
+            (model.report_samples.c.report_id == report_id) &
+            (model.report_samples.c.sample_id == sample_id)
+        )
+    ).first()
+    if existing:
+        return {"message": "Already linked"}
+    db.execute(model.report_samples.insert().values(report_id=report_id, sample_id=sample_id))
+    db.commit()
+    return {"message": "Report linked to sample"}
 
 @router.delete("/{sample_id}")
 def delete_sample(sample_id: int, db: Session = Depends(get_db)):

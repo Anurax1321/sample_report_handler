@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateSampleCode, createSample } from '../lib/sampleApi';
+import { generateSampleCode, createSample, getUnlinkedReports, linkReportToSample } from '../lib/sampleApi';
+import type { UnlinkedReport } from '../lib/sampleApi';
 import './SampleEntryForm.css';
 
 interface SampleFormData {
   sample_code: string;         // VRL serial number
   patient_name: string;         // Patient Name
   sample_id: string;            // Sample ID
-  age: string;                  // Age
+  date_of_birth: string;        // Date of Birth
   gender: string;               // Gender
   weight: string;               // Weight
   from_hospital: string;        // Client name
@@ -19,8 +20,26 @@ interface SampleFormData {
   notes: string;
 }
 
-const STORAGE_KEY_ANALYSIS = 'sample_analysis_history';
-const STORAGE_KEY_SAMPLE_TYPE = 'sample_type_history';
+const STORAGE_KEY_CLIENTS = 'sample_client_list';
+const STORAGE_KEY_ANALYSIS = 'sample_analysis_custom';
+const STORAGE_KEY_SAMPLE_TYPE = 'sample_type_custom';
+const STORAGE_KEY_HIDDEN_ANALYSIS = 'sample_analysis_hidden';
+const STORAGE_KEY_HIDDEN_SAMPLE_TYPE = 'sample_type_hidden';
+
+const DEFAULT_ANALYSIS_TYPES = ['BIO6', 'BIO7', 'BIO8'];
+const DEFAULT_SAMPLE_TYPES = ['DBS', 'Serum', 'Plasma'];
+
+function getLocalDateTimeString(date: Date = new Date()): string {
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+// TODO: Populate this pricing matrix with actual client/analysis pricing data
+// const PRICING_MATRIX: Record<string, Record<string, string>> = {
+//   // 'ClientName': { 'AnalysisType': 'price' },
+//   // e.g., 'MEDICIS': { 'BIO6': '1500', 'BIO7': '2000' },
+// };
 
 interface SampleEntryFormProps {
   embedded?: boolean;
@@ -28,44 +47,88 @@ interface SampleEntryFormProps {
   onSuccess?: () => void;
 }
 
+function computeAge(dob: string): string {
+  if (!dob) return '';
+  const birthDate = new Date(dob);
+  const today = new Date();
+  const diffMs = today.getTime() - birthDate.getTime();
+  if (diffMs < 0) return '';
+
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 30) {
+    return `${diffDays}D`;
+  }
+
+  const diffMonths =
+    (today.getFullYear() - birthDate.getFullYear()) * 12 +
+    (today.getMonth() - birthDate.getMonth());
+
+  if (diffMonths < 12) {
+    return `${diffMonths}M`;
+  }
+
+  const years = today.getFullYear() - birthDate.getFullYear();
+  const hadBirthday =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+  return `${hadBirthday ? years : years - 1}Y`;
+}
+
 export default function SampleEntryForm({ embedded, onClose, onSuccess }: SampleEntryFormProps = {}) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  // Autocomplete suggestions
-  const [analysisSuggestions, setAnalysisSuggestions] = useState<string[]>([]);
-  const [sampleTypeSuggestions, setSampleTypeSuggestions] = useState<string[]>([]);
-  const [showAnalysisSuggestions, setShowAnalysisSuggestions] = useState(false);
-  const [showSampleTypeSuggestions, setShowSampleTypeSuggestions] = useState(false);
+  // Computed age from DOB
+  const [computedAge, setComputedAge] = useState('');
+
+  // Report attachment state
+  const [unlinkedReports, setUnlinkedReports] = useState<UnlinkedReport[]>([]);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [loadingReports, setLoadingReports] = useState(false);
+
+  // Client combobox state
+  const [clients, setClients] = useState<string[]>([]);
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+
+  // Custom analysis/sample type values from localStorage
+  const [customAnalysisTypes, setCustomAnalysisTypes] = useState<string[]>([]);
+  const [customSampleTypes, setCustomSampleTypes] = useState<string[]>([]);
+  const [hiddenAnalysisTypes, setHiddenAnalysisTypes] = useState<string[]>([]);
+  const [hiddenSampleTypes, setHiddenSampleTypes] = useState<string[]>([]);
+  const [showAnalysisDropdown, setShowAnalysisDropdown] = useState(false);
+  const [showSampleTypeDropdown, setShowSampleTypeDropdown] = useState(false);
 
   const [formData, setFormData] = useState<SampleFormData>({
     sample_code: '',
     patient_name: '',
     sample_id: '',
-    age: '',
+    date_of_birth: '',
     gender: '',
     weight: '',
     from_hospital: '',
     type_of_analysis: '',
     type_of_sample: 'DBS',
     price: '',
-    collection_date: new Date().toISOString().slice(0, 16),
+    collection_date: getLocalDateTimeString(),
     reported_on: '',
     notes: '',
   });
 
-  // Load saved suggestions and auto-generate serial number on mount
+  // Load saved data and auto-generate serial number on mount
   useEffect(() => {
+    const savedClients = localStorage.getItem(STORAGE_KEY_CLIENTS);
     const savedAnalysis = localStorage.getItem(STORAGE_KEY_ANALYSIS);
     const savedSampleType = localStorage.getItem(STORAGE_KEY_SAMPLE_TYPE);
+    const savedHiddenAnalysis = localStorage.getItem(STORAGE_KEY_HIDDEN_ANALYSIS);
+    const savedHiddenSampleType = localStorage.getItem(STORAGE_KEY_HIDDEN_SAMPLE_TYPE);
 
-    if (savedAnalysis) {
-      setAnalysisSuggestions(JSON.parse(savedAnalysis));
-    }
-    if (savedSampleType) {
-      setSampleTypeSuggestions(JSON.parse(savedSampleType));
-    }
+    if (savedClients) setClients(JSON.parse(savedClients));
+    if (savedAnalysis) setCustomAnalysisTypes(JSON.parse(savedAnalysis));
+    if (savedSampleType) setCustomSampleTypes(JSON.parse(savedSampleType));
+    if (savedHiddenAnalysis) setHiddenAnalysisTypes(JSON.parse(savedHiddenAnalysis));
+    if (savedHiddenSampleType) setHiddenSampleTypes(JSON.parse(savedHiddenSampleType));
 
     // Auto-fetch next serial number
     generateSampleCode()
@@ -75,11 +138,32 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
       .catch(() => {
         // Silently fail — user can type manually or click Generate
       });
+
+    // Fetch unlinked reports for attachment
+    setLoadingReports(true);
+    getUnlinkedReports()
+      .then(reports => setUnlinkedReports(reports))
+      .catch(() => {})
+      .finally(() => setLoadingReports(false));
   }, []);
+
+  // Recompute age when DOB changes
+  useEffect(() => {
+    setComputedAge(computeAge(formData.date_of_birth));
+  }, [formData.date_of_birth]);
+
+  // TODO: Auto-fill price based on client + analysis type when PRICING_MATRIX is populated
+  // useEffect(() => {
+  //   if (formData.from_hospital && formData.type_of_analysis) {
+  //     const clientPrices = PRICING_MATRIX[formData.from_hospital];
+  //     if (clientPrices && clientPrices[formData.type_of_analysis]) {
+  //       setFormData(prev => ({ ...prev, price: clientPrices[formData.type_of_analysis] }));
+  //     }
+  //   }
+  // }, [formData.from_hospital, formData.type_of_analysis]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -96,65 +180,98 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
     }
   };
 
-  const addToSuggestions = (key: string, value: string, suggestions: string[], setSuggestions: (val: string[]) => void) => {
-    if (value && !suggestions.includes(value)) {
-      const updated = [...suggestions, value];
-      setSuggestions(updated);
-      localStorage.setItem(key, JSON.stringify(updated));
+  // Client combobox handlers
+  const saveClientValue = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && !clients.includes(trimmed)) {
+      const updated = [...clients, trimmed];
+      setClients(updated);
+      localStorage.setItem(STORAGE_KEY_CLIENTS, JSON.stringify(updated));
     }
   };
 
-  const removeSuggestion = (key: string, value: string, suggestions: string[], setSuggestions: (val: string[]) => void) => {
-    const updated = suggestions.filter(s => s !== value);
-    setSuggestions(updated);
-    localStorage.setItem(key, JSON.stringify(updated));
+  const removeClient = (value: string) => {
+    const updated = clients.filter(c => c !== value);
+    setClients(updated);
+    localStorage.setItem(STORAGE_KEY_CLIENTS, JSON.stringify(updated));
+    if (formData.from_hospital === value) {
+      setFormData(prev => ({ ...prev, from_hospital: '' }));
+    }
   };
 
-  const handleAnalysisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, type_of_analysis: value }));
-    setShowAnalysisSuggestions(true);
+  const allAnalysisTypes = [
+    ...DEFAULT_ANALYSIS_TYPES.filter(d => !hiddenAnalysisTypes.includes(d)),
+    ...customAnalysisTypes.filter(c => !DEFAULT_ANALYSIS_TYPES.includes(c)),
+  ];
+  const allSampleTypes = [
+    ...DEFAULT_SAMPLE_TYPES.filter(d => !hiddenSampleTypes.includes(d)),
+    ...customSampleTypes.filter(c => !DEFAULT_SAMPLE_TYPES.includes(c)),
+  ];
+
+  // Save typed value to dropdown options on blur
+  const saveAnalysisValue = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && !allAnalysisTypes.includes(trimmed)) {
+      const updated = [...customAnalysisTypes, trimmed];
+      setCustomAnalysisTypes(updated);
+      localStorage.setItem(STORAGE_KEY_ANALYSIS, JSON.stringify(updated));
+    }
   };
 
-  const handleSampleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, type_of_sample: value }));
-    setShowSampleTypeSuggestions(true);
+  const saveSampleTypeValue = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && !allSampleTypes.includes(trimmed)) {
+      const updated = [...customSampleTypes, trimmed];
+      setCustomSampleTypes(updated);
+      localStorage.setItem(STORAGE_KEY_SAMPLE_TYPE, JSON.stringify(updated));
+    }
   };
 
-  const selectAnalysisSuggestion = (value: string) => {
-    setFormData(prev => ({ ...prev, type_of_analysis: value }));
-    setShowAnalysisSuggestions(false);
+  const removeAnalysisType = (value: string) => {
+    if (DEFAULT_ANALYSIS_TYPES.includes(value)) {
+      const updated = [...hiddenAnalysisTypes, value];
+      setHiddenAnalysisTypes(updated);
+      localStorage.setItem(STORAGE_KEY_HIDDEN_ANALYSIS, JSON.stringify(updated));
+    } else {
+      const updated = customAnalysisTypes.filter(t => t !== value);
+      setCustomAnalysisTypes(updated);
+      localStorage.setItem(STORAGE_KEY_ANALYSIS, JSON.stringify(updated));
+    }
+    if (formData.type_of_analysis === value) {
+      setFormData(prev => ({ ...prev, type_of_analysis: '' }));
+    }
   };
 
-  const selectSampleTypeSuggestion = (value: string) => {
-    setFormData(prev => ({ ...prev, type_of_sample: value }));
-    setShowSampleTypeSuggestions(false);
+  const removeSampleType = (value: string) => {
+    if (DEFAULT_SAMPLE_TYPES.includes(value)) {
+      const updated = [...hiddenSampleTypes, value];
+      setHiddenSampleTypes(updated);
+      localStorage.setItem(STORAGE_KEY_HIDDEN_SAMPLE_TYPE, JSON.stringify(updated));
+    } else {
+      const updated = customSampleTypes.filter(t => t !== value);
+      setCustomSampleTypes(updated);
+      localStorage.setItem(STORAGE_KEY_SAMPLE_TYPE, JSON.stringify(updated));
+    }
+    if (formData.type_of_sample === value) {
+      setFormData(prev => ({ ...prev, type_of_sample: '' }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
-    if (!formData.sample_code || !formData.patient_name || !formData.from_hospital) {
-      alert('Please fill in all required fields (VRL Serial No, Patient Name, Client Name)');
+    if (!formData.sample_code || !formData.patient_name || !formData.from_hospital || !formData.type_of_analysis || !formData.type_of_sample || !formData.sample_id) {
+      alert('Please fill in all required fields (VRL Serial No, Patient Name, Client Name, Sample ID, Type of Analysis, Type of Sample)');
       return;
     }
 
     setSubmitting(true);
 
     try {
-      // Save successful inputs to suggestions
-      if (formData.type_of_analysis) {
-        addToSuggestions(STORAGE_KEY_ANALYSIS, formData.type_of_analysis, analysisSuggestions, setAnalysisSuggestions);
-      }
-      if (formData.type_of_sample) {
-        addToSuggestions(STORAGE_KEY_SAMPLE_TYPE, formData.type_of_sample, sampleTypeSuggestions, setSampleTypeSuggestions);
-      }
-
       // Prepare data for API - combine age/gender and weight into age_gender field
       const ageGenderWeight = [
-        formData.age,
+        computedAge || '',
         formData.gender,
         formData.weight ? `${formData.weight}kg` : ''
       ].filter(Boolean).join('/');
@@ -171,28 +288,42 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
         notes: formData.notes,
         sample_metadata: {
           price: formData.price,
+          sample_id: formData.sample_id,
+          date_of_birth: formData.date_of_birth,
         }
       };
 
       const result = await createSample(apiData);
+
+      // Link selected report if any
+      if (selectedReportId) {
+        try {
+          await linkReportToSample(result.id, selectedReportId);
+        } catch {
+          console.error('Failed to link report, but sample was created');
+        }
+      }
+
       alert(`Sample created successfully! VRL Serial No: ${result.sample_code}`);
 
       // Reset form
+      setSelectedReportId(null);
       setFormData({
         sample_code: '',
         patient_name: '',
         sample_id: '',
-        age: '',
+        date_of_birth: '',
         gender: '',
         weight: '',
         from_hospital: '',
         type_of_analysis: '',
         type_of_sample: 'DBS',
         price: '',
-        collection_date: new Date().toISOString().slice(0, 16),
+        collection_date: getLocalDateTimeString(),
         reported_on: '',
         notes: '',
       });
+      setComputedAge('');
 
       if (embedded) {
         onSuccess?.();
@@ -208,19 +339,6 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
       setSubmitting(false);
     }
   };
-
-  // Show all suggestions if empty, otherwise filter
-  const filteredAnalysisSuggestions = formData.type_of_analysis === ''
-    ? analysisSuggestions
-    : analysisSuggestions.filter(s =>
-        s.toLowerCase().includes(formData.type_of_analysis.toLowerCase())
-      );
-
-  const filteredSampleTypeSuggestions = formData.type_of_sample === ''
-    ? sampleTypeSuggestions
-    : sampleTypeSuggestions.filter(s =>
-        s.toLowerCase().includes(formData.type_of_sample.toLowerCase())
-      );
 
   const formContent = (
     <div className="form-container">
@@ -243,7 +361,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                     name="sample_code"
                     value={formData.sample_code}
                     onChange={handleChange}
-                    placeholder="e.g., NBS-2026-001"
+                    placeholder="e.g., VRLS-2026-001"
                     required
                   />
                   <button
@@ -270,21 +388,48 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group custom-dropdown-group">
                 <label htmlFor="from_hospital">Client Name *</label>
                 <input
                   type="text"
                   id="from_hospital"
                   name="from_hospital"
                   value={formData.from_hospital}
-                  onChange={handleChange}
-                  placeholder="e.g., MEDICIS, LIKITHA"
+                  onChange={(e) => { setFormData(prev => ({ ...prev, from_hospital: e.target.value })); setShowClientDropdown(true); }}
+                  onFocus={() => setShowClientDropdown(true)}
+                  onBlur={() => { setTimeout(() => setShowClientDropdown(false), 200); saveClientValue(formData.from_hospital); }}
+                  placeholder="Type or select..."
                   required
+                  autoComplete="off"
                 />
+                {showClientDropdown && clients.length > 0 && (
+                  <div className="custom-dropdown">
+                    {clients
+                      .filter(c => !formData.from_hospital || c.toLowerCase().includes(formData.from_hospital.toLowerCase()))
+                      .map(c => (
+                      <div key={c} className="custom-dropdown-item">
+                        <span
+                          className={formData.from_hospital === c ? 'selected' : ''}
+                          onClick={() => { setFormData(prev => ({ ...prev, from_hospital: c })); setShowClientDropdown(false); }}
+                        >
+                          {c}
+                        </span>
+                        <button
+                          type="button"
+                          className="remove-option"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); removeClient(c); }}
+                          title="Remove this option"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
-                <label htmlFor="sample_id">Sample ID</label>
+                <label htmlFor="sample_id">Sample ID *</label>
                 <input
                   type="text"
                   id="sample_id"
@@ -292,22 +437,28 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                   value={formData.sample_id}
                   onChange={handleChange}
                   placeholder="e.g., 378981"
+                  required
                 />
               </div>
             </div>
 
-            {/* Age, Gender, Weight on same row */}
-            <div className="form-grid-three">
+            {/* DOB, Age, Gender, Weight on same row */}
+            <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="age">Age</label>
-                <input
-                  type="text"
-                  id="age"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="e.g., 10D, 3M, 2Y"
-                />
+                <label htmlFor="date_of_birth">Date of Birth</label>
+                <div className="input-with-button">
+                  <input
+                    type="date"
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    max={new Date().toISOString().slice(0, 10)}
+                  />
+                  {computedAge && (
+                    <span className="computed-age">Age: {computedAge}</span>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -343,32 +494,39 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
           <div className="form-section">
             <h2 className="section-title">Sample Details</h2>
             <div className="form-grid">
-              <div className="form-group autocomplete-group">
-                <label htmlFor="type_of_analysis">Type of Analysis</label>
+              <div className="form-group custom-dropdown-group">
+                <label htmlFor="type_of_analysis">Type of Analysis *</label>
                 <input
                   type="text"
                   id="type_of_analysis"
                   name="type_of_analysis"
                   value={formData.type_of_analysis}
-                  onChange={handleAnalysisChange}
-                  onFocus={() => setShowAnalysisSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowAnalysisSuggestions(false), 200)}
-                  placeholder="e.g., BIO6, BIO7, BIO8"
+                  onChange={(e) => { setFormData(prev => ({ ...prev, type_of_analysis: e.target.value })); setShowAnalysisDropdown(true); }}
+                  onFocus={() => setShowAnalysisDropdown(true)}
+                  onBlur={() => { setTimeout(() => setShowAnalysisDropdown(false), 200); saveAnalysisValue(formData.type_of_analysis); }}
+                  placeholder="Type or select..."
+                  required
+                  autoComplete="off"
                 />
-                {showAnalysisSuggestions && filteredAnalysisSuggestions.length > 0 && (
-                  <div className="suggestions-dropdown">
-                    {filteredAnalysisSuggestions.map((suggestion, index) => (
-                      <div key={index} className="suggestion-item">
-                        <span onClick={() => selectAnalysisSuggestion(suggestion)}>
-                          {suggestion}
+                {showAnalysisDropdown && allAnalysisTypes.length > 0 && (
+                  <div className="custom-dropdown">
+                    {allAnalysisTypes
+                      .filter(t => !formData.type_of_analysis || t.toLowerCase().includes(formData.type_of_analysis.toLowerCase()))
+                      .map(t => (
+                      <div key={t} className="custom-dropdown-item">
+                        <span
+                          className={formData.type_of_analysis === t ? 'selected' : ''}
+                          onClick={() => { setFormData(prev => ({ ...prev, type_of_analysis: t })); setShowAnalysisDropdown(false); }}
+                        >
+                          {t}
                         </span>
                         <button
                           type="button"
-                          className="remove-suggestion"
-                          onClick={() => removeSuggestion(STORAGE_KEY_ANALYSIS, suggestion, analysisSuggestions, setAnalysisSuggestions)}
-                          title="Remove from suggestions"
+                          className="remove-option"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); removeAnalysisType(t); }}
+                          title="Remove this option"
                         >
-                          ×
+                          &times;
                         </button>
                       </div>
                     ))}
@@ -376,32 +534,39 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                 )}
               </div>
 
-              <div className="form-group autocomplete-group">
-                <label htmlFor="type_of_sample">Type of Sample</label>
+              <div className="form-group custom-dropdown-group">
+                <label htmlFor="type_of_sample">Type of Sample *</label>
                 <input
                   type="text"
                   id="type_of_sample"
                   name="type_of_sample"
                   value={formData.type_of_sample}
-                  onChange={handleSampleTypeChange}
-                  onFocus={() => setShowSampleTypeSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSampleTypeSuggestions(false), 200)}
-                  placeholder="e.g., DBS, Serum, Plasma"
+                  onChange={(e) => { setFormData(prev => ({ ...prev, type_of_sample: e.target.value })); setShowSampleTypeDropdown(true); }}
+                  onFocus={() => setShowSampleTypeDropdown(true)}
+                  onBlur={() => { setTimeout(() => setShowSampleTypeDropdown(false), 200); saveSampleTypeValue(formData.type_of_sample); }}
+                  placeholder="Type or select..."
+                  required
+                  autoComplete="off"
                 />
-                {showSampleTypeSuggestions && filteredSampleTypeSuggestions.length > 0 && (
-                  <div className="suggestions-dropdown">
-                    {filteredSampleTypeSuggestions.map((suggestion, index) => (
-                      <div key={index} className="suggestion-item">
-                        <span onClick={() => selectSampleTypeSuggestion(suggestion)}>
-                          {suggestion}
+                {showSampleTypeDropdown && allSampleTypes.length > 0 && (
+                  <div className="custom-dropdown">
+                    {allSampleTypes
+                      .filter(t => !formData.type_of_sample || t.toLowerCase().includes(formData.type_of_sample.toLowerCase()))
+                      .map(t => (
+                      <div key={t} className="custom-dropdown-item">
+                        <span
+                          className={formData.type_of_sample === t ? 'selected' : ''}
+                          onClick={() => { setFormData(prev => ({ ...prev, type_of_sample: t })); setShowSampleTypeDropdown(false); }}
+                        >
+                          {t}
                         </span>
                         <button
                           type="button"
-                          className="remove-suggestion"
-                          onClick={() => removeSuggestion(STORAGE_KEY_SAMPLE_TYPE, suggestion, sampleTypeSuggestions, setSampleTypeSuggestions)}
-                          title="Remove from suggestions"
+                          className="remove-option"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); removeSampleType(t); }}
+                          title="Remove this option"
                         >
-                          ×
+                          &times;
                         </button>
                       </div>
                     ))}
@@ -422,7 +587,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
               </div>
 
               <div className="form-group">
-                <label htmlFor="collection_date">Collection Date & Time</label>
+                <label htmlFor="collection_date">Collection Date & Time (IST)</label>
                 <input
                   type="datetime-local"
                   id="collection_date"
@@ -433,7 +598,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
               </div>
 
               <div className="form-group">
-                <label htmlFor="reported_on">Reported On</label>
+                <label htmlFor="reported_on">Reported On (IST)</label>
                 <input
                   type="datetime-local"
                   id="reported_on"
@@ -442,6 +607,51 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                   onChange={handleChange}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Report Attachment Section */}
+          <div className="form-section">
+            <h2 className="section-title">Attach Report (PDF)</h2>
+            <div className="report-attachment">
+              {loadingReports ? (
+                <p className="attachment-message">Loading available reports...</p>
+              ) : unlinkedReports.length === 0 ? (
+                <p className="attachment-message">No unattached reports available. Upload and approve reports first.</p>
+              ) : (
+                <div className="report-list">
+                  {unlinkedReports.map(report => (
+                    <label
+                      key={report.id}
+                      className={`report-option ${selectedReportId === report.id ? 'report-selected' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="attach_report"
+                        checked={selectedReportId === report.id}
+                        onChange={() => setSelectedReportId(report.id)}
+                      />
+                      <div className="report-option-info">
+                        <span className="report-option-title">
+                          Report #{report.id} &mdash; {report.date_code}
+                        </span>
+                        <span className="report-option-meta">
+                          {report.num_patients} patient{report.num_patients !== 1 ? 's' : ''} &middot; Uploaded {new Date(report.upload_date).toLocaleDateString()} by {report.uploaded_by}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                  {selectedReportId && (
+                    <button
+                      type="button"
+                      className="btn-clear-selection"
+                      onClick={() => setSelectedReportId(null)}
+                    >
+                      Clear selection
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -465,7 +675,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
           <div className="form-actions">
             <button
               type="button"
-              onClick={() => embedded ? onClose?.() : navigate('/sample-entry')}
+              onClick={() => embedded ? onClose?.() : navigate(-1)}
               className="btn-secondary"
               disabled={submitting}
             >

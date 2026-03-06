@@ -7,6 +7,12 @@ export interface ReportFile {
   file_size: number;
 }
 
+export interface SampleBrief {
+  id: number;
+  sample_code: string;
+  patient_id: string;
+}
+
 export interface Report {
   id: number;
   sample_id: number | null;
@@ -18,6 +24,7 @@ export interface Report {
   output_directory: string;
   date_code: string;
   files: ReportFile[];
+  samples: SampleBrief[];
 }
 
 export interface CompoundValue {
@@ -65,10 +72,14 @@ export async function uploadReport(
   file1: File,
   file2: File,
   file3: File,
-  uploadedBy: string = 'anonymous'
+  uploadedBy: string = 'anonymous',
+  sampleIds?: number[]
 ): Promise<Report> {
   const formData = new FormData();
   formData.append('uploaded_by', uploadedBy);
+  if (sampleIds && sampleIds.length > 0) {
+    formData.append('sample_ids', JSON.stringify(sampleIds));
+  }
   formData.append('file1', file1);
   formData.append('file2', file2);
   formData.append('file3', file3);

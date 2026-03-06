@@ -5,7 +5,7 @@ from app.db.session import SessionLocal
 from app.db import model
 from app.schema.report import ReportCreate, ReportRead
 from app.services import file_validator, report_processor, pdf_generation, excel_export
-from typing import List
+from typing import List, Optional
 import os
 import shutil
 import zipfile
@@ -29,6 +29,7 @@ def get_db():
 @router.post("/upload", response_model=ReportRead)
 async def upload_report(
     uploaded_by: str = Form("anonymous"),
+    sample_ids: Optional[str] = Form(None),
     file1: UploadFile = File(...),
     file2: UploadFile = File(...),
     file3: UploadFile = File(...),
@@ -46,6 +47,21 @@ async def upload_report(
     """
     try:
 
+        # Parse and validate sample_ids if provided
+        parsed_sample_ids = []
+        if sample_ids:
+            try:
+                parsed_sample_ids = json.loads(sample_ids)
+                if not isinstance(parsed_sample_ids, list):
+                    raise ValueError
+            except (json.JSONDecodeError, ValueError):
+                raise HTTPException(400, "sample_ids must be a JSON array of integers")
+
+            for sid in parsed_sample_ids:
+                sample = db.get(model.Sample, sid)
+                if not sample:
+                    raise HTTPException(400, f"Sample with id {sid} not found")
+
         # Validate filenames
         try:
             date_code = file_validator.validate_three_files(
@@ -56,7 +72,7 @@ async def upload_report(
 
         # Create report record (sample_id and num_patients are now nullable)
         report = model.Report(
-            sample_id=None,
+            sample_id=parsed_sample_ids[0] if parsed_sample_ids else None,
             num_patients=None,
             uploaded_by=uploaded_by,
             date_code=date_code,
@@ -65,6 +81,13 @@ async def upload_report(
         db.add(report)
         db.commit()
         db.refresh(report)
+
+        # Link samples via junction table
+        if parsed_sample_ids:
+            for sid in parsed_sample_ids:
+                db.execute(model.report_samples.insert().values(report_id=report.id, sample_id=sid))
+            db.commit()
+            db.refresh(report)
 
         # Create upload directory for this report
         report_upload_dir = os.path.join(UPLOAD_DIR, str(report.id), "raw")
@@ -155,6 +178,34 @@ def list_reports(db: Session = Depends(get_db), sample_id: int | None = None):
     if sample_id:
         q = q.filter(model.Report.sample_id == sample_id)
     return q.order_by(model.Report.id.desc()).all()
+
+@router.get("/unlinked", response_model=list[ReportRead])
+def list_unlinked_reports(db: Session = Depends(get_db)):
+    """
+    List completed reports that have PDFs and are not linked to any sample
+    via the junction table.
+    """
+    from sqlalchemy import exists, select
+
+    linked_report_ids = select(model.report_samples.c.report_id).distinct()
+    reports = (
+        db.query(model.Report)
+        .filter(
+            model.Report.processing_status == model.ReportStatus.completed,
+            ~model.Report.id.in_(linked_report_ids),
+        )
+        .order_by(model.Report.id.desc())
+        .all()
+    )
+
+    # Only return reports that actually have PDF output
+    result = []
+    for r in reports:
+        if r.output_directory and os.path.isdir(r.output_directory):
+            has_pdf = any(f.endswith('.pdf') or f.endswith('.zip') for f in os.listdir(r.output_directory))
+            if has_pdf:
+                result.append(r)
+    return result
 
 @router.get("/{report_id}", response_model=ReportRead)
 def get_report(report_id: int, db: Session = Depends(get_db)):

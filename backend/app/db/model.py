@@ -1,10 +1,18 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey, Text
+from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey, Text, Table, Column
 from datetime import datetime
 from typing import Optional
 import enum
 
 from app.db.base import Base
+
+# Many-to-many junction table for Report <-> Sample
+report_samples = Table(
+    "report_samples",
+    Base.metadata,
+    Column("report_id", Integer, ForeignKey("reports.id", ondelete="CASCADE"), primary_key=True),
+    Column("sample_id", Integer, ForeignKey("samples.id", ondelete="CASCADE"), primary_key=True),
+)
 
 class SampleStatus(str, enum.Enum):
     received = "received"
@@ -64,7 +72,8 @@ class Report(Base):
     processed_data: Mapped[str] = mapped_column(Text, default="")  # JSON string of processed report data
 
     # Relationships
-    sample: Mapped[Optional["Sample"]] = relationship("Sample", backref="reports")
+    sample: Mapped[Optional["Sample"]] = relationship("Sample", backref="reports", foreign_keys=[sample_id])
+    samples: Mapped[list["Sample"]] = relationship("Sample", secondary=report_samples, backref="linked_reports")
     files: Mapped[list["ReportFile"]] = relationship("ReportFile", back_populates="report", cascade="all, delete-orphan")
 
 class ReportFile(Base):

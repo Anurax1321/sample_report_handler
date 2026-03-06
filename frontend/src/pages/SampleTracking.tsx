@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { getSamples, updateSampleStatus, deleteSample, updateReportedDate } from '../lib/sampleApi';
-import type { Sample } from '../lib/sampleApi';
+import { getSamples, updateSampleStatus, deleteSample, updateReportedDate, updateSample, getLinkedReports } from '../lib/sampleApi';
+import type { Sample, UnlinkedReport } from '../lib/sampleApi';
+import { downloadPDF } from '../lib/reportApi';
 import './SampleTracking.css';
 
 interface SampleTrackingProps {
@@ -14,6 +15,9 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [linkedReports, setLinkedReports] = useState<UnlinkedReport[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -53,6 +57,35 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
       if (updated) setSelectedSample(updated);
     }
   }, [samples]);
+
+  // Initialize edit form when a sample is selected
+  useEffect(() => {
+    if (selectedSample) {
+      const parts = (selectedSample.age_gender || '').split('/');
+      setEditForm({
+        patient_id: selectedSample.patient_id || '',
+        from_hospital: selectedSample.from_hospital || '',
+        age: parts[0] || '',
+        gender: parts[1] || '',
+        weight: parts[2] || '',
+        type_of_analysis: selectedSample.type_of_analysis || '',
+        type_of_sample: selectedSample.type_of_sample || '',
+        price: selectedSample.sample_metadata?.price || '',
+        collection_date: selectedSample.collection_date
+          ? new Date(selectedSample.collection_date).toISOString().slice(0, 16)
+          : '',
+        notes: selectedSample.notes || '',
+      });
+    }
+    // Fetch linked reports
+    if (selectedSample) {
+      getLinkedReports(selectedSample.id)
+        .then(reports => setLinkedReports(reports))
+        .catch(() => setLinkedReports([]));
+    } else {
+      setLinkedReports([]);
+    }
+  }, [selectedSample?.id]);
 
   const fetchSamples = async () => {
     try {
@@ -128,6 +161,36 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
     } catch (error) {
       console.error('Error deleting sample:', error);
       alert('Failed to delete sample');
+    }
+  };
+
+  const handleEditChange = (field: string, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedSample) return;
+    setSaving(true);
+    try {
+      const ageGender = [editForm.age, editForm.gender, editForm.weight].filter(Boolean).join('/');
+      const updatedSample = await updateSample(selectedSample.id, {
+        patient_id: editForm.patient_id,
+        age_gender: ageGender,
+        from_hospital: editForm.from_hospital,
+        type_of_analysis: editForm.type_of_analysis,
+        type_of_sample: editForm.type_of_sample,
+        collection_date: editForm.collection_date || undefined,
+        notes: editForm.notes,
+        sample_metadata: { price: editForm.price },
+      });
+      setSamples(prev => prev.map(s => s.id === selectedSample.id ? updatedSample : s));
+      setSelectedSample(updatedSample);
+      alert('Changes saved successfully');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      alert('Failed to save changes');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -336,39 +399,90 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                 </div>
                 <div className="info-item">
                   <label>Patient Name</label>
-                  <span>{selectedSample.patient_id || 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.patient_id || ''}
+                    onChange={(e) => handleEditChange('patient_id', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Client Name</label>
-                  <span>{selectedSample.from_hospital || 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.from_hospital || ''}
+                    onChange={(e) => handleEditChange('from_hospital', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Age</label>
-                  <span>{selectedSample.age_gender ? selectedSample.age_gender.split('/')[0] : 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.age || ''}
+                    onChange={(e) => handleEditChange('age', e.target.value)}
+                    placeholder="e.g., 10D, 3M, 2Y"
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Gender</label>
-                  <span>{selectedSample.age_gender && selectedSample.age_gender.split('/')[1] ? selectedSample.age_gender.split('/')[1] : 'N/A'}</span>
+                  <select
+                    value={editForm.gender || ''}
+                    onChange={(e) => handleEditChange('gender', e.target.value)}
+                    className="edit-input"
+                  >
+                    <option value="">Select</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                  </select>
                 </div>
                 <div className="info-item">
                   <label>Weight</label>
-                  <span>{selectedSample.age_gender && selectedSample.age_gender.split('/')[2] ? selectedSample.age_gender.split('/')[2] : 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.weight || ''}
+                    onChange={(e) => handleEditChange('weight', e.target.value)}
+                    placeholder="e.g., 2.64kg"
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Type of Analysis</label>
-                  <span>{selectedSample.type_of_analysis || 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.type_of_analysis || ''}
+                    onChange={(e) => handleEditChange('type_of_analysis', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Type of Sample</label>
-                  <span>{selectedSample.type_of_sample || 'N/A'}</span>
+                  <input
+                    type="text"
+                    value={editForm.type_of_sample || ''}
+                    onChange={(e) => handleEditChange('type_of_sample', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
-                  <label>Price</label>
-                  <span>{selectedSample.sample_metadata?.price ? `₹${selectedSample.sample_metadata.price}` : 'N/A'}</span>
+                  <label>Price (₹)</label>
+                  <input
+                    type="text"
+                    value={editForm.price || ''}
+                    onChange={(e) => handleEditChange('price', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Collection Date</label>
-                  <span>{new Date(selectedSample.collection_date).toLocaleString()}</span>
+                  <input
+                    type="datetime-local"
+                    value={editForm.collection_date || ''}
+                    onChange={(e) => handleEditChange('collection_date', e.target.value)}
+                    className="edit-input"
+                  />
                 </div>
                 <div className="info-item">
                   <label>Reported On</label>
@@ -376,7 +490,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                     type="datetime-local"
                     value={selectedSample.reported_on ? new Date(selectedSample.reported_on).toISOString().slice(0, 16) : ''}
                     onChange={(e) => handleReportedDateChange(selectedSample.id, e.target.value)}
-                    className="reported-date-input"
+                    className="edit-input"
                   />
                 </div>
                 <div className="info-item">
@@ -385,16 +499,52 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                     {selectedSample.status}
                   </span>
                 </div>
-                {selectedSample.notes && (
-                  <div className="info-item full-width">
-                    <label>Notes</label>
-                    <span>{selectedSample.notes}</span>
-                  </div>
-                )}
+                <div className="info-item full-width">
+                  <label>Notes</label>
+                  <textarea
+                    value={editForm.notes || ''}
+                    onChange={(e) => handleEditChange('notes', e.target.value)}
+                    className="edit-input"
+                    rows={3}
+                  />
+                </div>
+                <div className="info-item full-width">
+                  <label>Attached Reports</label>
+                  {linkedReports.length === 0 ? (
+                    <span className="no-reports">No reports attached</span>
+                  ) : (
+                    <div className="linked-reports-list">
+                      {linkedReports.map(report => (
+                        <div key={report.id} className="linked-report-item">
+                          <span className="linked-report-title">
+                            Report #{report.id} &mdash; {report.date_code}
+                          </span>
+                          <span className="linked-report-meta">
+                            {report.num_patients} patient{report.num_patients !== 1 ? 's' : ''} &middot; {new Date(report.upload_date).toLocaleDateString()}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn-download-pdf"
+                            onClick={() => downloadPDF(report.id, `NBS_Reports_${report.date_code}.zip`)}
+                          >
+                            Download PDF
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="modal-actions">
+              <button
+                className="btn-primary"
+                onClick={handleSaveChanges}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
               <div className="status-changer">
                 <label>Change Status:</label>
                 <select

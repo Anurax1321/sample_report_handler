@@ -53,6 +53,17 @@ class SampleRead(BaseModel):
     class Config:
         from_attributes = True
 
+class SampleUpdate(BaseModel):
+    patient_id: Optional[str] = None
+    age_gender: Optional[str] = None
+    from_hospital: Optional[str] = None
+    type_of_analysis: Optional[str] = None
+    type_of_sample: Optional[str] = None
+    collection_date: Optional[datetime] = None
+    reported_on: Optional[datetime] = None
+    notes: Optional[str] = None
+    sample_metadata: Optional[Dict] = None
+
 class SampleUpdateStatus(BaseModel):
     status: Literal["received","processing","completed","rejected"]
 

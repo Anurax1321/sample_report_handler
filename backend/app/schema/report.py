@@ -16,6 +16,14 @@ class ReportCreate(BaseModel):
     num_patients: int = Field(ge=1, description="Number of patients to process (excluding controls)")
     uploaded_by: str = "anonymous"
 
+class SampleBrief(BaseModel):
+    id: int
+    sample_code: str
+    patient_id: str
+
+    class Config:
+        from_attributes = True
+
 class ReportRead(BaseModel):
     id: int
     sample_id: Optional[int] = None
@@ -27,6 +35,7 @@ class ReportRead(BaseModel):
     output_directory: str
     date_code: str
     files: list[ReportFileRead] = []
+    samples: list[SampleBrief] = []
 
     class Config:
         from_attributes = True

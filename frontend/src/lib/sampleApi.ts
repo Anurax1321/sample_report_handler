@@ -57,6 +57,18 @@ export interface CreateSampleData {
   sample_metadata?: Record<string, any>;
 }
 
+export interface UpdateSampleData {
+  patient_id?: string;
+  age_gender?: string;
+  from_hospital?: string;
+  type_of_analysis?: string;
+  type_of_sample?: string;
+  collection_date?: string;
+  reported_on?: string | null;
+  notes?: string;
+  sample_metadata?: Record<string, any>;
+}
+
 export interface UpdateStatusData {
   status: 'received' | 'processing' | 'completed' | 'rejected';
 }
@@ -79,6 +91,14 @@ export async function getSamples(status?: string): Promise<Sample[]> {
  */
 export async function createSample(data: CreateSampleData): Promise<Sample> {
   const response = await api.post<Sample>('/samples', data);
+  return response.data;
+}
+
+/**
+ * Update sample fields (general update)
+ */
+export async function updateSample(sampleId: number, data: UpdateSampleData): Promise<Sample> {
+  const response = await api.patch<Sample>(`/samples/${sampleId}`, data);
   return response.data;
 }
 
@@ -110,5 +130,38 @@ export async function updateReportedDate(sampleId: number, data: UpdateReportedD
  */
 export async function generateSampleCode(): Promise<{ sample_code: string }> {
   const response = await api.get<{ sample_code: string }>('/samples/generate-code');
+  return response.data;
+}
+
+/**
+ * Link a report to a sample
+ */
+export async function linkReportToSample(sampleId: number, reportId: number): Promise<void> {
+  await api.post(`/samples/${sampleId}/link-report/${reportId}`);
+}
+
+/**
+ * Get unlinked reports (completed with PDFs, not attached to any sample)
+ */
+export async function getUnlinkedReports(): Promise<UnlinkedReport[]> {
+  const response = await api.get<UnlinkedReport[]>('/reports/unlinked');
+  return response.data;
+}
+
+export interface UnlinkedReport {
+  id: number;
+  date_code: string;
+  upload_date: string;
+  uploaded_by: string;
+  num_patients: number | null;
+  processing_status: string;
+  files: { id: number; filename: string; file_type: string; file_size: number }[];
+}
+
+/**
+ * Get reports linked to a sample
+ */
+export async function getLinkedReports(sampleId: number): Promise<UnlinkedReport[]> {
+  const response = await api.get<UnlinkedReport[]>('/reports', { params: { sample_id: sampleId } });
   return response.data;
 }

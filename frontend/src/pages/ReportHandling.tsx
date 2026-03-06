@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './ReportHandling.css';
 import { uploadReport, downloadReport } from '../lib/reportApi';
 import type { Report } from '../lib/reportApi';
+import { getSamples } from '../lib/sampleApi';
+import type { Sample } from '../lib/sampleApi';
 
 const MEMBERS_STORAGE_KEY = 'report_handling_members';
 
@@ -24,6 +26,9 @@ export default function ReportHandling() {
   const [error, setError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{valid: boolean, message: string} | null>(null);
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [selectedSampleIds, setSelectedSampleIds] = useState<number[]>([]);
+  const [sampleSearch, setSampleSearch] = useState('');
 
   // Load members from localStorage on mount
   useEffect(() => {
@@ -39,6 +44,11 @@ export default function ReportHandling() {
       localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
     }
   }, [members]);
+
+  // Fetch samples on mount
+  useEffect(() => {
+    getSamples().then(setSamples).catch(() => setSamples([]));
+  }, []);
 
   const handleRemoveMember = (memberToRemove: string) => {
     setMembers(members.filter(m => m !== memberToRemove));
@@ -142,7 +152,8 @@ export default function ReportHandling() {
         files.file1,
         files.file2,
         files.file3,
-        uploadedBy
+        uploadedBy,
+        selectedSampleIds.length > 0 ? selectedSampleIds : undefined
       );
 
       setUploadProgress('Processing complete!');
@@ -338,6 +349,114 @@ export default function ReportHandling() {
                 </div>
               )}
             </div>
+
+            {/* Patient Ticket (Sample) Selector — Multi-select */}
+            <div className="file-input-group">
+              <div className="file-input-label">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span className="file-label-text">Link to Patient Tickets (Optional)</span>
+                  {selectedSampleIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSampleIds([])}
+                      style={{
+                        padding: '0.3rem 0.6rem',
+                        background: 'transparent',
+                        color: '#ef4444',
+                        border: '1px solid #fecaca',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      Clear all ({selectedSampleIds.length})
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={sampleSearch}
+                  onChange={(e) => setSampleSearch(e.target.value)}
+                  placeholder="Search by patient name or sample code..."
+                  className="patient-count-input"
+                  style={{
+                    width: '100%',
+                    fontSize: '1rem',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem'
+                  }}
+                />
+                <div style={{
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  background: '#f7fafc'
+                }}>
+                  {samples.length === 0 && (
+                    <div style={{ padding: '1rem', color: '#a0aec0', textAlign: 'center', fontSize: '0.9rem' }}>
+                      No samples found
+                    </div>
+                  )}
+                  {samples
+                    .filter((s) => {
+                      if (!sampleSearch) return true;
+                      const q = sampleSearch.toLowerCase();
+                      return s.patient_id.toLowerCase().includes(q) || s.sample_code.toLowerCase().includes(q);
+                    })
+                    .map((s) => {
+                      const isSelected = selectedSampleIds.includes(s.id);
+                      return (
+                        <div
+                          key={s.id}
+                          onClick={() => {
+                            setSelectedSampleIds(
+                              isSelected
+                                ? selectedSampleIds.filter((id) => id !== s.id)
+                                : [...selectedSampleIds, s.id]
+                            );
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '0.6rem 0.8rem',
+                            cursor: 'pointer',
+                            background: isSelected ? '#ebf8ff' : 'transparent',
+                            borderBottom: '1px solid #edf2f7',
+                            transition: 'background 0.15s ease'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            readOnly
+                            style={{ accentColor: '#3b82f6', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#2d3748' }}>
+                              {s.patient_id || '(no patient name)'}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: '#718096' }}>
+                              {s.sample_code}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                <p style={{
+                  fontSize: '0.8rem',
+                  color: '#718096',
+                  margin: '0.5rem 0 0 0',
+                  fontStyle: 'italic'
+                }}>
+                  Select one or more patient tickets to link to this report
+                </p>
+              </div>
+            </div>
+
             <div className="file-input-group">
               <label className="file-input-label">
                 <div className="file-input-header">
