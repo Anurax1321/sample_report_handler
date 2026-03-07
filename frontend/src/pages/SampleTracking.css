@@ -229,14 +229,12 @@
 .status-dropdown-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 1099;
 }
 
 .status-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: -8px;
-  z-index: 11;
+  position: fixed;
+  z-index: 1100;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -425,8 +423,9 @@
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #fef2f2;
+  color: #ef4444;
+  outline: 1px solid #fecaca;
 }
 
 .modal-body {
@@ -467,8 +466,9 @@
 }
 
 .btn-delete-subtle:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #fef2f2;
+  color: #ef4444;
+  outline: 1px solid #fecaca;
 }
 
 /* Info Grid (used inside modal) */

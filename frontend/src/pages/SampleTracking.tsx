@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getSamples, updateSampleStatus, deleteSample, updateReportedDate, updateSample, getLinkedReports, getSamplePdfs, downloadSamplePdf, deleteSamplePdf } from '../lib/sampleApi';
 import type { Sample, UnlinkedReport, SamplePdf } from '../lib/sampleApi';
 import { downloadPDF } from '../lib/reportApi';
@@ -19,6 +19,8 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [statusDropdownPos, setStatusDropdownPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const statusTriggerRef = useRef<HTMLButtonElement>(null);
   const [linkedReports, setLinkedReports] = useState<UnlinkedReport[]>([]);
   const [samplePdfs, setSamplePdfs] = useState<SamplePdf[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -564,9 +566,16 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                   <label>Status</label>
                   <div className="status-dropdown-wrapper">
                     <button
+                      ref={statusTriggerRef}
                       type="button"
                       className={`status-dropdown-trigger ${getStatusBadgeClass(selectedSample.status)}`}
-                      onClick={() => setStatusDropdownOpen(prev => !prev)}
+                      onClick={() => {
+                        if (!statusDropdownOpen && statusTriggerRef.current) {
+                          const rect = statusTriggerRef.current.getBoundingClientRect();
+                          setStatusDropdownPos({ top: rect.bottom + 6, left: rect.left });
+                        }
+                        setStatusDropdownOpen(prev => !prev);
+                      }}
                     >
                       <span className="status-dot"></span>
                       {selectedSample.status}
@@ -577,7 +586,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                     {statusDropdownOpen && (
                       <>
                         <div className="status-dropdown-backdrop" onClick={() => setStatusDropdownOpen(false)} />
-                        <div className="status-dropdown-menu">
+                        <div className="status-dropdown-menu" style={{ top: statusDropdownPos.top, left: statusDropdownPos.left }}>
                           {(['received', 'processing', 'completed', 'rejected'] as const).map(status => (
                             <button
                               key={status}
