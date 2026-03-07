@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 5173
 
 # Run dev server with host 0.0.0.0 to allow external access
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["sh", "-c", "echo '' && echo '  ➜  Frontend: http://localhost:3000/vijayrekha/' && echo '' && npm run dev -- --host 0.0.0.0"]
