@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateSampleCode, createSample, getUnlinkedReports, linkReportToSample } from '../lib/sampleApi';
-import type { UnlinkedReport } from '../lib/sampleApi';
+import { generateSampleCode, createSample, getUnlinkedReports, linkReportToSample, uploadSamplePdf, linkPdfToSample, deleteSamplePdf } from '../lib/sampleApi';
+import type { UnlinkedReport, SamplePdf } from '../lib/sampleApi';
 import './SampleEntryForm.css';
 
 interface SampleFormData {
@@ -87,6 +87,10 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
   const [unlinkedReports, setUnlinkedReports] = useState<UnlinkedReport[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [loadingReports, setLoadingReports] = useState(false);
+
+  // PDF upload state
+  const [uploadedPdfs, setUploadedPdfs] = useState<SamplePdf[]>([]);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   // Client combobox state
   const [clients, setClients] = useState<string[]>([]);
@@ -177,6 +181,35 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
       alert('Failed to generate sample code');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // PDF upload handler
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingPdf(true);
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const result = await uploadSamplePdf(files[i]);
+        setUploadedPdfs(prev => [...prev, result]);
+      } catch (error: any) {
+        console.error('Error uploading PDF:', error);
+        alert(`Failed to upload ${files[i].name}`);
+      }
+    }
+    setUploadingPdf(false);
+    // Reset the input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const handleRemovePdf = async (pdfId: number) => {
+    try {
+      await deleteSamplePdf(pdfId);
+      setUploadedPdfs(prev => prev.filter(p => p.id !== pdfId));
+    } catch (error: any) {
+      console.error('Error removing PDF:', error);
     }
   };
 
@@ -304,10 +337,20 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
         }
       }
 
+      // Link uploaded PDFs
+      for (const pdf of uploadedPdfs) {
+        try {
+          await linkPdfToSample(result.id, pdf.id);
+        } catch {
+          console.error(`Failed to link PDF ${pdf.filename}, but sample was created`);
+        }
+      }
+
       alert(`Sample created successfully! VRL Serial No: ${result.sample_code}`);
 
       // Reset form
       setSelectedReportId(null);
+      setUploadedPdfs([]);
       setFormData({
         sample_code: '',
         patient_name: '',
@@ -613,45 +656,93 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
           {/* Report Attachment Section */}
           <div className="form-section">
             <h2 className="section-title">Attach Report (PDF)</h2>
-            <div className="report-attachment">
-              {loadingReports ? (
-                <p className="attachment-message">Loading available reports...</p>
-              ) : unlinkedReports.length === 0 ? (
-                <p className="attachment-message">No unattached reports available. Upload and approve reports first.</p>
-              ) : (
-                <div className="report-list">
-                  {unlinkedReports.map(report => (
-                    <label
-                      key={report.id}
-                      className={`report-option ${selectedReportId === report.id ? 'report-selected' : ''}`}
-                    >
-                      <input
-                        type="radio"
-                        name="attach_report"
-                        checked={selectedReportId === report.id}
-                        onChange={() => setSelectedReportId(report.id)}
-                      />
-                      <div className="report-option-info">
-                        <span className="report-option-title">
-                          Report #{report.id} &mdash; {report.date_code}
-                        </span>
-                        <span className="report-option-meta">
-                          {report.num_patients} patient{report.num_patients !== 1 ? 's' : ''} &middot; Uploaded {new Date(report.upload_date).toLocaleDateString()} by {report.uploaded_by}
-                        </span>
-                      </div>
-                    </label>
+
+            {/* Upload a PDF */}
+            <div className="pdf-upload-subsection">
+              <h3 className="subsection-title">Upload a PDF</h3>
+              <div className="pdf-upload-area">
+                <label className="pdf-upload-label">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    multiple
+                    onChange={handlePdfUpload}
+                    disabled={uploadingPdf}
+                    className="pdf-upload-input"
+                  />
+                  <span className="pdf-upload-button">
+                    {uploadingPdf ? 'Uploading...' : 'Choose PDF files'}
+                  </span>
+                  <span className="pdf-upload-hint">or drag and drop PDF files here</span>
+                </label>
+              </div>
+              {uploadedPdfs.length > 0 && (
+                <div className="uploaded-pdfs-list">
+                  {uploadedPdfs.map(pdf => (
+                    <div key={pdf.id} className="uploaded-pdf-chip">
+                      <span className="uploaded-pdf-name">{pdf.filename}</span>
+                      <span className="uploaded-pdf-size">
+                        {pdf.file_size < 1024 * 1024
+                          ? `${(pdf.file_size / 1024).toFixed(1)} KB`
+                          : `${(pdf.file_size / (1024 * 1024)).toFixed(1)} MB`}
+                      </span>
+                      <button
+                        type="button"
+                        className="uploaded-pdf-remove"
+                        onClick={() => handleRemovePdf(pdf.id)}
+                        title="Remove this PDF"
+                      >
+                        &times;
+                      </button>
+                    </div>
                   ))}
-                  {selectedReportId && (
-                    <button
-                      type="button"
-                      className="btn-clear-selection"
-                      onClick={() => setSelectedReportId(null)}
-                    >
-                      Clear selection
-                    </button>
-                  )}
                 </div>
               )}
+            </div>
+
+            {/* Or pick from existing reports */}
+            <div className="pdf-upload-subsection">
+              <h3 className="subsection-title">Or pick from existing reports</h3>
+              <div className="report-attachment">
+                {loadingReports ? (
+                  <p className="attachment-message">Loading available reports...</p>
+                ) : unlinkedReports.length === 0 ? (
+                  <p className="attachment-message">No unattached reports available. Upload and approve reports first.</p>
+                ) : (
+                  <div className="report-list">
+                    {unlinkedReports.map(report => (
+                      <label
+                        key={report.id}
+                        className={`report-option ${selectedReportId === report.id ? 'report-selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="attach_report"
+                          checked={selectedReportId === report.id}
+                          onChange={() => setSelectedReportId(report.id)}
+                        />
+                        <div className="report-option-info">
+                          <span className="report-option-title">
+                            Report #{report.id} &mdash; {report.date_code}
+                          </span>
+                          <span className="report-option-meta">
+                            {report.num_patients} patient{report.num_patients !== 1 ? 's' : ''} &middot; Uploaded {new Date(report.upload_date).toLocaleDateString()} by {report.uploaded_by}
+                          </span>
+                        </div>
+                      </label>
+                    ))}
+                    {selectedReportId && (
+                      <button
+                        type="button"
+                        className="btn-clear-selection"
+                        onClick={() => setSelectedReportId(null)}
+                      >
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

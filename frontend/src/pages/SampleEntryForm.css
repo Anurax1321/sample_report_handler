@@ -11,10 +11,11 @@
   width: 100%;
   max-width: 1000px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 2.5rem;
   margin: auto 0;
+  overflow: hidden;
 }
 
 .form-header {
@@ -372,6 +373,125 @@
 .btn-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* PDF Upload Subsection */
+.pdf-upload-subsection {
+  margin-bottom: 1.5rem;
+}
+
+.pdf-upload-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.subsection-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pdf-upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s;
+  background: #f9fafb;
+}
+
+.pdf-upload-area:hover {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.pdf-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.pdf-upload-input {
+  display: none;
+}
+
+.pdf-upload-button {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.pdf-upload-label:hover .pdf-upload-button {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.pdf-upload-hint {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.uploaded-pdfs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.uploaded-pdf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.uploaded-pdf-name {
+  font-weight: 600;
+  color: #166534;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uploaded-pdf-size {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.uploaded-pdf-remove {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.uploaded-pdf-remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 /* Responsive Design */

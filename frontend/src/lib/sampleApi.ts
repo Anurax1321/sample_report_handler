@@ -165,3 +165,72 @@ export async function getLinkedReports(sampleId: number): Promise<UnlinkedReport
   const response = await api.get<UnlinkedReport[]>('/reports', { params: { sample_id: sampleId } });
   return response.data;
 }
+
+// --- Sample PDF types and functions ---
+
+export interface SamplePdf {
+  id: number;
+  sample_id: number | null;
+  filename: string;
+  file_size: number;
+  uploaded_at: string;
+}
+
+/**
+ * Upload a PDF file (before sample exists)
+ */
+export async function uploadSamplePdf(file: File): Promise<SamplePdf> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post<SamplePdf>('/samples/upload-pdf', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+}
+
+/**
+ * Link an uploaded PDF to a sample
+ */
+export async function linkPdfToSample(sampleId: number, pdfId: number): Promise<void> {
+  await api.post(`/samples/${sampleId}/link-pdf/${pdfId}`);
+}
+
+/**
+ * Get PDFs for a sample
+ */
+export async function getSamplePdfs(sampleId: number): Promise<SamplePdf[]> {
+  const response = await api.get<SamplePdf[]>(`/samples/${sampleId}/pdfs`);
+  return response.data;
+}
+
+/**
+ * Get uploaded but unlinked PDFs
+ */
+export async function getUnlinkedPdfs(): Promise<SamplePdf[]> {
+  const response = await api.get<SamplePdf[]>('/samples/pdfs/unlinked');
+  return response.data;
+}
+
+/**
+ * Download a sample PDF
+ */
+export async function downloadSamplePdf(pdfId: number, filename: string): Promise<void> {
+  const response = await api.get(`/samples/pdfs/${pdfId}/download`, {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Delete a sample PDF
+ */
+export async function deleteSamplePdf(pdfId: number): Promise<void> {
+  await api.delete(`/samples/pdfs/${pdfId}`);
+}
