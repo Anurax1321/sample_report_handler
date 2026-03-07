@@ -7,39 +7,30 @@
   overflow-y: auto;
 }
 
-/* Header Section */
-.tracking-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
 .btn-export {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  background: transparent;
+  color: #059669;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
 }
 
 .btn-export:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: #f0fdf4;
+  color: #047857;
+  border-color: #86efac;
 }
 
 .btn-export:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -126,6 +117,29 @@
 .btn-clear-filters:hover {
   background: #f9fafb;
   border-color: #9ca3af;
+}
+
+.btn-new-sample {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  margin-left: auto;
+  font-family: inherit;
+}
+
+.btn-new-sample:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .samples-table {
@@ -452,23 +466,23 @@
 .btn-delete-subtle {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.6rem;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #9ca3af;
-  font-size: 0.8rem;
-  font-weight: 500;
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   align-self: flex-start;
+  font-family: inherit;
 }
 
 .btn-delete-subtle:hover {
   background: #fef2f2;
-  color: #ef4444;
-  outline: 1px solid #fecaca;
+  color: #dc2626;
 }
 
 /* Info Grid (used inside modal) */
@@ -765,6 +779,12 @@ textarea.edit-input {
   border-top: 1px solid #e5e7eb;
 }
 
+.pagination-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .pagination-info {
   font-size: 0.8rem;
   color: #6b7280;
@@ -816,16 +836,8 @@ textarea.edit-input {
     padding: 1.5rem;
   }
 
-  .tracking-header {
-    justify-content: stretch;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
-  .btn-export {
-    width: 100%;
+  .pagination-left {
+    flex-wrap: wrap;
   }
 
   .search-filter-row {

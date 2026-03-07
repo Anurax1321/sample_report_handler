@@ -8,9 +8,10 @@ interface SampleTrackingProps {
   embedded?: boolean;
   onSamplesChange?: (samples: Sample[], filteredSamples: Sample[]) => void;
   refreshTrigger?: number;
+  onNewSample?: () => void;
 }
 
-export default function SampleTracking({ embedded, onSamplesChange, refreshTrigger }: SampleTrackingProps = {}) {
+export default function SampleTracking({ embedded, onSamplesChange, refreshTrigger, onNewSample }: SampleTrackingProps = {}) {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,7 +207,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
   };
 
   const exportToCSV = () => {
-    const headers = ['VRL Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
+    const headers = ['VRLS Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
 
     const rows = filteredSamples.map(sample => [
       sample.sample_code,
@@ -260,16 +261,6 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
 
   const content = (
     <>
-      {!embedded && (
-        <div className="tracking-header">
-          <div className="header-actions">
-            <button onClick={exportToCSV} className="btn-export" disabled={filteredSamples.length === 0}>
-              Export to CSV ({filteredSamples.length})
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="table-panel">
         <div className="search-filter-row">
           <div className="search-bar">
@@ -320,6 +311,15 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
               Clear
             </button>
           )}
+          {onNewSample && (
+            <button className="btn-new-sample" onClick={onNewSample}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              New Sample Entry
+            </button>
+          )}
         </div>
 
         {filteredSamples.length === 0 ? (
@@ -336,7 +336,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
             <table className="samples-table">
               <thead>
                 <tr>
-                  <th>VRL Serial No</th>
+                  <th>VRLS Serial No</th>
                   <th>Patient Name</th>
                   <th>Status</th>
                   <th>Collection Date</th>
@@ -361,9 +361,19 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
             </table>
 
             <div className="pagination">
-              <span className="pagination-info">
-                Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredSamples.length)} of {filteredSamples.length}
-              </span>
+              <div className="pagination-left">
+                <span className="pagination-info">
+                  Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredSamples.length)} of {filteredSamples.length}
+                </span>
+                <button onClick={exportToCSV} className="btn-export" disabled={filteredSamples.length === 0}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Export CSV
+                </button>
+              </div>
               <div className="pagination-controls">
                 <button
                   className="pagination-btn"
@@ -423,7 +433,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
             <div className="modal-body">
               <div className="info-grid">
                 <div className="info-item">
-                  <label>VRL Serial No</label>
+                  <label>VRLS Serial No</label>
                   <span>{selectedSample.sample_code}</span>
                 </div>
                 <div className="info-item">

@@ -295,7 +295,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
 
     // Validation
     if (!formData.sample_code || !formData.patient_name || !formData.from_hospital || !formData.type_of_analysis || !formData.type_of_sample || !formData.sample_id) {
-      alert('Please fill in all required fields (VRL Serial No, Patient Name, Client Name, Sample ID, Type of Analysis, Type of Sample)');
+      alert('Please fill in all required fields (VRLS Serial No, Patient Name, Client Name, Sample ID, Type of Analysis, Type of Sample)');
       return;
     }
 
@@ -346,7 +346,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
         }
       }
 
-      alert(`Sample created successfully! VRL Serial No: ${result.sample_code}`);
+      alert(`Sample created successfully! VRLS Serial No: ${result.sample_code}`);
 
       // Reset form
       setSelectedReportId(null);
@@ -396,7 +396,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
             <h2 className="section-title">Sample Identification</h2>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="sample_code">VRL Serial No. *</label>
+                <label htmlFor="sample_code">VRLS Serial No. *</label>
                 <div className="input-with-button">
                   <input
                     type="text"
