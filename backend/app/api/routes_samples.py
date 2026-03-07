@@ -1,9 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db import model
-from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate
+from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate, SamplePdfRead
 from datetime import datetime
+import uuid
+import os
+import shutil
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads", "sample_pdfs")
 
 router = APIRouter(prefix="/samples", tags=["samples"])
 
@@ -146,5 +152,90 @@ def delete_sample(sample_id: int, db: Session = Depends(get_db)):
     s = db.get(model.Sample, sample_id)
     if not s:
         raise HTTPException(404, "sample not found")
+    # Clean up associated PDF files from disk
+    pdfs = db.query(model.SamplePdf).filter(model.SamplePdf.sample_id == sample_id).all()
+    for pdf in pdfs:
+        if os.path.exists(pdf.file_path):
+            os.remove(pdf.file_path)
     db.delete(s); db.commit()
     return {"message": "Sample deleted successfully"}
+
+# --- Sample PDF endpoints ---
+
+@router.post("/upload-pdf", response_model=SamplePdfRead)
+def upload_sample_pdf(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(400, "Only PDF files are allowed")
+
+    unlinked_dir = os.path.join(UPLOAD_DIR, "unlinked")
+    os.makedirs(unlinked_dir, exist_ok=True)
+
+    # UUID prefix to avoid collisions
+    safe_name = f"{uuid.uuid4().hex[:8]}_{file.filename}"
+    file_path = os.path.join(unlinked_dir, safe_name)
+
+    # Save file to disk
+    with open(file_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    file_size = os.path.getsize(file_path)
+
+    pdf_record = model.SamplePdf(
+        sample_id=None,
+        filename=file.filename,
+        file_path=file_path,
+        file_size=file_size,
+    )
+    db.add(pdf_record); db.commit(); db.refresh(pdf_record)
+    return pdf_record
+
+@router.post("/{sample_id}/link-pdf/{pdf_id}")
+def link_pdf_to_sample(sample_id: int, pdf_id: int, db: Session = Depends(get_db)):
+    s = db.get(model.Sample, sample_id)
+    if not s:
+        raise HTTPException(404, "sample not found")
+    pdf = db.get(model.SamplePdf, pdf_id)
+    if not pdf:
+        raise HTTPException(404, "pdf not found")
+
+    # Move file from unlinked/ to {sample_id}/
+    sample_dir = os.path.join(UPLOAD_DIR, str(sample_id))
+    os.makedirs(sample_dir, exist_ok=True)
+    new_path = os.path.join(sample_dir, os.path.basename(pdf.file_path))
+    if os.path.exists(pdf.file_path):
+        shutil.move(pdf.file_path, new_path)
+
+    pdf.sample_id = sample_id
+    pdf.file_path = new_path
+    db.commit()
+    return {"message": "PDF linked to sample"}
+
+@router.get("/{sample_id}/pdfs", response_model=list[SamplePdfRead])
+def list_sample_pdfs(sample_id: int, db: Session = Depends(get_db)):
+    s = db.get(model.Sample, sample_id)
+    if not s:
+        raise HTTPException(404, "sample not found")
+    return db.query(model.SamplePdf).filter(model.SamplePdf.sample_id == sample_id).order_by(model.SamplePdf.id.desc()).all()
+
+@router.get("/pdfs/unlinked", response_model=list[SamplePdfRead])
+def list_unlinked_pdfs(db: Session = Depends(get_db)):
+    return db.query(model.SamplePdf).filter(model.SamplePdf.sample_id.is_(None)).order_by(model.SamplePdf.id.desc()).all()
+
+@router.get("/pdfs/{pdf_id}/download")
+def download_sample_pdf(pdf_id: int, db: Session = Depends(get_db)):
+    pdf = db.get(model.SamplePdf, pdf_id)
+    if not pdf:
+        raise HTTPException(404, "pdf not found")
+    if not os.path.exists(pdf.file_path):
+        raise HTTPException(404, "file not found on disk")
+    return FileResponse(pdf.file_path, filename=pdf.filename, media_type="application/pdf")
+
+@router.delete("/pdfs/{pdf_id}")
+def delete_sample_pdf(pdf_id: int, db: Session = Depends(get_db)):
+    pdf = db.get(model.SamplePdf, pdf_id)
+    if not pdf:
+        raise HTTPException(404, "pdf not found")
+    if os.path.exists(pdf.file_path):
+        os.remove(pdf.file_path)
+    db.delete(pdf); db.commit()
+    return {"message": "PDF deleted successfully"}

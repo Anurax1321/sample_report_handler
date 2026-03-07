@@ -69,3 +69,13 @@ class SampleUpdateStatus(BaseModel):
 
 class SampleUpdateReportedDate(BaseModel):
     reported_on: Optional[datetime]
+
+class SamplePdfRead(BaseModel):
+    id: int
+    sample_id: Optional[int]
+    filename: str
+    file_size: int
+    uploaded_at: datetime
+
+    class Config:
+        from_attributes = True

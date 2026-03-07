@@ -76,6 +76,17 @@ class Report(Base):
     samples: Mapped[list["Sample"]] = relationship("Sample", secondary=report_samples, backref="linked_reports")
     files: Mapped[list["ReportFile"]] = relationship("ReportFile", back_populates="report", cascade="all, delete-orphan")
 
+class SamplePdf(Base):
+    __tablename__ = "sample_pdfs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sample_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("samples.id", ondelete="CASCADE"), nullable=True, index=True)
+    filename: Mapped[str] = mapped_column(String(256))
+    file_path: Mapped[str] = mapped_column(String(512))
+    file_size: Mapped[int] = mapped_column(Integer)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    sample: Mapped[Optional["Sample"]] = relationship("Sample", backref="pdfs", foreign_keys=[sample_id])
+
 class ReportFile(Base):
     __tablename__ = "report_files"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
