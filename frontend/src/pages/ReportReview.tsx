@@ -12,8 +12,17 @@ import './ReportReview.css';
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-export default function ReportReview() {
-  const { reportId } = useParams<{ reportId: string }>();
+interface ReportReviewProps {
+  embedded?: boolean;
+  reportId?: string;
+  onGoBack?: () => void;
+  onComplete?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
+}
+
+export default function ReportReview({ embedded, reportId: reportIdProp, onGoBack, onComplete, onDirtyChange }: ReportReviewProps = {}) {
+  const params = useParams<{ reportId: string }>();
+  const reportId = reportIdProp || params.reportId;
   const navigate = useNavigate();
 
   const [report, setReport] = useState<Report | null>(null);
@@ -168,7 +177,11 @@ export default function ReportReview() {
 
     // Mark cell as edited
     const cellKey = `${data.id}-${field}`;
-    setEditedCells(prev => new Set(prev).add(cellKey));
+    setEditedCells(prev => {
+      const next = new Set(prev).add(cellKey);
+      onDirtyChange?.(next.size > 0);
+      return next;
+    });
 
     // Refresh the cell to show new color
     event.api.refreshCells({
@@ -249,6 +262,10 @@ export default function ReportReview() {
       // Show success message
       const patientCount = result.pdf_count || processedData.patient_count;
       alert(`Report approved successfully! Generated ${patientCount} patient PDF(s) in "${zipFilename}". The ZIP file has been downloaded. You can continue working with the data or download as Excel.`);
+
+      if (embedded && onComplete) {
+        onComplete();
+      }
 
     } catch (err: any) {
       console.error('Error approving report:', err);
@@ -373,50 +390,54 @@ export default function ReportReview() {
   }), []);
 
   const handleGoBack = () => {
-    navigate('/report-handling');
+    if (embedded && onGoBack) {
+      onGoBack();
+    } else {
+      navigate('/report-handling');
+    }
   };
 
   if (loading) {
-    return (
-      <div className="report-review">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading report data...</p>
-        </div>
+    const loadingContent = (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading report data...</p>
       </div>
     );
+    if (embedded) return loadingContent;
+    return <div className="report-review">{loadingContent}</div>;
   }
 
   if (error) {
-    return (
-      <div className="report-review">
-        <div className="error-container">
-          <h2>Error Loading Report</h2>
-          <p className="error-message">{error}</p>
-          <button onClick={handleGoBack} className="back-button">
-            Go Back to Upload
-          </button>
-        </div>
+    const errorContent = (
+      <div className="error-container">
+        <h2>Error Loading Report</h2>
+        <p className="error-message">{error}</p>
+        <button onClick={handleGoBack} className="back-button">
+          Go Back to Upload
+        </button>
       </div>
     );
+    if (embedded) return errorContent;
+    return <div className="report-review">{errorContent}</div>;
   }
 
   if (!processedData || !report) {
-    return (
-      <div className="report-review">
-        <div className="error-container">
-          <h2>No Data Available</h2>
-          <p>Report data could not be loaded.</p>
-          <button onClick={handleGoBack} className="back-button">
-            Go Back to Upload
-          </button>
-        </div>
+    const noDataContent = (
+      <div className="error-container">
+        <h2>No Data Available</h2>
+        <p>Report data could not be loaded.</p>
+        <button onClick={handleGoBack} className="back-button">
+          Go Back to Upload
+        </button>
       </div>
     );
+    if (embedded) return noDataContent;
+    return <div className="report-review">{noDataContent}</div>;
   }
 
-  return (
-    <div className="report-review">
+  const reviewContent = (
+    <>
       <div className="review-header">
         <div className="header-info">
           <h1>Report Review</h1>
@@ -553,6 +574,14 @@ export default function ReportReview() {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (embedded) return reviewContent;
+
+  return (
+    <div className="report-review">
+      {reviewContent}
     </div>
   );
 }

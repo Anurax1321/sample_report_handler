@@ -9,9 +9,10 @@ interface SampleTrackingProps {
   onSamplesChange?: (samples: Sample[], filteredSamples: Sample[]) => void;
   refreshTrigger?: number;
   onNewSample?: () => void;
+  onReportHandling?: () => void;
 }
 
-export default function SampleTracking({ embedded, onSamplesChange, refreshTrigger, onNewSample }: SampleTrackingProps = {}) {
+export default function SampleTracking({ embedded, onSamplesChange, refreshTrigger, onNewSample, onReportHandling }: SampleTrackingProps = {}) {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
@@ -309,6 +310,15 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
               }}
             >
               Clear
+            </button>
+          )}
+          {onReportHandling && (
+            <button className="btn-report-handling" onClick={onReportHandling}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              Report Handling
             </button>
           )}
           {onNewSample && (

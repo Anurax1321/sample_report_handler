@@ -1,0 +1,268 @@
+/* Report Handling Multi-Step Modal */
+.report-handling-modal {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s ease;
+  transition: max-width 0.3s ease, width 0.3s ease;
+}
+
+/* Step 1: Upload — narrower */
+.report-handling-modal[data-step="1"] {
+  width: 92%;
+  max-width: 900px;
+}
+
+/* Step 2: Review — wide for AG-Grid */
+.report-handling-modal[data-step="2"] {
+  width: 96%;
+  max-width: none;
+}
+
+/* Modal header */
+.report-handling-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.report-handling-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Close button — reuses pattern from Home.css / SampleTracking.css */
+.report-handling-modal .modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  color: #9ca3af;
+  cursor: pointer;
+  z-index: 1;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.report-handling-modal .modal-close:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  outline: 1px solid #fecaca;
+}
+
+/* Step indicator */
+.modal-step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+}
+
+.modal-step-indicator .step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.modal-step-indicator .step.active {
+  color: #0d9488;
+}
+
+.modal-step-indicator .step.completed {
+  color: #10b981;
+}
+
+.modal-step-indicator .step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #e5e7eb;
+  color: #6b7280;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.modal-step-indicator .step.active .step-number {
+  background: #0d9488;
+  color: white;
+}
+
+.modal-step-indicator .step.completed .step-number {
+  background: #10b981;
+  color: white;
+}
+
+.step-connector {
+  width: 40px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 0.5rem;
+  border-radius: 1px;
+  transition: background 0.2s ease;
+}
+
+.step-connector.active {
+  background: #10b981;
+}
+
+/* Modal body */
+.report-handling-modal .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Override styles for embedded children — strip page-level padding/shadows */
+.report-handling-modal .page-layout {
+  padding: 0;
+  min-height: auto;
+}
+
+.report-handling-modal .page-content {
+  padding: 0;
+}
+
+.report-handling-modal .content-card {
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+}
+
+.report-handling-modal .report-review {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.report-handling-modal .review-header {
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.report-handling-modal .review-content {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Confirmation dialog */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  animation: fadeIn 0.15s ease;
+}
+
+.confirm-dialog {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 90%;
+  animation: slideIn 0.2s ease;
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.confirm-dialog p {
+  margin: 0 0 1.5rem 0;
+  color: #4b5563;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.confirm-dialog .confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.confirm-dialog .btn-cancel {
+  padding: 0.5rem 1.25rem;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.confirm-dialog .btn-cancel:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.confirm-dialog .btn-discard {
+  padding: 0.5rem 1.25rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.confirm-dialog .btn-discard:hover {
+  background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .report-handling-modal[data-step="1"],
+  .report-handling-modal[data-step="2"] {
+    width: 98%;
+    max-height: 95vh;
+  }
+
+  .report-handling-modal .modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .step-connector {
+    width: 24px;
+  }
+}

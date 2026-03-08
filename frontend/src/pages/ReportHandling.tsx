@@ -6,9 +6,16 @@ import type { Report } from '../lib/reportApi';
 import { getSamples } from '../lib/sampleApi';
 import type { Sample } from '../lib/sampleApi';
 
+interface ReportHandlingProps {
+  embedded?: boolean;
+  onUploadSuccess?: (reportId: number) => void;
+  onClose?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
+}
+
 const MEMBERS_STORAGE_KEY = 'report_handling_members';
 
-export default function ReportHandling() {
+export default function ReportHandling({ embedded, onUploadSuccess, onClose, onDirtyChange }: ReportHandlingProps = {}) {
   const navigate = useNavigate();
 
   const [files, setFiles] = useState<{[key: string]: File | null}>({
@@ -128,6 +135,9 @@ export default function ReportHandling() {
     setError(null);
     setUploadedReport(null);
 
+    // Track dirty state for modal close guard
+    if (file) onDirtyChange?.(true);
+
     // Auto-validate when all 3 files are selected
     validateFiles(newFiles.file1, newFiles.file2, newFiles.file3);
   };
@@ -163,8 +173,14 @@ export default function ReportHandling() {
         setMembers([...members, uploadedBy]);
       }
 
-      // Navigate to review page instead of showing download
-      navigate(`/report-review/${report.id}`);
+      onDirtyChange?.(false);
+
+      // In embedded mode, call parent callback instead of navigating
+      if (embedded && onUploadSuccess) {
+        onUploadSuccess(report.id);
+      } else {
+        navigate(`/report-review/${report.id}`);
+      }
 
     } catch (err: any) {
       console.error('Upload failed:', err);
@@ -187,9 +203,7 @@ export default function ReportHandling() {
     }
   };
 
-  return (
-    <div className="page-layout">
-      <div className="page-content">
+  const formContent = (
         <div className="content-card report-card">
           <div className="card-header">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
@@ -670,6 +684,14 @@ export default function ReportHandling() {
             )}
           </form>
         </div>
+  );
+
+  if (embedded) return formContent;
+
+  return (
+    <div className="page-layout">
+      <div className="page-content">
+        {formContent}
       </div>
     </div>
   );
