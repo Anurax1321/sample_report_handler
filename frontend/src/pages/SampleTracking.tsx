@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getSamples, updateSampleStatus, deleteSample, updateReportedDate, updateSample, getLinkedReports, getSamplePdfs, downloadSamplePdf, deleteSamplePdf } from '../lib/sampleApi';
+import { getSamples, updateSampleStatus, deleteSample, updateReportedDate, updateSample, getLinkedReports, getSamplePdfs, downloadSamplePdf, deleteSamplePdf, getUnlinkedPdfs, linkPdfToSample } from '../lib/sampleApi';
 import type { Sample, UnlinkedReport, SamplePdf } from '../lib/sampleApi';
 import { downloadPDF } from '../lib/reportApi';
 import './SampleTracking.css';
@@ -25,6 +25,11 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
   const statusTriggerRef = useRef<HTMLButtonElement>(null);
   const [linkedReports, setLinkedReports] = useState<UnlinkedReport[]>([]);
   const [samplePdfs, setSamplePdfs] = useState<SamplePdf[]>([]);
+  const [showLinkPdf, setShowLinkPdf] = useState(false);
+  const [unlinkedPdfs, setUnlinkedPdfs] = useState<SamplePdf[]>([]);
+  const [linkPdfSelected, setLinkPdfSelected] = useState<number[]>([]);
+  const [linkPdfSearch, setLinkPdfSearch] = useState('');
+  const [linkingPdf, setLinkingPdf] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -98,6 +103,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
       setIsEditing(false);
       setStatusDropdownOpen(false);
     }
+    setShowLinkPdf(false);
   }, [selectedSample?.id]);
 
   const fetchSamples = async () => {
@@ -204,6 +210,39 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
       alert('Failed to save changes');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleOpenLinkPdf = async () => {
+    setShowLinkPdf(true);
+    setLinkPdfSelected([]);
+    setLinkPdfSearch('');
+    try {
+      const pdfs = await getUnlinkedPdfs();
+      setUnlinkedPdfs(pdfs);
+    } catch {
+      setUnlinkedPdfs([]);
+    }
+  };
+
+  const handleConfirmLinkPdf = async () => {
+    if (!selectedSample || linkPdfSelected.length === 0) return;
+    setLinkingPdf(true);
+    try {
+      for (const pdfId of linkPdfSelected) {
+        await linkPdfToSample(selectedSample.id, pdfId);
+      }
+      // Refresh the sample's PDFs list
+      const updated = await getSamplePdfs(selectedSample.id);
+      setSamplePdfs(updated);
+      // Remove linked PDFs from unlinked list
+      setUnlinkedPdfs(prev => prev.filter(p => !linkPdfSelected.includes(p.id)));
+      setLinkPdfSelected([]);
+      setShowLinkPdf(false);
+    } catch {
+      alert('Failed to link PDFs');
+    } finally {
+      setLinkingPdf(false);
     }
   };
 
@@ -725,13 +764,95 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                   </button>
                 </div>
               )}
-              <button className="btn-delete-subtle" onClick={() => handleDelete(selectedSample.id)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-                Delete sample
-              </button>
+              <div className="modal-footer-row">
+                <button className="btn-link-pdf-subtle" onClick={handleOpenLinkPdf}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                  </svg>
+                  Link PDF
+                </button>
+                <button className="btn-delete-subtle" onClick={() => handleDelete(selectedSample.id)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Delete sample
+                </button>
+              </div>
+              {showLinkPdf && (
+                <div className="link-pdf-picker">
+                  <h4>Select PDFs to link</h4>
+                  {unlinkedPdfs.length === 0 ? (
+                    <p className="link-pdf-empty">No unlinked PDFs available.</p>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={linkPdfSearch}
+                        onChange={(e) => setLinkPdfSearch(e.target.value)}
+                        placeholder="Search by filename..."
+                        className="link-pdf-search"
+                      />
+                      <div className="link-pdf-list">
+                        {unlinkedPdfs
+                          .filter(pdf => {
+                            const q = linkPdfSearch.toLowerCase();
+                            return !q || pdf.filename.toLowerCase().includes(q);
+                          })
+                          .sort((a, b) => {
+                            const name = (selectedSample.patient_id || '').toLowerCase().trim();
+                            if (!name) return 0;
+                            const aMatch = a.filename.toLowerCase().includes(name);
+                            const bMatch = b.filename.toLowerCase().includes(name);
+                            if (aMatch && !bMatch) return -1;
+                            if (!aMatch && bMatch) return 1;
+                            return 0;
+                          })
+                          .map(pdf => {
+                            const isSelected = linkPdfSelected.includes(pdf.id);
+                            const patientName = (selectedSample.patient_id || '').toLowerCase().trim();
+                            const isMatch = patientName.length > 0 && pdf.filename.toLowerCase().includes(patientName);
+                            return (
+                              <div
+                                key={pdf.id}
+                                className={`link-pdf-item ${isSelected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setLinkPdfSelected(prev =>
+                                    isSelected ? prev.filter(id => id !== pdf.id) : [...prev, pdf.id]
+                                  );
+                                }}
+                              >
+                                <input type="checkbox" checked={isSelected} readOnly />
+                                <div className="link-pdf-item-info">
+                                  <span className="link-pdf-item-name">
+                                    {pdf.filename}
+                                    {isMatch && <span className="match-badge" style={{ marginLeft: '0.4rem' }}>Name match</span>}
+                                  </span>
+                                  <span className="link-pdf-item-meta">
+                                    {pdf.file_size < 1024 * 1024
+                                      ? `${(pdf.file_size / 1024).toFixed(1)} KB`
+                                      : `${(pdf.file_size / (1024 * 1024)).toFixed(1)} MB`}
+                                    {' · '}{new Date(pdf.uploaded_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                      <div className="link-pdf-actions">
+                        <button className="btn-link-cancel" onClick={() => setShowLinkPdf(false)}>Cancel</button>
+                        <button
+                          className="btn-link-confirm"
+                          onClick={handleConfirmLinkPdf}
+                          disabled={linkPdfSelected.length === 0 || linkingPdf}
+                        >
+                          {linkingPdf ? 'Linking...' : `Link ${linkPdfSelected.length > 0 ? `(${linkPdfSelected.length})` : ''}`}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

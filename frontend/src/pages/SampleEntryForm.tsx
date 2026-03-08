@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateSampleCode, createSample, getUnlinkedReports, linkReportToSample, uploadSamplePdf, linkPdfToSample, deleteSamplePdf } from '../lib/sampleApi';
-import type { UnlinkedReport, SamplePdf } from '../lib/sampleApi';
+import { generateSampleCode, createSample, uploadSamplePdf, linkPdfToSample, deleteSamplePdf, getUnlinkedPdfs } from '../lib/sampleApi';
+import type { SamplePdf } from '../lib/sampleApi';
 import './SampleEntryForm.css';
 
 interface SampleFormData {
@@ -83,14 +83,14 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
   // Computed age from DOB
   const [computedAge, setComputedAge] = useState('');
 
-  // Report attachment state
-  const [unlinkedReports, setUnlinkedReports] = useState<UnlinkedReport[]>([]);
-  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
-  const [loadingReports, setLoadingReports] = useState(false);
-
   // PDF upload state
   const [uploadedPdfs, setUploadedPdfs] = useState<SamplePdf[]>([]);
   const [uploadingPdf, setUploadingPdf] = useState(false);
+
+  // Existing PDFs (unlinked) for selection
+  const [availablePdfs, setAvailablePdfs] = useState<SamplePdf[]>([]);
+  const [selectedPdfIds, setSelectedPdfIds] = useState<number[]>([]);
+  const [pdfSearch, setPdfSearch] = useState('');
 
   // Client combobox state
   const [clients, setClients] = useState<string[]>([]);
@@ -143,12 +143,10 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
         // Silently fail — user can type manually or click Generate
       });
 
-    // Fetch unlinked reports for attachment
-    setLoadingReports(true);
-    getUnlinkedReports()
-      .then(reports => setUnlinkedReports(reports))
-      .catch(() => {})
-      .finally(() => setLoadingReports(false));
+    // Fetch available unlinked PDFs
+    getUnlinkedPdfs()
+      .then(pdfs => setAvailablePdfs(pdfs))
+      .catch(() => {});
   }, []);
 
   // Recompute age when DOB changes
@@ -328,15 +326,6 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
 
       const result = await createSample(apiData);
 
-      // Link selected report if any
-      if (selectedReportId) {
-        try {
-          await linkReportToSample(result.id, selectedReportId);
-        } catch {
-          console.error('Failed to link report, but sample was created');
-        }
-      }
-
       // Link uploaded PDFs
       for (const pdf of uploadedPdfs) {
         try {
@@ -346,11 +335,21 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
         }
       }
 
+      // Link selected existing PDFs
+      for (const pdfId of selectedPdfIds) {
+        try {
+          await linkPdfToSample(result.id, pdfId);
+        } catch {
+          console.error(`Failed to link existing PDF ${pdfId}, but sample was created`);
+        }
+      }
+
       alert(`Sample created successfully! VRLS Serial No: ${result.sample_code}`);
 
       // Reset form
-      setSelectedReportId(null);
       setUploadedPdfs([]);
+      setSelectedPdfIds([]);
+      setPdfSearch('');
       setFormData({
         sample_code: '',
         patient_name: '',
@@ -700,49 +699,79 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
               )}
             </div>
 
-            {/* Or pick from existing reports */}
+            {/* Browse existing PDFs */}
             <div className="pdf-upload-subsection">
-              <h3 className="subsection-title">Or pick from existing reports</h3>
-              <div className="report-attachment">
-                {loadingReports ? (
-                  <p className="attachment-message">Loading available reports...</p>
-                ) : unlinkedReports.length === 0 ? (
-                  <p className="attachment-message">No unattached reports available. Upload and approve reports first.</p>
-                ) : (
-                  <div className="report-list">
-                    {unlinkedReports.map(report => (
-                      <label
-                        key={report.id}
-                        className={`report-option ${selectedReportId === report.id ? 'report-selected' : ''}`}
-                      >
-                        <input
-                          type="radio"
-                          name="attach_report"
-                          checked={selectedReportId === report.id}
-                          onChange={() => setSelectedReportId(report.id)}
-                        />
-                        <div className="report-option-info">
-                          <span className="report-option-title">
-                            Report #{report.id} &mdash; {report.date_code}
-                          </span>
-                          <span className="report-option-meta">
-                            {report.num_patients} patient{report.num_patients !== 1 ? 's' : ''} &middot; Uploaded {new Date(report.upload_date).toLocaleDateString()} by {report.uploaded_by}
-                          </span>
-                        </div>
-                      </label>
-                    ))}
-                    {selectedReportId && (
-                      <button
-                        type="button"
-                        className="btn-clear-selection"
-                        onClick={() => setSelectedReportId(null)}
-                      >
-                        Clear selection
-                      </button>
-                    )}
-                  </div>
+              <h3 className="subsection-title">
+                Browse existing PDFs
+                {selectedPdfIds.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn-clear-selection"
+                    onClick={() => setSelectedPdfIds([])}
+                    style={{ marginLeft: '0.75rem', fontSize: '0.75rem' }}
+                  >
+                    Clear ({selectedPdfIds.length})
+                  </button>
                 )}
-              </div>
+              </h3>
+              {availablePdfs.length === 0 ? (
+                <p className="attachment-message">No unlinked PDFs available in the system.</p>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    value={pdfSearch}
+                    onChange={(e) => setPdfSearch(e.target.value)}
+                    placeholder="Search by filename..."
+                    className="pdf-search-input"
+                  />
+                  <div className="existing-pdfs-list">
+                    {availablePdfs
+                      .filter(pdf => {
+                        const q = pdfSearch.toLowerCase();
+                        return !q || pdf.filename.toLowerCase().includes(q);
+                      })
+                      .sort((a, b) => {
+                        // Auto-match: PDFs matching patient name float to top
+                        const name = formData.patient_name.toLowerCase().trim();
+                        if (!name) return 0;
+                        const aMatch = a.filename.toLowerCase().includes(name);
+                        const bMatch = b.filename.toLowerCase().includes(name);
+                        if (aMatch && !bMatch) return -1;
+                        if (!aMatch && bMatch) return 1;
+                        return 0;
+                      })
+                      .map(pdf => {
+                        const isSelected = selectedPdfIds.includes(pdf.id);
+                        const patientName = formData.patient_name.toLowerCase().trim();
+                        const isMatch = patientName.length > 0 && pdf.filename.toLowerCase().includes(patientName);
+                        return (
+                          <div
+                            key={pdf.id}
+                            className={`existing-pdf-item ${isSelected ? 'selected' : ''} ${isMatch ? 'matched' : ''}`}
+                            onClick={() => {
+                              setSelectedPdfIds(prev =>
+                                isSelected ? prev.filter(id => id !== pdf.id) : [...prev, pdf.id]
+                              );
+                            }}
+                          >
+                            <input type="checkbox" checked={isSelected} readOnly />
+                            <div className="existing-pdf-info">
+                              <span className="existing-pdf-name">{pdf.filename}</span>
+                              <span className="existing-pdf-meta">
+                                {pdf.file_size < 1024 * 1024
+                                  ? `${(pdf.file_size / 1024).toFixed(1)} KB`
+                                  : `${(pdf.file_size / (1024 * 1024)).toFixed(1)} MB`}
+                                {' · '}{new Date(pdf.uploaded_at).toLocaleDateString()}
+                                {isMatch && <span className="match-badge">Name match</span>}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

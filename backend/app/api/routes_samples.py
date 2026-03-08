@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.db.session import SessionLocal
 from app.db import model
 from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate, SamplePdfRead
@@ -219,7 +220,19 @@ def list_sample_pdfs(sample_id: int, db: Session = Depends(get_db)):
 
 @router.get("/pdfs/unlinked", response_model=list[SamplePdfRead])
 def list_unlinked_pdfs(db: Session = Depends(get_db)):
-    return db.query(model.SamplePdf).filter(model.SamplePdf.sample_id.is_(None)).order_by(model.SamplePdf.id.desc()).all()
+    # For duplicate filenames, only return the most recent one (highest id)
+    latest_ids_subq = (
+        db.query(func.max(model.SamplePdf.id).label("id"))
+        .filter(model.SamplePdf.sample_id.is_(None))
+        .group_by(model.SamplePdf.filename)
+        .subquery()
+    )
+    return (
+        db.query(model.SamplePdf)
+        .join(latest_ids_subq, model.SamplePdf.id == latest_ids_subq.c.id)
+        .order_by(model.SamplePdf.id.desc())
+        .all()
+    )
 
 @router.get("/pdfs/{pdf_id}/download")
 def download_sample_pdf(pdf_id: int, db: Session = Depends(get_db)):

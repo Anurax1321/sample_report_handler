@@ -323,6 +323,17 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
             date_code
         )
 
+        # Create SamplePdf records for each generated PDF so they appear in "Browse existing PDFs"
+        for pdf_path in pdf_paths:
+            file_size = os.path.getsize(pdf_path)
+            sample_pdf = model.SamplePdf(
+                sample_id=None,
+                filename=os.path.basename(pdf_path),
+                file_path=pdf_path,
+                file_size=file_size,
+            )
+            db.add(sample_pdf)
+
         # Create a ZIP file containing all PDFs
         zip_filename = f"NBS_Reports_{date_code}.zip"
         zip_path = os.path.join(output_dir, zip_filename)

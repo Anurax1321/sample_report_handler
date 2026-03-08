@@ -480,13 +480,21 @@
   gap: 0.75rem;
 }
 
+.modal-footer-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
 .modal-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.btn-delete-subtle {
+.btn-delete-subtle,
+.btn-link-pdf-subtle {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -494,18 +502,183 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #ef4444;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
-  align-self: flex-start;
   font-family: inherit;
+}
+
+.btn-delete-subtle {
+  color: #ef4444;
 }
 
 .btn-delete-subtle:hover {
   background: #fef2f2;
   color: #dc2626;
+}
+
+.btn-link-pdf-subtle {
+  color: #3b82f6;
+}
+
+.btn-link-pdf-subtle:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+/* Link PDF picker inside modal */
+.link-pdf-picker {
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 0 0;
+}
+
+.link-pdf-picker h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.link-pdf-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.link-pdf-search:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.link-pdf-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.link-pdf-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+  font-size: 0.85rem;
+}
+
+.link-pdf-item:last-child {
+  border-bottom: none;
+}
+
+.link-pdf-item:hover {
+  background: #eff6ff;
+}
+
+.link-pdf-item.selected {
+  background: #eff6ff;
+}
+
+.link-pdf-item input[type="checkbox"] {
+  accent-color: #3b82f6;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.link-pdf-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.link-pdf-item-name {
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-pdf-item-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.link-pdf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.link-pdf-actions .btn-link-confirm {
+  padding: 0.35rem 1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.link-pdf-actions .btn-link-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.link-pdf-actions .btn-link-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.link-pdf-actions .btn-link-cancel {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.link-pdf-actions .btn-link-cancel:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.link-pdf-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.link-pdf-picker .match-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* Info Grid (used inside modal) */

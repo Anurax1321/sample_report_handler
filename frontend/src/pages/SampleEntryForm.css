@@ -494,6 +494,100 @@
   color: #dc2626;
 }
 
+/* Browse existing PDFs */
+.pdf-search-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s;
+}
+
+.pdf-search-input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.existing-pdfs-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.existing-pdf-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.existing-pdf-item:last-child {
+  border-bottom: none;
+}
+
+.existing-pdf-item:hover {
+  background: #f0fdf4;
+}
+
+.existing-pdf-item.selected {
+  background: #ecfdf5;
+}
+
+.existing-pdf-item.matched {
+  border-left: 3px solid #10b981;
+}
+
+.existing-pdf-item input[type="checkbox"] {
+  accent-color: #10b981;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.existing-pdf-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.existing-pdf-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.existing-pdf-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.match-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.4rem;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .sample-entry-form-page {
