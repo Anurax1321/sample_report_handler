@@ -26,6 +26,7 @@ async def _run_deploy():
     try:
         proc = await asyncio.create_subprocess_exec(
             "bash", "-c",
+            f"git config --global --add safe.directory {PROJECT_DIR} && "
             f"cd {PROJECT_DIR} && git pull origin main && "
             f"docker compose -f {COMPOSE_FILE} --env-file {ENV_FILE} up -d --build",
             stdout=asyncio.subprocess.PIPE,
