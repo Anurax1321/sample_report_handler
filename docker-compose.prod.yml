@@ -28,8 +28,11 @@ services:
     environment:
       - CORS_ORIGINS=${CORS_ORIGINS:-https://chinnaboina.com}
       - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER:-sample_user}:${DB_PASSWORD:-changeme_in_production}@db:5432/${DB_NAME:-sample_report_db}
+      - DEPLOY_SECRET=${DEPLOY_SECRET}
     volumes:
       - backend-uploads:/app/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/anurag/projects/sample_report_handler:/host-project:rw
     depends_on:
       db:
         condition: service_healthy
