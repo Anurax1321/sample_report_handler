@@ -7,7 +7,7 @@ interface ReportAnalyserModalProps {
 }
 
 export default function ReportAnalyserModal({ onClose }: ReportAnalyserModalProps) {
-  const [hasUnsavedWork, setHasUnsavedWork] = useState(false);
+  const [hasUnsavedWork, _setHasUnsavedWork] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   const handleClose = useCallback(() => {

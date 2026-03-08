@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import type { Sample } from '../lib/sampleApi';
 import SampleTracking from './SampleTracking';
 import SampleEntryForm from './SampleEntryForm';
@@ -8,7 +8,7 @@ import ReportAnalyserModal from '../components/ReportAnalyserModal';
 import './Home.css';
 
 export default function Home() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [allSamples, setAllSamples] = useState<Sample[]>([]);
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);

@@ -15,7 +15,7 @@ interface ReportHandlingProps {
 
 const MEMBERS_STORAGE_KEY = 'report_handling_members';
 
-export default function ReportHandling({ embedded, onUploadSuccess, onClose, onDirtyChange }: ReportHandlingProps = {}) {
+export default function ReportHandling({ embedded, onUploadSuccess, onClose: _onClose, onDirtyChange }: ReportHandlingProps = {}) {
   const navigate = useNavigate();
 
   const [files, setFiles] = useState<{[key: string]: File | null}>({
