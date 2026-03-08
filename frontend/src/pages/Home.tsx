@@ -10,15 +10,13 @@ import './Home.css';
 export default function Home() {
   const navigate = useNavigate();
   const [allSamples, setAllSamples] = useState<Sample[]>([]);
-  const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showAnalyserModal, setShowAnalyserModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleSamplesChange = useCallback((samples: Sample[], filtered: Sample[]) => {
+  const handleSamplesChange = useCallback((samples: Sample[], _filtered: Sample[]) => {
     setAllSamples(samples);
-    setFilteredSamples(filtered);
   }, []);
 
   const stats = useMemo(() => ({
@@ -28,38 +26,6 @@ export default function Home() {
     completed: allSamples.filter(s => s.status === 'completed').length,
     rejected: allSamples.filter(s => s.status === 'rejected').length,
   }), [allSamples]);
-
-  const exportToCSV = () => {
-    const headers = ['VRLS Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
-
-    const rows = filteredSamples.map(sample => [
-      sample.sample_code,
-      sample.patient_id,
-      '',
-      sample.age_gender,
-      sample.from_hospital,
-      sample.type_of_analysis,
-      sample.type_of_sample,
-      sample.sample_metadata?.price || '',
-      new Date(sample.collection_date).toLocaleString(),
-      sample.reported_on ? new Date(sample.reported_on).toLocaleString() : '',
-      sample.status,
-      sample.notes || ''
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `samples-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   return (
     <main className="dashboard">
