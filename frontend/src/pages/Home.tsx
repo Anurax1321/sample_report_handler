@@ -4,6 +4,7 @@ import type { Sample } from '../lib/sampleApi';
 import SampleTracking from './SampleTracking';
 import SampleEntryForm from './SampleEntryForm';
 import ReportHandlingModal from '../components/ReportHandlingModal';
+import ReportAnalyserModal from '../components/ReportAnalyserModal';
 import './Home.css';
 
 export default function Home() {
@@ -12,6 +13,7 @@ export default function Home() {
   const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showAnalyserModal, setShowAnalyserModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSamplesChange = useCallback((samples: Sample[], filtered: Sample[]) => {
@@ -104,7 +106,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="report-analyser" onClick={() => navigate('/report-analyser')}>
+          <div className="report-analyser" onClick={() => setShowAnalyserModal(true)}>
             <div className="section-header">
               <h2 className="section-title">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -126,7 +128,7 @@ export default function Home() {
         </div>
 
         <div className="dashboard-tracking">
-          <SampleTracking embedded onSamplesChange={handleSamplesChange} refreshTrigger={refreshTrigger} onNewSample={() => setShowEntryModal(true)} onReportHandling={() => setShowReportModal(true)} />
+          <SampleTracking embedded onSamplesChange={handleSamplesChange} refreshTrigger={refreshTrigger} onNewSample={() => setShowEntryModal(true)} />
         </div>
       </div>
 
@@ -135,6 +137,10 @@ export default function Home() {
           onClose={() => setShowReportModal(false)}
           onSuccess={() => setRefreshTrigger(t => t + 1)}
         />
+      )}
+
+      {showAnalyserModal && (
+        <ReportAnalyserModal onClose={() => setShowAnalyserModal(false)} />
       )}
 
       {showEntryModal && (

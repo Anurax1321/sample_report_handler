@@ -1,0 +1,95 @@
+/* Report Analyser Modal — consistent with ReportHandlingModal */
+.report-analyser-modal {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 96%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s ease;
+}
+
+.report-analyser-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.report-analyser-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.report-analyser-modal .modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  color: #9ca3af;
+  cursor: pointer;
+  z-index: 1;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.report-analyser-modal .modal-close:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  outline: 1px solid #fecaca;
+}
+
+.report-analyser-modal .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Embedded overrides — strip page-level spacing */
+.report-analyser-embedded {
+  padding: 1.5rem 2rem;
+}
+
+.report-analyser-embedded .page-header {
+  margin-bottom: 1rem;
+}
+
+.report-analyser-embedded .page-content {
+  min-height: 40vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .report-analyser-modal {
+    width: 98%;
+    max-height: 95vh;
+  }
+
+  .report-analyser-modal .modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .report-analyser-embedded {
+    padding: 1rem;
+  }
+}

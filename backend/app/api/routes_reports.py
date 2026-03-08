@@ -123,7 +123,7 @@ async def upload_report(
             report_file = model.ReportFile(
                 report_id=report.id,
                 filename=upload_file.filename,
-                file_type=model.ReportFileType[file_type],
+                file_type=file_type,
                 file_path=file_path,
                 file_size=file_size
             )

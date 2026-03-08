@@ -62,8 +62,12 @@ export default function ReportHandlingModal({ onClose, onSuccess }: ReportHandli
           data-step={currentStep}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header with step indicator */}
+          {/* Header */}
           <div className="modal-header">
+            <div className="modal-header-content">
+              <h2>Report Handling</h2>
+              <p>Upload AA, AC & AC_EXT files for processing</p>
+            </div>
             <div className="modal-step-indicator">
               <div className={`step ${currentStep === 1 ? 'active' : 'completed'}`}>
                 <span className="step-number">1</span>

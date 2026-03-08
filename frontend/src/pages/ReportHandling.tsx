@@ -128,18 +128,42 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose, onD
     }
   };
 
-  const handleFileChange = (fileKey: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
-    const newFiles = { ...files, [fileKey]: file };
+  const handleMultiFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files;
+    if (!selected || selected.length === 0) return;
+
+    const newFiles = { ...files };
+
+    // Auto-assign files to slots by filename pattern
+    for (let i = 0; i < selected.length; i++) {
+      const file = selected[i];
+      const name = file.name.toUpperCase();
+      if (name.includes('AC_EXT')) {
+        newFiles.file3 = file;
+      } else if (name.includes('_AC')) {
+        newFiles.file2 = file;
+      } else if (name.includes('_AA')) {
+        newFiles.file1 = file;
+      } else {
+        // Assign to first empty slot
+        if (!newFiles.file1) newFiles.file1 = file;
+        else if (!newFiles.file2) newFiles.file2 = file;
+        else if (!newFiles.file3) newFiles.file3 = file;
+      }
+    }
+
     setFiles(newFiles);
     setError(null);
     setUploadedReport(null);
 
     // Track dirty state for modal close guard
-    if (file) onDirtyChange?.(true);
+    onDirtyChange?.(true);
 
     // Auto-validate when all 3 files are selected
     validateFiles(newFiles.file1, newFiles.file2, newFiles.file3);
+
+    // Reset input so re-selecting the same files triggers onChange
+    event.target.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -206,16 +230,8 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose, onD
   const formContent = (
         <div className="content-card report-card">
           <div className="card-header">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            <div>
-              <h2>Upload NBS Reports</h2>
-              <p>Upload 3 text files (AA, AC, AC_EXT) for processing</p>
-            </div>
+            <h2>Report Handling</h2>
+            <p>Upload AA, AC & AC_EXT files for processing</p>
           </div>
 
           <form onSubmit={handleSubmit} className="upload-form">
@@ -473,15 +489,13 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose, onD
 
             <div className="file-input-group">
               <label className="file-input-label">
-                <div className="file-input-header">
-                  <span className="file-label-text">Report File 1</span>
-                  {files.file1 && <span className="file-name">{files.file1.name}</span>}
-                </div>
+                <span className="file-label-text">Report Files (AA, AC, AC_EXT)</span>
                 <div className="file-input-wrapper">
                   <input
                     type="file"
-                    onChange={(e) => handleFileChange('file1', e)}
+                    onChange={handleMultiFileSelect}
                     accept=".txt"
+                    multiple
                     className="file-input"
                   />
                   <div className="file-input-display">
@@ -490,60 +504,37 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose, onD
                       <polyline points="17 8 12 3 7 8"></polyline>
                       <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
-                    <span>{files.file1 ? 'Change file' : 'Choose file'}</span>
+                    <span>{(files.file1 || files.file2 || files.file3) ? 'Change files' : 'Select 3 files'}</span>
                   </div>
                 </div>
               </label>
-            </div>
-
-            <div className="file-input-group">
-              <label className="file-input-label">
-                <div className="file-input-header">
-                  <span className="file-label-text">Report File 2</span>
-                  {files.file2 && <span className="file-name">{files.file2.name}</span>}
-                </div>
-                <div className="file-input-wrapper">
-                  <input
-                    type="file"
-                    onChange={(e) => handleFileChange('file2', e)}
-                    accept=".txt"
-                    className="file-input"
-                  />
-                  <div className="file-input-display">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <span>{files.file2 ? 'Change file' : 'Choose file'}</span>
-                  </div>
-                </div>
-              </label>
-            </div>
-
-            <div className="file-input-group">
-              <label className="file-input-label">
-                <div className="file-input-header">
-                  <span className="file-label-text">Report File 3</span>
-                  {files.file3 && <span className="file-name">{files.file3.name}</span>}
-                </div>
-                <div className="file-input-wrapper">
-                  <input
-                    type="file"
-                    onChange={(e) => handleFileChange('file3', e)}
-                    accept=".txt"
-                    className="file-input"
-                  />
-                  <div className="file-input-display">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <span>{files.file3 ? 'Change file' : 'Choose file'}</span>
-                  </div>
-                </div>
-              </label>
+              <div className="file-slots-row">
+                {(['file1', 'file2', 'file3'] as const).map((key, i) => {
+                  const labels = ['AA', 'AC', 'AC_EXT'];
+                  const file = files[key];
+                  return (
+                    <div key={key} className={`file-slot ${file ? 'filled' : ''}`}>
+                      <span className="file-slot-label">{labels[i]}</span>
+                      <span className="file-slot-name">
+                        {file ? file.name : '—'}
+                      </span>
+                      {file && (
+                        <button
+                          type="button"
+                          className="file-slot-remove"
+                          onClick={() => {
+                            const newFiles = { ...files, [key]: null };
+                            setFiles(newFiles);
+                            setValidationResult(null);
+                          }}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Validation Status */}

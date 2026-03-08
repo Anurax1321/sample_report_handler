@@ -92,7 +92,7 @@ class ReportFile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     report_id: Mapped[int] = mapped_column(Integer, ForeignKey("reports.id"), nullable=False, index=True)
     filename: Mapped[str] = mapped_column(String(256))
-    file_type: Mapped[ReportFileType] = mapped_column(Enum(ReportFileType))
+    file_type: Mapped[str] = mapped_column(String(10))
     file_path: Mapped[str] = mapped_column(String(512))
     file_size: Mapped[int] = mapped_column(Integer)
 
