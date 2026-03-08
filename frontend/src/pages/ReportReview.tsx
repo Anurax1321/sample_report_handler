@@ -17,10 +17,11 @@ interface ReportReviewProps {
   reportId?: string;
   onGoBack?: () => void;
   onComplete?: () => void;
+  onApproveSuccess?: (result: any) => void;
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-export default function ReportReview({ embedded, reportId: reportIdProp, onGoBack, onComplete, onDirtyChange }: ReportReviewProps = {}) {
+export default function ReportReview({ embedded, reportId: reportIdProp, onGoBack, onComplete, onApproveSuccess, onDirtyChange }: ReportReviewProps = {}) {
   const params = useParams<{ reportId: string }>();
   const reportId = reportIdProp || params.reportId;
   const navigate = useNavigate();
@@ -259,12 +260,17 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
       const zipFilename = result.zip_filename || `NBS_Reports_${processedData.date_code}.zip`;
       await downloadPDF(parseInt(reportId), zipFilename);
 
-      // Show success message
-      const patientCount = result.pdf_count || processedData.patient_count;
-      alert(`Report approved successfully! Generated ${patientCount} patient PDF(s) in "${zipFilename}". The ZIP file has been downloaded. You can continue working with the data or download as Excel.`);
+      // If onApproveSuccess callback is provided (modal mode), use it to advance to Step 3
+      if (onApproveSuccess) {
+        onApproveSuccess(result);
+      } else {
+        // Standalone mode: show alert and call onComplete
+        const patientCount = result.pdf_count || processedData.patient_count;
+        alert(`Report approved successfully! Generated ${patientCount} patient PDF(s) in "${zipFilename}". The ZIP file has been downloaded. You can continue working with the data or download as Excel.`);
 
-      if (embedded && onComplete) {
-        onComplete();
+        if (embedded && onComplete) {
+          onComplete();
+        }
       }
 
     } catch (err: any) {

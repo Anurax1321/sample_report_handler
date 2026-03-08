@@ -65,6 +65,19 @@ export interface ProcessedReportData {
   };
 }
 
+export interface GeneratedPdf {
+  id: number;
+  filename: string;
+  file_size: number;
+  patient_name: string;
+}
+
+export interface ApproveResult {
+  pdf_count: number;
+  zip_filename: string;
+  generated_pdfs: GeneratedPdf[];
+}
+
 /**
  * Upload report files and process them
  */

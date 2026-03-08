@@ -89,7 +89,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
         notes: selectedSample.notes || '',
       });
     }
-    // Fetch linked reports and PDFs
+    // Fetch linked reports, PDFs, and unlinked PDFs for match detection
     if (selectedSample) {
       getLinkedReports(selectedSample.id)
         .then(reports => setLinkedReports(reports))
@@ -97,9 +97,13 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
       getSamplePdfs(selectedSample.id)
         .then(pdfs => setSamplePdfs(pdfs))
         .catch(() => setSamplePdfs([]));
+      getUnlinkedPdfs()
+        .then(pdfs => setUnlinkedPdfs(pdfs))
+        .catch(() => setUnlinkedPdfs([]));
     } else {
       setLinkedReports([]);
       setSamplePdfs([]);
+      setUnlinkedPdfs([]);
       setIsEditing(false);
       setStatusDropdownOpen(false);
     }
@@ -213,10 +217,19 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
     }
   };
 
+  const hasMatchingPdf = selectedSample && unlinkedPdfs.some(pdf => {
+    const patientName = (selectedSample.patient_id || '').toLowerCase().trim();
+    if (!patientName) return false;
+    const pdfNorm = pdf.filename.toLowerCase().replace(/_/g, ' ');
+    const pdfPatient = pdfNorm.replace(/nbs report /i, '').replace(/\.pdf$/, '').trim();
+    return pdfNorm.includes(patientName) || patientName.includes(pdfPatient);
+  });
+
   const handleOpenLinkPdf = async () => {
     setShowLinkPdf(true);
     setLinkPdfSelected([]);
     setLinkPdfSearch('');
+    // Refresh unlinked PDFs list
     try {
       const pdfs = await getUnlinkedPdfs();
       setUnlinkedPdfs(pdfs);
@@ -765,18 +778,18 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                 </div>
               )}
               <div className="modal-footer-row">
-                <button className="btn-link-pdf-subtle" onClick={handleOpenLinkPdf}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                  </svg>
-                  Link PDF
-                </button>
                 <button className="btn-delete-subtle" onClick={() => handleDelete(selectedSample.id)}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                   </svg>
                   Delete sample
+                </button>
+                <button className={`btn-link-pdf-subtle ${hasMatchingPdf && !showLinkPdf ? 'has-match' : ''}`} onClick={handleOpenLinkPdf}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                  </svg>
+                  Link PDF
                 </button>
               </div>
               {showLinkPdf && (
@@ -797,13 +810,14 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                         {unlinkedPdfs
                           .filter(pdf => {
                             const q = linkPdfSearch.toLowerCase();
-                            return !q || pdf.filename.toLowerCase().includes(q);
+                            return !q || pdf.filename.toLowerCase().replace(/_/g, ' ').includes(q);
                           })
                           .sort((a, b) => {
                             const name = (selectedSample.patient_id || '').toLowerCase().trim();
                             if (!name) return 0;
-                            const aMatch = a.filename.toLowerCase().includes(name);
-                            const bMatch = b.filename.toLowerCase().includes(name);
+                            const normalize = (s: string) => s.toLowerCase().replace(/_/g, ' ');
+                            const aMatch = normalize(a.filename).includes(name) || name.includes(normalize(a.filename).replace(/nbs report /i, '').replace(/\.pdf$/, '').trim());
+                            const bMatch = normalize(b.filename).includes(name) || name.includes(normalize(b.filename).replace(/nbs report /i, '').replace(/\.pdf$/, '').trim());
                             if (aMatch && !bMatch) return -1;
                             if (!aMatch && bMatch) return 1;
                             return 0;
@@ -811,11 +825,13 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                           .map(pdf => {
                             const isSelected = linkPdfSelected.includes(pdf.id);
                             const patientName = (selectedSample.patient_id || '').toLowerCase().trim();
-                            const isMatch = patientName.length > 0 && pdf.filename.toLowerCase().includes(patientName);
+                            const pdfNorm = pdf.filename.toLowerCase().replace(/_/g, ' ');
+                            const pdfPatient = pdfNorm.replace(/nbs report /i, '').replace(/\.pdf$/, '').trim();
+                            const isMatch = patientName.length > 0 && (pdfNorm.includes(patientName) || patientName.includes(pdfPatient));
                             return (
                               <div
                                 key={pdf.id}
-                                className={`link-pdf-item ${isSelected ? 'selected' : ''}`}
+                                className={`link-pdf-item ${isSelected ? 'selected' : ''} ${isMatch ? 'matched' : ''}`}
                                 onClick={() => {
                                   setLinkPdfSelected(prev =>
                                     isSelected ? prev.filter(id => id !== pdf.id) : [...prev, pdf.id]

@@ -1,0 +1,384 @@
+/* Report Linking Step — Step 3 of Report Handling */
+
+.report-linking-step {
+  position: relative;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Confetti ── */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  opacity: 1;
+  animation: confetti-fall 2.5s ease-in forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ── Success Banner ── */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 12px;
+  color: white;
+}
+
+.success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.success-text h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.success-text p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* ── PDF Link Section ── */
+.pdf-link-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pdf-link-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.linked-counter {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+}
+
+.pdf-link-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* ── PDF Link List ── */
+.pdf-link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── PDF Link Card ── */
+.pdf-link-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pdf-link-card.linked {
+  border-left: 4px solid #10b981;
+  background: #f0fdf4;
+}
+
+.pdf-link-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.pdf-link-card.linked .pdf-link-card-header {
+  background: #ecfdf5;
+  border-bottom-color: #d1fae5;
+}
+
+.pdf-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pdf-info > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-filename {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.pdf-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+
+.linked-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* ── Card Body ── */
+.pdf-link-card-body {
+  padding: 1rem 1.25rem;
+}
+
+/* Loading */
+.match-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.match-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #0d9488;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Sample Matches ── */
+.sample-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.sample-match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sample-match {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sample-match:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+.sample-match.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.sample-match-radio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.sample-match.selected .sample-match-radio {
+  border-color: #3b82f6;
+}
+
+.radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.radio-dot.active {
+  background: #3b82f6;
+}
+
+.sample-match-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sample-match-code {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sample-match-detail {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+
+.btn-link-to-sample {
+  margin-top: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.btn-link-to-sample:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-link-to-sample:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── No Match ── */
+.no-match-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.no-match-message {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.btn-create-sample {
+  padding: 0.4rem 0.875rem;
+  background: white;
+  color: #0d9488;
+  border: 1px solid #0d9488;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-create-sample:hover {
+  background: #0d9488;
+  color: white;
+}
+
+/* ── Actions ── */
+.linking-step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-done {
+  padding: 0.6rem 2rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-done:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-done:active {
+  transform: translateY(0);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .report-linking-step {
+    padding: 1.25rem;
+  }
+
+  .no-match-area {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

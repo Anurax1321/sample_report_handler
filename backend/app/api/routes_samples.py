@@ -88,6 +88,14 @@ def list_samples(db: Session = Depends(get_db), status: str | None = None):
         q = q.filter(model.Sample.status == status)
     return q.order_by(model.Sample.id.desc()).all()
 
+@router.get("/search", response_model=list[SampleRead])
+def search_samples(q: str = "", db: Session = Depends(get_db)):
+    if not q.strip():
+        return []
+    return db.query(model.Sample).filter(
+        model.Sample.patient_id.ilike(f"%{q.strip()}%")
+    ).limit(10).all()
+
 @router.patch("/{sample_id}", response_model=SampleRead)
 def update_sample(sample_id: int, payload: SampleUpdate, db: Session = Depends(get_db)):
     s = db.get(model.Sample, sample_id)

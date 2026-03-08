@@ -484,7 +484,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .modal-actions {
@@ -525,6 +525,27 @@
 .btn-link-pdf-subtle:hover {
   background: #eff6ff;
   color: #2563eb;
+}
+
+.btn-link-pdf-subtle.has-match {
+  color: #059669;
+  animation: link-pdf-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes link-pdf-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    border-color: #10b981;
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+    border-color: #059669;
+  }
+}
+
+.btn-link-pdf-subtle.has-match {
+  border: 1.5px solid #10b981;
+  background: #f0fdf4;
 }
 
 /* Link PDF picker inside modal */
@@ -586,6 +607,11 @@
 
 .link-pdf-item.selected {
   background: #eff6ff;
+}
+
+.link-pdf-item.matched {
+  border-left: 3px solid #10b981;
+  background: #f0fdf4;
 }
 
 .link-pdf-item input[type="checkbox"] {

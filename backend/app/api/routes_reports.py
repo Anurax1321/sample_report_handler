@@ -324,6 +324,7 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
         )
 
         # Create SamplePdf records for each generated PDF so they appear in "Browse existing PDFs"
+        created_pdf_records = []
         for pdf_path in pdf_paths:
             file_size = os.path.getsize(pdf_path)
             sample_pdf = model.SamplePdf(
@@ -333,6 +334,7 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
                 file_size=file_size,
             )
             db.add(sample_pdf)
+            created_pdf_records.append(sample_pdf)
 
         # Create a ZIP file containing all PDFs
         zip_filename = f"NBS_Reports_{date_code}.zip"
@@ -353,7 +355,16 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
             **report.__dict__,
             "pdf_count": len(pdf_paths),
             "zip_path": zip_path,
-            "zip_filename": zip_filename
+            "zip_filename": zip_filename,
+            "generated_pdfs": [
+                {
+                    "id": pdf.id,
+                    "filename": pdf.filename,
+                    "file_size": pdf.file_size,
+                    "patient_name": pdf.filename.replace("NBS_Report_", "").replace(".pdf", "").replace("_", " ")
+                }
+                for pdf in created_pdf_records
+            ]
         }
 
     except pdf_generation.PDFGenerationError as e:

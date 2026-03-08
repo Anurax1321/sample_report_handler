@@ -43,6 +43,7 @@ function getLocalDateTimeString(date: Date = new Date()): string {
 
 interface SampleEntryFormProps {
   embedded?: boolean;
+  initialData?: { patient_name?: string } | null;
   onClose?: () => void;
   onSuccess?: () => void;
 }
@@ -75,7 +76,7 @@ function computeAge(dob: string): string {
   return `${hadBirthday ? years : years - 1}Y`;
 }
 
-export default function SampleEntryForm({ embedded, onClose, onSuccess }: SampleEntryFormProps = {}) {
+export default function SampleEntryForm({ embedded, initialData, onClose, onSuccess }: SampleEntryFormProps = {}) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -106,7 +107,7 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
 
   const [formData, setFormData] = useState<SampleFormData>({
     sample_code: '',
-    patient_name: '',
+    patient_name: initialData?.patient_name || '',
     sample_id: '',
     date_of_birth: '',
     gender: '',
@@ -729,14 +730,16 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                     {availablePdfs
                       .filter(pdf => {
                         const q = pdfSearch.toLowerCase();
-                        return !q || pdf.filename.toLowerCase().includes(q);
+                        return !q || pdf.filename.toLowerCase().replace(/_/g, ' ').includes(q);
                       })
                       .sort((a, b) => {
                         // Auto-match: PDFs matching patient name float to top
                         const name = formData.patient_name.toLowerCase().trim();
                         if (!name) return 0;
-                        const aMatch = a.filename.toLowerCase().includes(name);
-                        const bMatch = b.filename.toLowerCase().includes(name);
+                        const norm = (s: string) => s.toLowerCase().replace(/_/g, ' ');
+                        const extractName = (s: string) => norm(s).replace(/nbs report /i, '').replace(/\.pdf$/, '').trim();
+                        const aMatch = norm(a.filename).includes(name) || name.includes(extractName(a.filename));
+                        const bMatch = norm(b.filename).includes(name) || name.includes(extractName(b.filename));
                         if (aMatch && !bMatch) return -1;
                         if (!aMatch && bMatch) return 1;
                         return 0;
@@ -744,7 +747,9 @@ export default function SampleEntryForm({ embedded, onClose, onSuccess }: Sample
                       .map(pdf => {
                         const isSelected = selectedPdfIds.includes(pdf.id);
                         const patientName = formData.patient_name.toLowerCase().trim();
-                        const isMatch = patientName.length > 0 && pdf.filename.toLowerCase().includes(patientName);
+                        const pdfNorm = pdf.filename.toLowerCase().replace(/_/g, ' ');
+                        const pdfPatient = pdfNorm.replace(/nbs report /i, '').replace(/\.pdf$/, '').trim();
+                        const isMatch = patientName.length > 0 && (pdfNorm.includes(patientName) || patientName.includes(pdfPatient));
                         return (
                           <div
                             key={pdf.id}

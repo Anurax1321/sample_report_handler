@@ -126,6 +126,14 @@ export async function updateReportedDate(sampleId: number, data: UpdateReportedD
 }
 
 /**
+ * Search samples by patient_id
+ */
+export async function searchSamples(query: string): Promise<Sample[]> {
+  const response = await api.get<Sample[]>('/samples/search', { params: { q: query } });
+  return response.data;
+}
+
+/**
  * Generate next available sample code
  */
 export async function generateSampleCode(): Promise<{ sample_code: string }> {

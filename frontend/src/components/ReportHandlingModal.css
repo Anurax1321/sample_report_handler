@@ -24,6 +24,12 @@
   max-width: none;
 }
 
+/* Step 3: Link — medium width */
+.report-handling-modal[data-step="3"] {
+  width: 92%;
+  max-width: 1000px;
+}
+
 /* Modal header */
 .report-handling-modal .modal-header {
   display: flex;
@@ -270,7 +276,8 @@
 /* Responsive */
 @media (max-width: 768px) {
   .report-handling-modal[data-step="1"],
-  .report-handling-modal[data-step="2"] {
+  .report-handling-modal[data-step="2"],
+  .report-handling-modal[data-step="3"] {
     width: 98%;
     max-height: 95vh;
   }

@@ -14,6 +14,7 @@ export default function Home() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showAnalyserModal, setShowAnalyserModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [samplePrefillData, setSamplePrefillData] = useState<{ patient_name: string } | null>(null);
 
   const handleSamplesChange = useCallback((samples: Sample[], _filtered: Sample[]) => {
     setAllSamples(samples);
@@ -102,6 +103,11 @@ export default function Home() {
         <ReportHandlingModal
           onClose={() => setShowReportModal(false)}
           onSuccess={() => setRefreshTrigger(t => t + 1)}
+          onCreateSampleFromReport={(data) => {
+            setSamplePrefillData(data);
+            setShowReportModal(false);
+            setShowEntryModal(true);
+          }}
         />
       )}
 
@@ -110,12 +116,13 @@ export default function Home() {
       )}
 
       {showEntryModal && (
-        <div className="modal-backdrop" onClick={() => setShowEntryModal(false)}>
+        <div className="modal-backdrop" onClick={() => { setShowEntryModal(false); setSamplePrefillData(null); }}>
           <div className="entry-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowEntryModal(false)}>&times;</button>
+            <button className="modal-close" onClick={() => { setShowEntryModal(false); setSamplePrefillData(null); }}>&times;</button>
             <SampleEntryForm
               embedded
-              onClose={() => setShowEntryModal(false)}
+              initialData={samplePrefillData}
+              onClose={() => { setShowEntryModal(false); setSamplePrefillData(null); }}
               onSuccess={() => setRefreshTrigger(t => t + 1)}
             />
           </div>

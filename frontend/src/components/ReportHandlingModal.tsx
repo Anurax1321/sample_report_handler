@@ -1,16 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import ReportHandling from '../pages/ReportHandling';
 import ReportReview from '../pages/ReportReview';
+import ReportLinkingStep from './ReportLinkingStep';
+import type { ApproveResult } from '../lib/reportApi';
 import './ReportHandlingModal.css';
 
 interface ReportHandlingModalProps {
   onClose: () => void;
   onSuccess?: () => void;
+  onCreateSampleFromReport?: (prefillData: { patient_name: string }) => void;
 }
 
-export default function ReportHandlingModal({ onClose, onSuccess }: ReportHandlingModalProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+export default function ReportHandlingModal({ onClose, onSuccess, onCreateSampleFromReport }: ReportHandlingModalProps) {
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [reportId, setReportId] = useState<number | null>(null);
+  const [approveResult, setApproveResult] = useState<ApproveResult | null>(null);
   const [hasUnsavedWork, setHasUnsavedWork] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
@@ -50,6 +54,12 @@ export default function ReportHandlingModal({ onClose, onSuccess }: ReportHandli
     onClose();
   };
 
+  const handleApproveSuccess = (result: ApproveResult) => {
+    setApproveResult(result);
+    setCurrentStep(3);
+    setHasUnsavedWork(false);
+  };
+
   const handleDirtyChange = (dirty: boolean) => {
     setHasUnsavedWork(dirty);
   };
@@ -73,10 +83,15 @@ export default function ReportHandlingModal({ onClose, onSuccess }: ReportHandli
                 <span className="step-number">1</span>
                 <span>Upload</span>
               </div>
-              <div className={`step-connector ${currentStep === 2 ? 'active' : ''}`} />
-              <div className={`step ${currentStep === 2 ? 'active' : ''}`}>
+              <div className={`step-connector ${currentStep >= 2 ? 'active' : ''}`} />
+              <div className={`step ${currentStep === 2 ? 'active' : currentStep > 2 ? 'completed' : ''}`}>
                 <span className="step-number">2</span>
                 <span>Review</span>
+              </div>
+              <div className={`step-connector ${currentStep >= 3 ? 'active' : ''}`} />
+              <div className={`step ${currentStep === 3 ? 'active' : ''}`}>
+                <span className="step-number">3</span>
+                <span>Link</span>
               </div>
             </div>
             <button className="modal-close" onClick={handleClose}>&times;</button>
@@ -98,7 +113,15 @@ export default function ReportHandlingModal({ onClose, onSuccess }: ReportHandli
                 reportId={String(reportId)}
                 onGoBack={handleGoBack}
                 onComplete={handleComplete}
+                onApproveSuccess={handleApproveSuccess}
                 onDirtyChange={handleDirtyChange}
+              />
+            )}
+            {currentStep === 3 && approveResult && (
+              <ReportLinkingStep
+                approveResult={approveResult}
+                onComplete={handleComplete}
+                onCreateSample={(data) => onCreateSampleFromReport?.(data)}
               />
             )}
           </div>
