@@ -2,12 +2,11 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .batch-report-card:hover {
