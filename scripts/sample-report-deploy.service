@@ -1,0 +1,9 @@
+[Unit]
+Description=Sample Report Handler - Auto Deploy
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/anurag/projects/sample_report_handler/scripts/deploy.sh
+WorkingDirectory=/home/anurag/projects/sample_report_handler
+User=anurag

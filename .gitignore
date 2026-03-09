@@ -43,3 +43,6 @@ frontend/src/test-changes.html
 
 # Test sample PDFs (patient data)
 test_Samples/
+
+# Deploy trigger file
+.deploy-trigger

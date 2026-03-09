@@ -20,14 +20,18 @@ async def webhook_deploy(x_deploy_secret: str = Header(...)):
     return {"status": "deploy triggered"}
 
 
-async def _run_deploy():
-    """Pull latest code and rebuild containers on the host.
+TRIGGER_FILE = f"{PROJECT_DIR}/.deploy-trigger"
 
-    Uses 'setsid' + 'nohup' so the docker compose rebuild survives
-    this container being replaced during the upgrade.
+
+async def _run_deploy():
+    """Pull latest code, then signal the host to rebuild containers.
+
+    Git pull runs inside this container. For the rebuild, we write a
+    trigger file to the mounted host volume. A systemd path unit on
+    the host watches for this file and runs deploy.sh.
     """
     try:
-        # Step 1: git pull (safe to run inside the container)
+        # Step 1: git pull (runs inside this container via mounted volume)
         pull = await asyncio.create_subprocess_exec(
             "bash", "-c",
             f"git config --global --add safe.directory {PROJECT_DIR} && "
@@ -42,20 +46,10 @@ async def _run_deploy():
 
         print(f"[deploy] git pull OK:\n{stdout.decode()[-300:]}", flush=True)
 
-        # Step 2: rebuild via a fully detached host-level process
-        # setsid creates a new session so the process survives container restart
-        rebuild_cmd = (
-            f"setsid nohup docker compose -p sample_report_handler "
-            f"-f {COMPOSE_FILE} --env-file {ENV_FILE} "
-            f"up -d --build > /tmp/deploy.log 2>&1 &"
-        )
-        proc = await asyncio.create_subprocess_exec(
-            "bash", "-c", rebuild_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        await proc.communicate()
-        print("[deploy] rebuild launched (detached)", flush=True)
+        # Step 2: write trigger file for host systemd watcher
+        with open(TRIGGER_FILE, "w") as f:
+            f.write("deploy")
+        print("[deploy] trigger file written, host will rebuild", flush=True)
 
     except Exception as e:
         print(f"[deploy] ERROR: {e}", flush=True)
