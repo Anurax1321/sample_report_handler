@@ -196,8 +196,9 @@ class NeonatalReportAnalyzer:
 
         for ratio in ratios_list:
             # Pattern: RATIO value range
-            # Example: MET/LEU 0.11 <0.42
-            pattern = rf'{re.escape(ratio)}\s+([\d.]+)\s+([<>\d.\-]+)'
+            # Example: MET/LEU 0.11 <0.42  OR  MET/LEU 0.11 < 0.42
+            # Handles spaces after < > and around dashes in ranges
+            pattern = rf'{re.escape(ratio)}\s+([\d.]+)\s+([<>\d.\s\-]+?)(?:\s+\d+\s+|\n|$)'
             match = re.search(pattern, text)
             if match:
                 value = match.group(1).strip()
@@ -225,7 +226,8 @@ class NeonatalReportAnalyzer:
             # Pattern: ANALYTE value range
             # Handle ranges with spaces like "0.00 - 0.5" or "0.00 -0.429"
             # Example: C2 8.583 1.26-88
-            pattern = rf'{re.escape(acyl)}\s+([\d.]+)\s+([\d.<>\s\-]+?)(?:\s+\d+\s+|\n|$)'
+            # (?<![/]) prevents matching C3 inside C4/C3 ratio names (two-column PDF layout)
+            pattern = rf'(?<![/]){re.escape(acyl)}\s+([\d.]+)\s+([\d.<>\s\-]+?)(?:\s+\d+\s+|\n|$)'
             match = re.search(pattern, text)
             if match:
                 value = match.group(1).strip()
@@ -241,16 +243,23 @@ class NeonatalReportAnalyzer:
         """Parse acylcarnitine molar ratios from Page 3."""
         text = self.raw_text
 
-        # Define ratios
+        # Define ratios — order longest first to avoid partial matches
         ratios_list = [
-            'C4/C3', 'C3/C0', 'C3/C2', 'C8/C10', 'C8/C2',
-            'C0/(C16+C18)', 'C5/C2', 'C5/C3', 'C5DC/C3', 'C5DC/C16'
+            'C0/(C16+C18)',
+            'C5DC/C16', 'C5DC/C3', 'C5DC/C5OH',
+            'C5:1/C0',
+            'C14:1/C16', 'C14:1/C2',
+            'C16OH/C16',
+            'C8/C10', 'C8/C12', 'C8/C2',
+            'C4/C2', 'C4/C3', 'C4/C8',
+            'C3/C16', 'C3/C0', 'C3/C2',
+            'C5/C0', 'C5/C2', 'C5/C3',
         ]
 
         for ratio in ratios_list:
             # Pattern: RATIO value range
-            # Handle special characters in ratio names
-            pattern = rf'{re.escape(ratio)}\s+([\d.]+)\s+([<>\d.\-]+)'
+            # Handles: "<0.42", "< 0.42", ">5.0", "> 5.0", "0.04-0.50", "0.04 - 0.50"
+            pattern = rf'{re.escape(ratio)}\s+([\d.]+)\s+([<>\d.\s\-]+?)(?:\s+\d+\s+|\n|$)'
             match = re.search(pattern, text)
             if match:
                 value = match.group(1).strip()
@@ -260,6 +269,12 @@ class NeonatalReportAnalyzer:
                     'value': float(value),
                     'reference_range': ref_range
                 })
+            else:
+                # Only log if the ratio name appears in the text (i.e. present but unparseable)
+                if ratio in text or re.escape(ratio).replace('\\', '') in text:
+                    logger.warning(
+                        f"File {self.relative_path}: Found '{ratio}' in text but regex failed to parse it"
+                    )
 
     def parse_reference_range(self, range_str: str) -> Tuple[Optional[float], Optional[float]]:
         """
@@ -280,13 +295,25 @@ class NeonatalReportAnalyzer:
 
         # Handle < (less than - only upper limit)
         if range_str.startswith('<'):
-            max_val = float(range_str[1:].strip())
-            return (None, max_val)
+            remainder = range_str[1:].strip()
+            if not remainder:
+                return (None, None)
+            try:
+                max_val = float(remainder)
+                return (None, max_val)
+            except ValueError:
+                return (None, None)
 
         # Handle > (greater than - only lower limit)
         if range_str.startswith('>'):
-            min_val = float(range_str[1:].strip())
-            return (min_val, None)
+            remainder = range_str[1:].strip()
+            if not remainder:
+                return (None, None)
+            try:
+                min_val = float(remainder)
+                return (min_val, None)
+            except ValueError:
+                return (None, None)
 
         # Handle range with dash (e.g., "0.9-45" or "0.00 - 0.5")
         if '-' in range_str:
