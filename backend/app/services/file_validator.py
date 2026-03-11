@@ -110,6 +110,51 @@ def validate_file_size(file_size: int, max_size_mb: int = 50) -> None:
             f"maximum allowed size ({max_size_mb} MB)"
         )
 
+def validate_excel_file(filename: str) -> str:
+    """
+    Validate an Excel file follows NBS naming convention.
+
+    Expected: filename starting with DDMMYYYY, extension .xlsm or .xlsx
+    e.g., "18022026 MR LABS DATA.xlsm"
+
+    Args:
+        filename: Name of the uploaded file
+
+    Returns:
+        Date code (DDMMYYYY) extracted from filename
+
+    Raises:
+        FileValidationError: If filename format is invalid
+    """
+    _, ext = os.path.splitext(filename)
+    if ext.lower() not in ['.xlsm', '.xlsx']:
+        raise FileValidationError(
+            f"Invalid file extension: '{ext}'. Expected .xlsm or .xlsx"
+        )
+
+    # Extract 8-digit date code from start of filename
+    match = re.match(r'^(\d{8})', filename)
+    if not match:
+        raise FileValidationError(
+            f"Invalid filename format: '{filename}'. "
+            f"Expected filename starting with DDMMYYYY (e.g., '18022026 MR LABS DATA.xlsm')."
+        )
+
+    date_code = match.group(1)
+    day = int(date_code[0:2])
+    month = int(date_code[2:4])
+    year = int(date_code[4:8])
+
+    if not (1 <= day <= 31):
+        raise FileValidationError(f"Invalid day in filename: {day}")
+    if not (1 <= month <= 12):
+        raise FileValidationError(f"Invalid month in filename: {month}")
+    if not (2000 <= year <= 2100):
+        raise FileValidationError(f"Invalid year in filename: {year}")
+
+    return date_code
+
+
 def validate_file_extension(filename: str, allowed_extensions: list = ['.txt']) -> None:
     """
     Validate file has an allowed extension

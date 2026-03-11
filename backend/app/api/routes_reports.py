@@ -166,6 +166,129 @@ async def upload_report(
     except Exception as e:
         raise HTTPException(500, f"Unexpected error: {str(e)}")
 
+@router.post("/upload-excel", response_model=ReportRead)
+async def upload_excel_report(
+    uploaded_by: str = Form("anonymous"),
+    sample_ids: Optional[str] = Form(None),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload a single NBS Excel file (.xlsm/.xlsx) and process it.
+
+    This is an alternative to the 3-file text upload. The Excel file
+    contains all compound data in one file (Shimadzu NeoBase export).
+
+    Expects:
+    - file: Excel file (.xlsm or .xlsx) with ConcData sheet
+    - uploaded_by: Name of person uploading (optional)
+    - sample_ids: JSON array of sample IDs to link (optional)
+
+    Returns:
+    - Report object with processing status
+    """
+    try:
+        # Parse and validate sample_ids if provided
+        parsed_sample_ids = []
+        if sample_ids:
+            try:
+                parsed_sample_ids = json.loads(sample_ids)
+                if not isinstance(parsed_sample_ids, list):
+                    raise ValueError
+            except (json.JSONDecodeError, ValueError):
+                raise HTTPException(400, "sample_ids must be a JSON array of integers")
+
+            for sid in parsed_sample_ids:
+                sample = db.get(model.Sample, sid)
+                if not sample:
+                    raise HTTPException(400, f"Sample with id {sid} not found")
+
+        # Validate Excel filename
+        try:
+            date_code = file_validator.validate_excel_file(file.filename)
+        except file_validator.FileValidationError as e:
+            raise HTTPException(400, str(e))
+
+        # Validate file size
+        file.file.seek(0, 2)
+        file_size = file.file.tell()
+        file.file.seek(0)
+
+        try:
+            file_validator.validate_file_size(file_size)
+        except file_validator.FileValidationError as e:
+            raise HTTPException(400, str(e))
+
+        # Create report record
+        report = model.Report(
+            sample_id=parsed_sample_ids[0] if parsed_sample_ids else None,
+            num_patients=None,
+            uploaded_by=uploaded_by,
+            date_code=date_code,
+            processing_status=model.ReportStatus.processing
+        )
+        db.add(report)
+        db.commit()
+        db.refresh(report)
+
+        # Link samples via junction table
+        if parsed_sample_ids:
+            for sid in parsed_sample_ids:
+                db.execute(model.report_samples.insert().values(report_id=report.id, sample_id=sid))
+            db.commit()
+            db.refresh(report)
+
+        # Save uploaded file
+        report_upload_dir = os.path.join(UPLOAD_DIR, str(report.id), "raw")
+        os.makedirs(report_upload_dir, exist_ok=True)
+
+        file_path = os.path.join(report_upload_dir, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Create ReportFile record
+        report_file = model.ReportFile(
+            report_id=report.id,
+            filename=file.filename,
+            file_type="EXCEL",
+            file_path=file_path,
+            file_size=file_size
+        )
+        db.add(report_file)
+        db.commit()
+
+        # Process Excel file
+        try:
+            output_dir = os.path.join(UPLOAD_DIR, str(report.id), "output")
+            excel_path, processed_data_json = report_processor.process_excel_file(
+                file_path,
+                output_dir
+            )
+
+            report.processing_status = model.ReportStatus.completed
+            report.output_directory = os.path.dirname(excel_path)
+            report.processed_data = processed_data_json
+            db.commit()
+            db.refresh(report)
+
+        except report_processor.ReportProcessingError as e:
+            report.processing_status = model.ReportStatus.failed
+            report.error_message = str(e)
+            db.commit()
+            db.refresh(report)
+            import traceback
+            print(f"ERROR: {str(e)}")
+            print(f"TRACEBACK: {traceback.format_exc()}")
+            raise HTTPException(500, f"Processing failed: {str(e)}")
+
+        return report
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Unexpected error: {str(e)}")
+
+
 @router.get("/", response_model=list[ReportRead])
 def list_reports(db: Session = Depends(get_db), sample_id: int | None = None):
     """
