@@ -79,6 +79,8 @@ class NeonatalReportAnalyzer:
         self.acylcarnitine_ratios = []
         self.raw_text = ""
         self.abnormalities = []  # Track all abnormal findings
+        self.format_type = 'original'  # 'original' or 'vrls'
+        self.format_type = 'original'  # Will be set by detect_format()
 
     def extract_text_from_pdf(self, quiet: bool = True) -> str:
         """Extract all text from PDF with timeout protection."""
@@ -102,10 +104,20 @@ class NeonatalReportAnalyzer:
             raise RuntimeError(f"Error reading PDF: {e}")
 
         self.raw_text = "\n".join(all_text)
+        self.format_type = self.detect_format()
         return self.raw_text
+
+    def detect_format(self):
+        """Detect PDF format from extracted text markers."""
+        if '1. Amino acids:' in self.raw_text or 'S.No Metabolite Conc.' in self.raw_text:
+            return 'vrls'
+        return 'original'
 
     def parse_patient_info(self):
         """Extract patient information from the report."""
+        if self.format_type == 'vrls':
+            return self._parse_patient_info_vrls()
+
         text = self.raw_text
 
         # Extract patient name
@@ -141,8 +153,44 @@ class NeonatalReportAnalyzer:
         if reported_match:
             self.patient_info['reported_on'] = reported_match.group(1).strip()
 
+    def _parse_patient_info_vrls(self):
+        """Parse patient info from VRLS format PDF."""
+        text = self.raw_text
+
+        # VRLS cover page fields (with colons)
+        name_match = re.search(r'PATIENT\s*NAME\s*:\s*(.+?)(?:\s{2,}|SAMPLE)', text)
+        if name_match:
+            self.patient_info['name'] = name_match.group(1).strip()
+        else:
+            # No cover page — try Annexure header
+            name_match = re.search(r'Patient Name:\s*(.+)', text)
+            if name_match:
+                self.patient_info['name'] = name_match.group(1).strip()
+
+        age_match = re.search(r'AGE/\s*GENDER\s*:\s*(.+?)(?:\s{2,}|REGISTERED)', text)
+        if age_match:
+            self.patient_info['age_gender'] = age_match.group(1).strip()
+
+        req_match = re.search(r'REQ\s*NO\s*:\s*(.+?)(?:\s{2,}|REPORTED)', text)
+        if req_match:
+            self.patient_info['uhid'] = req_match.group(1).strip()
+
+        collected_match = re.search(r'COLLECTED\s*ON\s*:\s*(.+?)(?:\n|$)', text)
+        if collected_match:
+            self.patient_info['collected_on'] = collected_match.group(1).strip()
+
+        reported_match = re.search(r'REPORTED\s*ON\s*:\s*(.+?)(?:\n|$)', text)
+        if reported_match:
+            self.patient_info['reported_on'] = reported_match.group(1).strip()
+
+        ref_match = re.search(r'CLIENT\s*DETAILS\s*:\s*(.+?)(?:\s{2,}|REF\.)', text)
+        if ref_match:
+            self.patient_info['referred_by'] = ref_match.group(1).strip()
+
     def parse_biochemical_parameters(self):
         """Parse biochemical parameters from Page 1."""
+        if self.format_type == 'vrls':
+            return  # VRLS format doesn't include biochemical parameters in same format
         text = self.raw_text
 
         # List of biochemical parameters to look for
@@ -163,6 +211,9 @@ class NeonatalReportAnalyzer:
 
     def parse_amino_acids(self):
         """Parse amino acids table from Page 2."""
+        if self.format_type == 'vrls':
+            return self._parse_amino_acids_vrls()
+
         text = self.raw_text
 
         # Define amino acids in order as they appear in the table
@@ -189,6 +240,9 @@ class NeonatalReportAnalyzer:
 
     def parse_amino_acid_ratios(self):
         """Parse amino acid molar ratios from Page 2."""
+        if self.format_type == 'vrls':
+            return self._parse_amino_acid_ratios_vrls()
+
         text = self.raw_text
 
         # Define ratios in order
@@ -211,6 +265,9 @@ class NeonatalReportAnalyzer:
 
     def parse_acylcarnitines(self):
         """Parse acylcarnitines from Page 3."""
+        if self.format_type == 'vrls':
+            return self._parse_acylcarnitines_vrls()
+
         text = self.raw_text
 
         # Define acylcarnitines in order
@@ -241,6 +298,9 @@ class NeonatalReportAnalyzer:
 
     def parse_acylcarnitine_ratios(self):
         """Parse acylcarnitine molar ratios from Page 3."""
+        if self.format_type == 'vrls':
+            return self._parse_acylcarnitine_ratios_vrls()
+
         text = self.raw_text
 
         # Define ratios — order longest first to avoid partial matches
@@ -275,6 +335,262 @@ class NeonatalReportAnalyzer:
                     logger.warning(
                         f"File {self.relative_path}: Found '{ratio}' in text but regex failed to parse it"
                     )
+
+    def _parse_amino_acids_vrls(self):
+        """Parse amino acids from VRLS format PDF (mixed-case names)."""
+        text = self.raw_text
+
+        # Map VRLS mixed-case names to our standard uppercase names
+        aa_names = {
+            'Alanine': 'ALANINE', 'Arginine': 'ARGININE', 'Aspartic acid': 'ASPARTIC ACID',
+            'Citrulline': 'CITRULINE', 'Glutamic acid': 'GLUTAMIC ACID', 'Glycine': 'GLYCINE',
+            'Leucine': 'LEUCINE', 'Methionine': 'METHIONINE', 'Ornithine': 'ORNITHINE',
+            'Phenylalanine': 'PHENYLALANINE', 'Proline': 'PROLINE', 'Tyrosine': 'TYROSINE',
+            'Valine': 'VALINE'
+        }
+
+        for vrls_name, standard_name in aa_names.items():
+            pattern = rf'{re.escape(vrls_name)}\s+([\d.]+)\s+([\d.\-<>]+)'
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                value = match.group(1).strip()
+                ref_range = match.group(2).strip()
+                self.amino_acids.append({
+                    'analyte': standard_name,
+                    'value': float(value),
+                    'reference_range': ref_range,
+                    'unit': 'uM'
+                })
+
+    def _parse_amino_acid_ratios_vrls(self):
+        """Parse amino acid molar ratios from VRLS format (spaces around /)."""
+        text = self.raw_text
+
+        # Map VRLS ratio names to standard names
+        vrls_ratios = {
+            'Met / Leu': 'MET/LEU',
+            'Met / Phe': 'MET/PHE',
+            'Phe / Tyr': 'PKU',
+            'Leu / Ala': 'LEU/ALA',
+            'Leu / Tyr': 'LEU/TYR'
+        }
+
+        for vrls_name, standard_name in vrls_ratios.items():
+            # Handle "Phe / Tyr (PKU)" specially
+            pattern = rf'{re.escape(vrls_name)}(?:\s*\(PKU\))?\s+([\d.]+)\s+([<>\d.\s\-]+?)(?:\s+\d+\s+|\n|$)'
+            match = re.search(pattern, text)
+            if match:
+                value = match.group(1).strip()
+                ref_range = match.group(2).strip()
+                self.amino_acid_ratios.append({
+                    'ratio': standard_name,
+                    'value': float(value),
+                    'reference_range': ref_range
+                })
+
+    def _parse_acylcarnitines_vrls(self):
+        """Parse acylcarnitines from VRLS format.
+
+        The VRLS acylcarnitines table is a two-column layout with S.No 1-35.
+        Each entry has its abbreviation in parentheses (e.g., (C0), (C2)).
+        Strategy: Find each abbreviation in the section text and extract
+        the nearest value+range pair, handling both "value before abbr"
+        and "value after abbr" layouts.
+        """
+        text = self.raw_text
+
+        # Map abbreviation -> standard analyte name
+        abbr_to_standard = {
+            'C0': 'FREE CARNITINE', 'C2': 'C2', 'C3': 'C3', 'C4': 'C4',
+            'C4OH': 'C4OH/C3DC', 'C4DC': 'C4DC',
+            'C3DC': 'C3DC', 'C5': 'C5', 'C5:1': 'C5:1',
+            'C5DC': 'C5DC', 'C5OH': 'C5OH/C4DC',
+            'C6': 'C6', 'C6DC': 'C6DC',
+            'C8': 'C8', 'C8:1': 'C8:1',
+            'C10': 'C10', 'C10:1': 'C10:1', 'C10:2': 'C10:2',
+            'C12': 'C12', 'C12:1': 'C12:1',
+            'C14': 'C14', 'C14:1': 'C14:1', 'C14:2': 'C14:2', 'C14OH': 'C14OH',
+            'C16': 'C16', 'C16:1': 'C16:1', 'C16:1OH': 'C16:1OH', 'C16OH': 'C16OH',
+            'C18': 'C18', 'C18:1': 'C18:1', 'C18:2': 'C18:2',
+            'C18:2OH': 'C18:2OH', 'C18:1OH': 'C18:1OH', 'C18OH': 'C18OH'
+        }
+
+        # Extract the acylcarnitines section
+        ac_start = text.find('3. Acylcarnitines:')
+        ac_end = text.find('4. Acylcarnitine molar ratios:')
+        if ac_start < 0 or ac_end < 0:
+            return
+        section = text[ac_start:ac_end]
+
+        # Extract all value+range pairs from data lines in order of appearance.
+        # A data line has pattern: optional_text value range optional_text value range
+        # value is a decimal number, range is like "5-125" or "0.01-0.90" or "0.00-0.20"
+        # We collect ALL (value, range, position) tuples from the section.
+        all_data_points = []
+        for m in re.finditer(r'(?<!\d)([\d.]+)\s+([\d.]+-[\d.]+|[<>]\s*[\d.]+)', section):
+            val_str = m.group(1)
+            ref_str = m.group(2).strip()
+            try:
+                val = float(val_str)
+                # Filter out S.No numbers (integers 1-35 without decimal)
+                if '.' not in val_str and val <= 35:
+                    continue
+                all_data_points.append((val, ref_str, m.start()))
+            except ValueError:
+                continue
+
+        # Find all abbreviation positions in the section, longest-first to avoid
+        # substring matches (e.g., C16:1OH before C16:1 before C16)
+        abbrs_sorted = sorted(abbr_to_standard.keys(), key=len, reverse=True)
+        abbr_positions = {}  # abbr -> position in section
+        matched_spans = []  # track matched spans to avoid substring overlaps
+
+        for abbr in abbrs_sorted:
+            pattern = rf'\({re.escape(abbr)}\)'
+            for m in re.finditer(pattern, section):
+                pos = m.start()
+                # Check this position doesn't overlap with an already-matched longer abbr
+                overlaps = False
+                for span_start, span_end in matched_spans:
+                    if pos >= span_start and pos < span_end:
+                        overlaps = True
+                        break
+                if not overlaps:
+                    abbr_positions[abbr] = pos
+                    matched_spans.append((m.start(), m.end()))
+                    break  # take first non-overlapping match
+
+        # Known S.No to abbreviation mapping (consistent across VRLS PDFs).
+        # This gives us the expected ORDER of data points.
+        sno_to_abbr = {
+            1: 'C0', 2: 'TC', 3: 'C2', 4: 'C3', 5: 'C3DC',
+            6: 'C4', 7: 'C4OH', 8: 'C4DC', 9: 'C5', 10: 'C5:1',
+            11: 'C5DC', 12: 'C5OH', 13: 'C6', 14: 'C6DC',
+            15: 'C8', 16: 'C8:1', 17: 'C10', 18: 'C10:1', 19: 'C10:2',
+            20: 'C12', 21: 'C12:1', 22: 'C14', 23: 'C14:1', 24: 'C14:2',
+            25: 'C14OH', 26: 'C16', 27: 'C16:1', 28: 'C16:1OH', 29: 'C16OH',
+            30: 'C18', 31: 'C18:2', 32: 'C18:1', 33: 'C18:2OH',
+            34: 'C18:1OH', 35: 'C18OH'
+        }
+
+        # The two-column table produces data points in a specific order:
+        # Left col items appear first on each line, right col items second.
+        # The pairs are: (1,8), (2,9), (3,10), (4,11), (5,12), (6,13), (7,14),
+        # (15,26), (16,27), (17,28), (18,29), (19,30), (20,31), (21,32),
+        # (22,33), (23,34), (24,35), (25,-)
+        data_order = [
+            1, 8, 2, 9, 3, 10, 4, 11, 5, 12, 6, 13, 7, 14,
+            15, 26, 16, 27, 17, 28, 18, 29, 19, 30, 20, 31, 21, 32,
+            22, 33, 23, 34, 24, 35, 25
+        ]
+
+        # Map data points to S.Nos by position order
+        # "Total Carnitines" data point is special — it has text before the value
+        # First, handle Total Carnitines separately
+        tc_match = re.search(r'Total Carnitines\s+([\d.]+)\s+([\d.\-]+)', section)
+        tc_val = None
+        tc_ref = None
+        tc_pos = -1
+        if tc_match:
+            tc_val = float(tc_match.group(1))
+            tc_ref = tc_match.group(2).strip()
+            tc_pos = tc_match.start()
+
+        # Now assign data points to S.Nos in order
+        # Filter out the Total Carnitines data point from all_data_points
+        # Only filter the exact TC value match (91.36 10-184), not nearby entries
+        tc_val_pos = -1
+        if tc_match:
+            # Find the position of the value within the TC match
+            tc_val_str = tc_match.group(1)
+            tc_val_pos = tc_match.start() + tc_match.group(0).index(tc_val_str)
+        filtered_data = []
+        for val, ref, pos in all_data_points:
+            # Skip only the exact TC value (position within a few chars of TC's value)
+            if tc_val_pos >= 0 and abs(pos - tc_val_pos) < len(tc_match.group(1)) + 2:
+                continue
+            filtered_data.append((val, ref, pos))
+
+        # Sort by position
+        filtered_data.sort(key=lambda x: x[2])
+
+        # Remove S.No 2 (Total Carnitines) from data_order
+        data_order_no_tc = [s for s in data_order if s != 2]
+
+        # Assign each data point to the corresponding S.No
+        for i, sno in enumerate(data_order_no_tc):
+            if i >= len(filtered_data):
+                break
+            val, ref, pos = filtered_data[i]
+            abbr = sno_to_abbr.get(sno)
+            if abbr and abbr != 'TC':
+                standard_name = abbr_to_standard.get(abbr, abbr)
+                self.acylcarnitines.append({
+                    'analyte': standard_name,
+                    'value': val,
+                    'reference_range': ref,
+                    'unit': 'uM'
+                })
+
+        # Add Total Carnitines
+        if tc_val is not None:
+            self.acylcarnitines.append({
+                'analyte': 'TOTAL CARNITINES',
+                'value': tc_val,
+                'reference_range': tc_ref,
+                'unit': 'uM'
+            })
+
+    def _parse_acylcarnitine_ratios_vrls(self):
+        """Parse acylcarnitine molar ratios from VRLS format (spaces around /)."""
+        text = self.raw_text
+
+        # Map VRLS ratio names to standard names
+        vrls_ac_ratios = {
+            'C4 / C3': 'C4/C3',
+            'C3 / C0': 'C3/C0',
+            'C3 / C2': 'C3/C2',
+            'C8 / C10': 'C8/C10',
+            'C8 / C2': 'C8/C2',
+            'C5 / C2': 'C5/C2',
+            'C5 / C3': 'C5/C3',
+            'C5DC / C3': 'C5DC/C3',
+            'C5DC / C16': 'C5DC/C16',
+        }
+
+        for vrls_name, standard_name in vrls_ac_ratios.items():
+            pattern = rf'{re.escape(vrls_name)}\s+([\d.]+)\s+([<>\d.\s\-]+?)(?:\s+\d+\s+|\n|$)'
+            match = re.search(pattern, text)
+            if match:
+                value = match.group(1).strip()
+                ref_range = match.group(2).strip()
+                self.acylcarnitine_ratios.append({
+                    'ratio': standard_name,
+                    'value': float(value),
+                    'reference_range': ref_range
+                })
+
+        # Special case: C0 / ( C16 + C18) — VRLS has two layouts:
+        # Layout 1: "6 C0 / 4.33 <70\n( C16 + C18)"  (value on same line as C0/)
+        # Layout 2: "C0 /\n1 C4/C3 ... 6 6.66 <70\n( C16 + C18)"  (C0/ on own line)
+        # Try layout 1 first
+        c0_match = re.search(r'(?<!/\s)C0\s*/\s*([\d.]+)\s+([<>\d.\s\-]+?)(?:\s+\d+\s+|\n)', text)
+        if not c0_match:
+            # Layout 2: find "( C16 + C18)" and look for value+range just before it
+            c16_18_match = re.search(r'\(\s*C16\s*\+\s*C18\s*\)', text)
+            if c16_18_match:
+                # Get the line before ( C16 + C18) — value is at end of that line
+                preceding = text[:c16_18_match.start()].rstrip()
+                # Find last value+range pair: "6.66 <70" or "4.33 <70"
+                val_match = re.search(r'([\d.]+)\s+([<>]\s*[\d.]+)\s*$', preceding)
+                if val_match:
+                    c0_match = val_match
+        if c0_match:
+            self.acylcarnitine_ratios.append({
+                'ratio': 'C0/(C16+C18)',
+                'value': float(c0_match.group(1).strip()),
+                'reference_range': c0_match.group(2).strip()
+            })
 
     def parse_reference_range(self, range_str: str) -> Tuple[Optional[float], Optional[float]]:
         """
