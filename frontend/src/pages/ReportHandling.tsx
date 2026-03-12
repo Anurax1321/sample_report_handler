@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ReportHandling.css';
-import { uploadReport, downloadReport } from '../lib/reportApi';
+import { uploadReport, uploadExcelReport, downloadReport } from '../lib/reportApi';
 import type { Report } from '../lib/reportApi';
+
+type UploadMode = 'text' | 'excel';
 
 interface ReportHandlingProps {
   embedded?: boolean;
@@ -16,11 +18,13 @@ const MEMBERS_STORAGE_KEY = 'report_handling_members';
 export default function ReportHandling({ embedded, onUploadSuccess, onClose: _onClose, onDirtyChange }: ReportHandlingProps = {}) {
   const navigate = useNavigate();
 
+  const [uploadMode, setUploadMode] = useState<UploadMode>('text');
   const [files, setFiles] = useState<{[key: string]: File | null}>({
     file1: null,
     file2: null,
     file3: null
   });
+  const [excelFile, setExcelFile] = useState<File | null>(null);
 
   const [uploadedBy, setUploadedBy] = useState<string>('anonymous');
   const [members, setMembers] = useState<string[]>([]);
@@ -118,6 +122,53 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
     }
   };
 
+  const validateExcelFile = (file: File | null) => {
+    if (!file) {
+      setValidationResult(null);
+      return;
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (ext !== 'xlsm' && ext !== 'xlsx') {
+      setValidationResult({ valid: false, message: 'Invalid file type. Expected .xlsm or .xlsx' });
+      return;
+    }
+
+    const dateMatch = file.name.match(/^(\d{8})/);
+    if (!dateMatch) {
+      setValidationResult({ valid: false, message: `Invalid filename: "${file.name}". Must start with DDMMYYYY.` });
+      return;
+    }
+
+    const dateCode = dateMatch[1];
+    const day = parseInt(dateCode.substring(0, 2));
+    const month = parseInt(dateCode.substring(2, 4));
+    const year = parseInt(dateCode.substring(4, 8));
+
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2000 || year > 2100) {
+      setValidationResult({ valid: false, message: `Invalid date in filename: ${dateCode}` });
+      return;
+    }
+
+    setValidationResult({
+      valid: true,
+      message: `Files validated successfully! Date: ${dateCode.substring(0, 2)}/${dateCode.substring(2, 4)}/${dateCode.substring(4, 8)}`
+    });
+  };
+
+  const handleExcelFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files;
+    if (!selected || selected.length === 0) return;
+
+    const file = selected[0];
+    setExcelFile(file);
+    setError(null);
+    setUploadedReport(null);
+    onDirtyChange?.(true);
+    validateExcelFile(file);
+    event.target.value = '';
+  };
+
   const handleMultiFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files;
     if (!selected || selected.length === 0) return;
@@ -161,10 +212,17 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
     setError(null);
     setUploadedReport(null);
 
-    // Validation
-    if (!files.file1 || !files.file2 || !files.file3) {
-      setError('Please select all 3 files');
-      return;
+    // Validation based on mode
+    if (uploadMode === 'text') {
+      if (!files.file1 || !files.file2 || !files.file3) {
+        setError('Please select all 3 files');
+        return;
+      }
+    } else {
+      if (!excelFile) {
+        setError('Please select an Excel file');
+        return;
+      }
     }
 
     // Upload and process
@@ -172,12 +230,20 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
     setUploadProgress('Uploading files...');
 
     try {
-      const report = await uploadReport(
-        files.file1,
-        files.file2,
-        files.file3,
-        uploadedBy
-      );
+      let report: Report;
+      if (uploadMode === 'text') {
+        report = await uploadReport(
+          files.file1!,
+          files.file2!,
+          files.file3!,
+          uploadedBy
+        );
+      } else {
+        report = await uploadExcelReport(
+          excelFile!,
+          uploadedBy
+        );
+      }
 
       setUploadProgress('Processing complete!');
 
@@ -220,7 +286,48 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
         <div className="content-card report-card">
           <div className="card-header">
             <h2>Report Handling</h2>
-            <p>Upload AA, AC & AC_EXT files for processing</p>
+            <p>Upload report files for processing</p>
+          </div>
+
+          {/* Upload Mode Toggle */}
+          <div className="upload-mode-toggle">
+            <button
+              type="button"
+              className={`mode-tab ${uploadMode === 'text' ? 'active' : ''}`}
+              onClick={() => {
+                setUploadMode('text');
+                setError(null);
+                setValidationResult(null);
+                setUploadedReport(null);
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              Text Files (AA, AC, AC_EXT)
+            </button>
+            <button
+              type="button"
+              className={`mode-tab ${uploadMode === 'excel' ? 'active' : ''}`}
+              onClick={() => {
+                setUploadMode('excel');
+                setError(null);
+                setValidationResult(null);
+                setUploadedReport(null);
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+              </svg>
+              Excel File (.xlsm/.xlsx)
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="upload-form">
@@ -369,55 +476,101 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
               )}
             </div>
 
-            <div className="file-input-group">
-              <label className="file-input-label">
-                <span className="file-label-text">Report Files (AA, AC, AC_EXT)</span>
-                <div className="file-input-wrapper">
-                  <input
-                    type="file"
-                    onChange={handleMultiFileSelect}
-                    accept=".txt"
-                    multiple
-                    className="file-input"
-                  />
-                  <div className="file-input-display">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <span>{(files.file1 || files.file2 || files.file3) ? 'Change files' : 'Select 3 files'}</span>
-                  </div>
-                </div>
-              </label>
-              <div className="file-slots-row">
-                {(['file1', 'file2', 'file3'] as const).map((key, i) => {
-                  const labels = ['AA', 'AC', 'AC_EXT'];
-                  const file = files[key];
-                  return (
-                    <div key={key} className={`file-slot ${file ? 'filled' : ''}`}>
-                      <span className="file-slot-label">{labels[i]}</span>
-                      <span className="file-slot-name">
-                        {file ? file.name : '—'}
-                      </span>
-                      {file && (
-                        <button
-                          type="button"
-                          className="file-slot-remove"
-                          onClick={() => {
-                            const newFiles = { ...files, [key]: null };
-                            setFiles(newFiles);
-                            setValidationResult(null);
-                          }}
-                        >
-                          &times;
-                        </button>
-                      )}
+            {/* Text Files Upload */}
+            {uploadMode === 'text' && (
+              <div className="file-input-group">
+                <label className="file-input-label">
+                  <span className="file-label-text">Report Files (AA, AC, AC_EXT)</span>
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      onChange={handleMultiFileSelect}
+                      accept=".txt"
+                      multiple
+                      className="file-input"
+                    />
+                    <div className="file-input-display">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                      <span>{(files.file1 || files.file2 || files.file3) ? 'Change files' : 'Select 3 files'}</span>
                     </div>
-                  );
-                })}
+                  </div>
+                </label>
+                <div className="file-slots-row">
+                  {(['file1', 'file2', 'file3'] as const).map((key, i) => {
+                    const labels = ['AA', 'AC', 'AC_EXT'];
+                    const file = files[key];
+                    return (
+                      <div key={key} className={`file-slot ${file ? 'filled' : ''}`}>
+                        <span className="file-slot-label">{labels[i]}</span>
+                        <span className="file-slot-name">
+                          {file ? file.name : '—'}
+                        </span>
+                        {file && (
+                          <button
+                            type="button"
+                            className="file-slot-remove"
+                            onClick={() => {
+                              const newFiles = { ...files, [key]: null };
+                              setFiles(newFiles);
+                              setValidationResult(null);
+                            }}
+                          >
+                            &times;
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Excel File Upload */}
+            {uploadMode === 'excel' && (
+              <div className="file-input-group">
+                <label className="file-input-label">
+                  <span className="file-label-text">Excel Report File (Shimadzu NeoBase Export)</span>
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      onChange={handleExcelFileSelect}
+                      accept=".xlsm,.xlsx"
+                      className="file-input"
+                    />
+                    <div className="file-input-display">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                      <span>{excelFile ? 'Change file' : 'Select Excel file'}</span>
+                    </div>
+                  </div>
+                </label>
+                {excelFile && (
+                  <div className="file-slots-row">
+                    <div className="file-slot filled" style={{ flex: 'none', width: '100%' }}>
+                      <span className="file-slot-label">EXCEL</span>
+                      <span className="file-slot-name">{excelFile.name}</span>
+                      <button
+                        type="button"
+                        className="file-slot-remove"
+                        onClick={() => {
+                          setExcelFile(null);
+                          setValidationResult(null);
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Validation Status */}
             {isValidating && (
@@ -474,7 +627,7 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                {isUploading ? 'Processing...' : 'Upload & Process Reports'}
+                {isUploading ? 'Processing...' : uploadMode === 'text' ? 'Upload & Process Reports' : 'Upload & Process Excel'}
               </button>
             </div>
 

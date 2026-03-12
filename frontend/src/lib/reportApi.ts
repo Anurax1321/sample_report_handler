@@ -3,7 +3,7 @@ import api from './api';
 export interface ReportFile {
   id: number;
   filename: string;
-  file_type: 'AA' | 'AC' | 'AC_EXT';
+  file_type: 'AA' | 'AC' | 'AC_EXT' | 'EXCEL';
   file_size: number;
 }
 
@@ -98,6 +98,30 @@ export async function uploadReport(
   formData.append('file3', file3);
 
   const response = await api.post<Report>('/reports/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+}
+
+/**
+ * Upload an Excel report file and process it
+ */
+export async function uploadExcelReport(
+  file: File,
+  uploadedBy: string = 'anonymous',
+  sampleIds?: number[]
+): Promise<Report> {
+  const formData = new FormData();
+  formData.append('uploaded_by', uploadedBy);
+  if (sampleIds && sampleIds.length > 0) {
+    formData.append('sample_ids', JSON.stringify(sampleIds));
+  }
+  formData.append('file', file);
+
+  const response = await api.post<Report>('/reports/upload-excel', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

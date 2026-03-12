@@ -366,3 +366,72 @@ def process_report_files(
         raise ReportProcessingError(f"Processing failed: {str(e)}")
     except Exception as e:
         raise ReportProcessingError(f"Unexpected error during processing: {str(e)}")
+
+
+def process_excel_file(
+    file_path: str,
+    output_dir: str
+) -> Tuple[str, str]:
+    """
+    Processing pipeline for NBS Excel report files (.xlsm/.xlsx)
+
+    Uses the same downstream processing as text files:
+    extraction → restructure → serialize
+
+    Args:
+        file_path: Path to the Excel file
+        output_dir: Directory where output files should be saved
+
+    Returns:
+        Tuple of (placeholder_path, processed_data_json)
+
+    Raises:
+        ReportProcessingError: If processing fails at any stage
+    """
+    try:
+        from app.services.excel_data_extraction import (
+            extract_from_excel,
+            extract_date_code_from_filename,
+            ExcelDataExtractionError
+        )
+
+        # Extract date code from filename
+        filename = os.path.basename(file_path)
+        date_code = extract_date_code_from_filename(filename)
+
+        # Extract data from Excel (returns same format as get_final_data)
+        raw_combined_df, sample_names, total_count = extract_from_excel(file_path)
+
+        print(f"Excel extraction: {total_count} samples, {raw_combined_df.shape[1] - 1} compounds")
+
+        # Restructure data frames for controls and patients (same as text pipeline)
+        final_data_frame_list = [
+            structure.redefine_dataframe(raw_combined_df[:2].copy(), c1_flag=True),
+            structure.redefine_dataframe(raw_combined_df[2:4].copy(), c2_flag=True),
+            structure.redefine_dataframe(raw_combined_df[4:].copy())
+        ]
+
+        # Serialize data to JSON for frontend review (same as text pipeline)
+        processed_data_json = serialize_processed_data(
+            final_data_frame_list,
+            raw_combined_df,
+            sample_names,
+            date_code
+        )
+
+        # Create output directory and placeholder
+        os.makedirs(os.path.join(output_dir, date_code), exist_ok=True)
+        placeholder_path = os.path.join(output_dir, date_code, 'pending_approval.txt')
+
+        with open(placeholder_path, 'w') as f:
+            f.write(f"Report processed from Excel on {date_code}\nAwaiting user approval for PDF generation.\n")
+
+        print(f"Excel report processing completed successfully. Data ready for review.")
+        return placeholder_path, processed_data_json
+
+    except ExcelDataExtractionError as e:
+        raise ReportProcessingError(f"Excel extraction failed: {str(e)}")
+    except structure.StructureError as e:
+        raise ReportProcessingError(f"Processing failed: {str(e)}")
+    except Exception as e:
+        raise ReportProcessingError(f"Unexpected error during Excel processing: {str(e)}")

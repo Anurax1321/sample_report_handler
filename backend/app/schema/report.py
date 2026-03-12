@@ -5,7 +5,7 @@ from datetime import datetime
 class ReportFileRead(BaseModel):
     id: int
     filename: str
-    file_type: Literal["AA", "AC", "AC_EXT"]
+    file_type: Literal["AA", "AC", "AC_EXT", "EXCEL"]
     file_size: int
 
     class Config:
