@@ -47,6 +47,7 @@ class Sample(Base):
 
     # Dates
     collection_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    registered_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     reported_on: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Legacy/Additional fields

@@ -36,6 +36,7 @@ def create_sample(payload: SampleCreate, db: Session = Depends(get_db)):
         type_of_sample=payload.type_of_sample,
         # Dates
         collection_date=payload.collection_date or datetime.now(),
+        registered_date=payload.registered_date,
         reported_on=payload.reported_on,
         # Legacy/Additional fields
         test_type=payload.test_type,

@@ -86,6 +86,9 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
         collection_date: selectedSample.collection_date
           ? new Date(selectedSample.collection_date).toISOString().slice(0, 16)
           : '',
+        registered_date: selectedSample.registered_date
+          ? new Date(selectedSample.registered_date).toISOString().slice(0, 16)
+          : '',
         notes: selectedSample.notes || '',
       });
     }
@@ -203,6 +206,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
         type_of_analysis: editForm.type_of_analysis,
         type_of_sample: editForm.type_of_sample,
         collection_date: editForm.collection_date || undefined,
+        registered_date: editForm.registered_date || undefined,
         notes: editForm.notes,
         sample_metadata: { price: editForm.price },
       });
@@ -260,7 +264,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
   };
 
   const exportToCSV = () => {
-    const headers = ['VRLS Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Reported On', 'Status', 'Notes'];
+    const headers = ['VRLS Serial No', 'Patient Name', 'Sample ID', 'Age/Gender/Weight', 'Client Name', 'Type of Analysis', 'Type of Sample', 'Price', 'Collection Date', 'Registered Date', 'Reported On', 'Status', 'Notes'];
 
     const rows = filteredSamples.map(sample => [
       sample.sample_code,
@@ -272,6 +276,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
       sample.type_of_sample,
       sample.sample_metadata?.price || '',
       new Date(sample.collection_date).toLocaleString(),
+      sample.registered_date ? new Date(sample.registered_date).toLocaleString() : '',
       sample.reported_on ? new Date(sample.reported_on).toLocaleString() : '',
       sample.status,
       sample.notes || ''
@@ -401,7 +406,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                   <th>VRLS Serial No</th>
                   <th>Patient Name</th>
                   <th>Status</th>
-                  <th>Collection Date</th>
+                  <th>Registered Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,7 +421,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                           {sample.status}
                         </span>
                       </td>
-                      <td>{new Date(sample.collection_date).toLocaleDateString()}</td>
+                      <td>{sample.registered_date ? new Date(sample.registered_date).toLocaleDateString() : '—'}</td>
                     </tr>
                   ))}
               </tbody>
@@ -619,6 +624,19 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                     />
                   ) : (
                     <span>{selectedSample.collection_date ? new Date(selectedSample.collection_date).toLocaleString() : '—'}</span>
+                  )}
+                </div>
+                <div className="info-item">
+                  <label>Registered Date</label>
+                  {isEditing ? (
+                    <input
+                      type="datetime-local"
+                      value={editForm.registered_date || ''}
+                      onChange={(e) => handleEditChange('registered_date', e.target.value)}
+                      className="edit-input"
+                    />
+                  ) : (
+                    <span>{selectedSample.registered_date ? new Date(selectedSample.registered_date).toLocaleString() : '—'}</span>
                   )}
                 </div>
                 <div className="info-item">

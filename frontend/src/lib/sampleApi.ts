@@ -14,6 +14,7 @@ export interface Sample {
 
   // Dates (Excel fields)
   collection_date: string;
+  registered_date: string | null;
   reported_on: string | null;
 
   // Legacy/Additional fields (kept for backward compatibility)
@@ -46,6 +47,7 @@ export interface CreateSampleData {
 
   // Dates
   collection_date?: string;
+  registered_date?: string;
   reported_on?: string;
 
   // Legacy/Additional fields
@@ -64,6 +66,7 @@ export interface UpdateSampleData {
   type_of_analysis?: string;
   type_of_sample?: string;
   collection_date?: string;
+  registered_date?: string | null;
   reported_on?: string | null;
   notes?: string;
   sample_metadata?: Record<string, any>;

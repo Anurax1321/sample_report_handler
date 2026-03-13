@@ -15,6 +15,7 @@ class SampleCreate(BaseModel):
 
     # Dates (Excel fields)
     collection_date: Optional[datetime] = None
+    registered_date: Optional[datetime] = None
     reported_on: Optional[datetime] = None
 
     # Legacy/Additional fields (kept for backward compatibility)
@@ -39,6 +40,7 @@ class SampleRead(BaseModel):
 
     # Dates
     collection_date: datetime
+    registered_date: Optional[datetime]
     reported_on: Optional[datetime]
 
     # Legacy/Additional fields
@@ -60,6 +62,7 @@ class SampleUpdate(BaseModel):
     type_of_analysis: Optional[str] = None
     type_of_sample: Optional[str] = None
     collection_date: Optional[datetime] = None
+    registered_date: Optional[datetime] = None
     reported_on: Optional[datetime] = None
     notes: Optional[str] = None
     sample_metadata: Optional[Dict] = None

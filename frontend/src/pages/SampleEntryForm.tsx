@@ -16,6 +16,7 @@ interface SampleFormData {
   type_of_sample: string;       // e.g., "DBS" (Dried Blood Spot)
   price: string;                // Price
   collection_date: string;      // Collection date
+  registered_date: string;      // Registered date
   reported_on: string;          // Report date
   notes: string;
 }
@@ -117,6 +118,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
     type_of_sample: 'DBS',
     price: '',
     collection_date: getLocalDateTimeString(),
+    registered_date: getLocalDateTimeString(),
     reported_on: '',
     notes: '',
   });
@@ -316,6 +318,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
         type_of_analysis: formData.type_of_analysis,
         type_of_sample: formData.type_of_sample,
         collection_date: formData.collection_date,
+        registered_date: formData.registered_date || undefined,
         reported_on: formData.reported_on || undefined,
         notes: formData.notes,
         sample_metadata: {
@@ -363,6 +366,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
         type_of_sample: 'DBS',
         price: '',
         collection_date: getLocalDateTimeString(),
+        registered_date: getLocalDateTimeString(),
         reported_on: '',
         notes: '',
       });
@@ -636,6 +640,17 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                   id="collection_date"
                   name="collection_date"
                   value={formData.collection_date}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="registered_date">Registered Date & Time (IST)</label>
+                <input
+                  type="datetime-local"
+                  id="registered_date"
+                  name="registered_date"
+                  value={formData.registered_date}
                   onChange={handleChange}
                 />
               </div>
