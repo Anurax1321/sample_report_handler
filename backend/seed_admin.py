@@ -24,6 +24,7 @@ def seed_admin(username: str = "admin", password: str = "admin123"):
             username=username,
             hashed_password=hash_password(password),
             is_active=True,
+            is_admin=True,
         )
         db.add(user)
         db.commit()

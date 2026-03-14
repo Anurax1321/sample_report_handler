@@ -186,6 +186,16 @@
   color: #dc2626;
 }
 
+.um-badge-admin {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.um-badge-user {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .um-toggle-btn {
   padding: 0.3rem 0.7rem;
   border-radius: 6px;

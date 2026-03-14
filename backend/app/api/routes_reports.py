@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from app.db import model
+from app.db.model import User
 from app.core.dependencies import get_db, get_current_user
+from app.core.audit import log_audit
 from app.schema.report import ReportCreate, ReportRead
 from app.services import file_validator, report_processor, pdf_generation, excel_export
 from typing import List, Optional
@@ -11,6 +13,9 @@ import shutil
 import zipfile
 from io import BytesIO
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(get_current_user)])
 
@@ -26,7 +31,8 @@ async def upload_report(
     file1: UploadFile = File(...),
     file2: UploadFile = File(...),
     file3: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Upload 3 NBS report files and process them
@@ -68,12 +74,15 @@ async def upload_report(
             sample_id=parsed_sample_ids[0] if parsed_sample_ids else None,
             num_patients=None,
             uploaded_by=uploaded_by,
+            uploaded_by_id=current_user.id,
             date_code=date_code,
             processing_status=model.ReportStatus.processing
         )
         db.add(report)
         db.commit()
         db.refresh(report)
+        log_audit(db, current_user, "upload", "report", report.id)
+        db.commit()
 
         # Link samples via junction table
         if parsed_sample_ids:
@@ -105,8 +114,9 @@ async def upload_report(
             except file_validator.FileValidationError as e:
                 raise HTTPException(400, str(e))
 
-            # Save file
-            file_path = os.path.join(report_upload_dir, upload_file.filename)
+            # Save file (sanitize filename to prevent path traversal)
+            safe_name = os.path.basename(upload_file.filename)
+            file_path = os.path.join(report_upload_dir, safe_name)
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(upload_file.file, buffer)
 
@@ -147,24 +157,24 @@ async def upload_report(
             report.error_message = str(e)
             db.commit()
             db.refresh(report)
-            import traceback
-            print(f"ERROR: {str(e)}")
-            print(f"TRACEBACK: {traceback.format_exc()}")
-            raise HTTPException(500, f"Processing failed: {str(e)}")
+            logger.exception("Processing failed")
+            raise HTTPException(500, "Processing failed")
 
         return report
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, f"Unexpected error: {str(e)}")
+        logger.exception("Unexpected error during report upload")
+        raise HTTPException(500, "Unexpected error occurred")
 
 @router.post("/upload-excel", response_model=ReportRead)
 async def upload_excel_report(
     uploaded_by: str = Form("anonymous"),
     sample_ids: Optional[str] = Form(None),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Upload a single NBS Excel file (.xlsm/.xlsx) and process it.
@@ -217,12 +227,15 @@ async def upload_excel_report(
             sample_id=parsed_sample_ids[0] if parsed_sample_ids else None,
             num_patients=None,
             uploaded_by=uploaded_by,
+            uploaded_by_id=current_user.id,
             date_code=date_code,
             processing_status=model.ReportStatus.processing
         )
         db.add(report)
         db.commit()
         db.refresh(report)
+        log_audit(db, current_user, "upload", "report", report.id)
+        db.commit()
 
         # Link samples via junction table
         if parsed_sample_ids:
@@ -235,7 +248,8 @@ async def upload_excel_report(
         report_upload_dir = os.path.join(UPLOAD_DIR, str(report.id), "raw")
         os.makedirs(report_upload_dir, exist_ok=True)
 
-        file_path = os.path.join(report_upload_dir, file.filename)
+        safe_name = os.path.basename(file.filename)
+        file_path = os.path.join(report_upload_dir, safe_name)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -269,17 +283,16 @@ async def upload_excel_report(
             report.error_message = str(e)
             db.commit()
             db.refresh(report)
-            import traceback
-            print(f"ERROR: {str(e)}")
-            print(f"TRACEBACK: {traceback.format_exc()}")
-            raise HTTPException(500, f"Processing failed: {str(e)}")
+            logger.exception("Processing failed")
+            raise HTTPException(500, "Processing failed")
 
         return report
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, f"Unexpected error: {str(e)}")
+        logger.exception("Unexpected error during Excel report upload")
+        raise HTTPException(500, "Unexpected error occurred")
 
 
 @router.get("/", response_model=list[ReportRead])
@@ -395,7 +408,7 @@ async def download_report(report_id: int, db: Session = Depends(get_db)):
     )
 
 @router.post("/{report_id}/approve")
-async def approve_report(report_id: int, edited_data: dict, db: Session = Depends(get_db)):
+async def approve_report(report_id: int, edited_data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Approve a report with edited data and generate PDF
 
@@ -462,6 +475,7 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
 
         # Update report with output directory
         report.output_directory = output_dir
+        log_audit(db, current_user, "approve", "report", report_id)
 
         db.commit()
         db.refresh(report)
@@ -484,9 +498,11 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
         }
 
     except pdf_generation.PDFGenerationError as e:
-        raise HTTPException(500, f"PDF generation failed: {str(e)}")
+        logger.exception("PDF generation failed")
+        raise HTTPException(500, "PDF generation failed")
     except Exception as e:
-        raise HTTPException(500, f"Unexpected error during approval: {str(e)}")
+        logger.exception("Unexpected error during approval")
+        raise HTTPException(500, "Unexpected error occurred")
 
 @router.get("/{report_id}/download-pdf")
 async def download_pdf(report_id: int, db: Session = Depends(get_db)):
@@ -556,16 +572,20 @@ async def download_excel(report_id: int, edited_data: dict = None, db: Session =
         )
 
     except excel_export.ExcelExportError as e:
-        raise HTTPException(500, f"Excel export failed: {str(e)}")
+        logger.exception("Excel export failed")
+        raise HTTPException(500, "Excel export failed")
     except Exception as e:
-        raise HTTPException(500, f"Unexpected error during Excel export: {str(e)}")
+        logger.exception("Unexpected error during Excel export")
+        raise HTTPException(500, "Unexpected error occurred")
 
 @router.delete("/{report_id}")
-def delete_report(report_id: int, db: Session = Depends(get_db)):
+def delete_report(report_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Delete a report and all associated files"""
     report = db.get(model.Report, report_id)
     if not report:
         raise HTTPException(404, "Report not found")
+
+    log_audit(db, current_user, "delete", "report", report_id)
 
     # Delete files from filesystem
     report_dir = os.path.join(UPLOAD_DIR, str(report_id))

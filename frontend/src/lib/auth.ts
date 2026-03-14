@@ -5,19 +5,21 @@ const USER_KEY = 'auth_user';
 
 export interface AuthUser {
   username: string;
+  is_admin: boolean;
 }
 
 export interface LoginResponse {
   access_token: string;
   token_type: string;
   username: string;
+  is_admin: boolean;
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
   const response = await api.post<LoginResponse>('/auth/login', { username, password });
   const data = response.data;
   localStorage.setItem(TOKEN_KEY, data.access_token);
-  localStorage.setItem(USER_KEY, JSON.stringify({ username: data.username }));
+  localStorage.setItem(USER_KEY, JSON.stringify({ username: data.username, is_admin: data.is_admin }));
   return data;
 }
 
@@ -46,6 +48,7 @@ export interface UserInfo {
   id: number;
   username: string;
   is_active: boolean;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -69,4 +72,25 @@ export async function changePassword(currentPassword: string, newPassword: strin
     current_password: currentPassword,
     new_password: newPassword,
   });
+}
+
+// --- Profile API ---
+
+export interface ProfileUpdateResponse {
+  user: UserInfo;
+  access_token: string | null;
+}
+
+export async function updateProfile(username: string): Promise<ProfileUpdateResponse> {
+  const response = await api.patch<ProfileUpdateResponse>('/auth/profile', { username });
+  const data = response.data;
+  // Update stored token and user if username changed
+  if (data.access_token) {
+    localStorage.setItem(TOKEN_KEY, data.access_token);
+  }
+  localStorage.setItem(USER_KEY, JSON.stringify({
+    username: data.user.username,
+    is_admin: data.user.is_admin,
+  }));
+  return data;
 }

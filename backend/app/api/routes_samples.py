@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.db import model
+from app.db.model import User
 from app.core.dependencies import get_db, get_current_user
+from app.core.audit import log_audit
 from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate, SamplePdfRead
 from datetime import datetime
 import uuid
@@ -15,7 +17,7 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.pat
 router = APIRouter(prefix="/samples", tags=["samples"], dependencies=[Depends(get_current_user)])
 
 @router.post("/", response_model=SampleRead)
-def create_sample(payload: SampleCreate, db: Session = Depends(get_db)):
+def create_sample(payload: SampleCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if db.query(model.Sample).filter_by(sample_code=payload.sample_code).first():
         raise HTTPException(400, "sample_code already exists")
     sample = model.Sample(
@@ -38,8 +40,11 @@ def create_sample(payload: SampleCreate, db: Session = Depends(get_db)):
         priority=payload.priority,
         notes=payload.notes,
         sample_metadata=payload.sample_metadata,
+        created_by_id=current_user.id,
     )
     db.add(sample); db.commit(); db.refresh(sample)
+    log_audit(db, current_user, "create", "sample", sample.id)
+    db.commit()
     return sample
 
 @router.get("/generate-code")
@@ -91,7 +96,7 @@ def search_samples(q: str = "", db: Session = Depends(get_db)):
     ).limit(10).all()
 
 @router.patch("/{sample_id}", response_model=SampleRead)
-def update_sample(sample_id: int, payload: SampleUpdate, db: Session = Depends(get_db)):
+def update_sample(sample_id: int, payload: SampleUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     s = db.get(model.Sample, sample_id)
     if not s:
         raise HTTPException(404, "sample not found")
@@ -103,7 +108,10 @@ def update_sample(sample_id: int, payload: SampleUpdate, db: Session = Depends(g
             s.sample_metadata = existing
         else:
             setattr(s, field, value)
+    s.updated_by_id = current_user.id
     db.commit(); db.refresh(s)
+    log_audit(db, current_user, "update", "sample", sample_id, {"fields": list(update_data.keys())})
+    db.commit()
     return s
 
 @router.patch("/{sample_id}/status", response_model=SampleRead)
@@ -151,7 +159,7 @@ def link_report_to_sample(sample_id: int, report_id: int, db: Session = Depends(
     return {"message": "Report linked to sample"}
 
 @router.delete("/{sample_id}")
-def delete_sample(sample_id: int, db: Session = Depends(get_db)):
+def delete_sample(sample_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     s = db.get(model.Sample, sample_id)
     if not s:
         raise HTTPException(404, "sample not found")
@@ -160,6 +168,7 @@ def delete_sample(sample_id: int, db: Session = Depends(get_db)):
     for pdf in pdfs:
         if os.path.exists(pdf.file_path):
             os.remove(pdf.file_path)
+    log_audit(db, current_user, "delete", "sample", sample_id, {"sample_code": s.sample_code})
     db.delete(s); db.commit()
     return {"message": "Sample deleted successfully"}
 
@@ -182,6 +191,12 @@ def upload_sample_pdf(file: UploadFile = File(...), db: Session = Depends(get_db
         shutil.copyfileobj(file.file, f)
 
     file_size = os.path.getsize(file_path)
+
+    # Enforce 10MB file size limit
+    max_size = 10 * 1024 * 1024
+    if file_size > max_size:
+        os.remove(file_path)
+        raise HTTPException(400, "File too large. Maximum size is 10MB.")
 
     pdf_record = model.SamplePdf(
         sample_id=None,

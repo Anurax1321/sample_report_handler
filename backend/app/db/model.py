@@ -20,6 +20,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(256))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -48,6 +49,10 @@ class Sample(Base):
     sample_code: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # VRL serial number
     patient_id: Mapped[str] = mapped_column(String(256), default="")  # Sample ID (e.g., "B/O najiya 378981")
 
+    # Audit fields
+    created_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    updated_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+
     # Sample details
     age_gender: Mapped[str] = mapped_column(String(64), default="")  # Format: "10D/F", "3D/M 2.64"
     from_hospital: Mapped[str] = mapped_column(String(256), default="")  # Hospital/clinic name
@@ -66,12 +71,13 @@ class Sample(Base):
     priority: Mapped[str] = mapped_column(String(16), default="normal")  # low|normal|high
     status: Mapped[SampleStatus] = mapped_column(Enum(SampleStatus), default=SampleStatus.received)
     notes: Mapped[str] = mapped_column(String(1024), default="")
-    sample_metadata: Mapped[dict] = mapped_column(JSON, default={})
+    sample_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
 
 class Report(Base):
     __tablename__ = "reports"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     sample_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("samples.id"), nullable=True, index=True)
+    uploaded_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
     upload_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     uploaded_by: Mapped[str] = mapped_column(String(128), default="anonymous")
     num_patients: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -108,3 +114,14 @@ class ReportFile(Base):
 
     # Relationships
     report: Mapped["Report"] = relationship("Report", back_populates="files")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    action: Mapped[str] = mapped_column(String(64))
+    entity_type: Mapped[str] = mapped_column(String(64))
+    entity_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

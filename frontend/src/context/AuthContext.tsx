@@ -14,6 +14,7 @@ interface AuthContextValue {
   isLoggedIn: boolean;
   login: (username: string, password: string) => Promise<LoginResponse>;
   logout: () => void;
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -25,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const data = await authLogin(username, password);
-    setUser({ username: data.username });
+    setUser({ username: data.username, is_admin: data.is_admin });
     setLoggedIn(true);
     return data;
   }, []);
@@ -37,8 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/login', { replace: true });
   }, [navigate]);
 
+  const updateUser = useCallback((updatedUser: AuthUser) => {
+    setUser(updatedUser);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: loggedIn, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: loggedIn, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

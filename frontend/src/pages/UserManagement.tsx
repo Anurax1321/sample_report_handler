@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { fetchUsers, registerUser, toggleUserActive } from '../lib/auth';
 import type { UserInfo } from '../lib/auth';
 import './UserManagement.css';
 
 export default function UserManagement() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,6 +18,13 @@ export default function UserManagement() {
   const [newPassword, setNewPassword] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (user && !user.is_admin) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const loadUsers = async () => {
     try {
@@ -66,6 +77,10 @@ export default function UserManagement() {
       alert(detail || 'Failed to update user');
     }
   };
+
+  if (!user?.is_admin) {
+    return null;
+  }
 
   if (loading) {
     return <div className="um-page"><p className="um-loading">Loading users...</p></div>;
@@ -122,34 +137,40 @@ export default function UserManagement() {
               <tr>
                 <th>ID</th>
                 <th>Username</th>
+                <th>Role</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id} className={!user.is_active ? 'um-inactive-row' : ''}>
-                  <td>{user.id}</td>
-                  <td className="um-username-cell">{user.username}</td>
+              {users.map(u => (
+                <tr key={u.id} className={!u.is_active ? 'um-inactive-row' : ''}>
+                  <td>{u.id}</td>
+                  <td className="um-username-cell">{u.username}</td>
                   <td>
-                    <span className={`um-badge ${user.is_active ? 'um-badge-active' : 'um-badge-inactive'}`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
+                    <span className={`um-badge ${u.is_admin ? 'um-badge-admin' : 'um-badge-user'}`}>
+                      {u.is_admin ? 'Admin' : 'User'}
                     </span>
                   </td>
-                  <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <span className={`um-badge ${u.is_active ? 'um-badge-active' : 'um-badge-inactive'}`}>
+                      {u.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>{new Date(u.created_at).toLocaleDateString()}</td>
                   <td>
                     <button
-                      className={`um-toggle-btn ${user.is_active ? 'um-deactivate' : 'um-activate'}`}
-                      onClick={() => handleToggleActive(user.id)}
+                      className={`um-toggle-btn ${u.is_active ? 'um-deactivate' : 'um-activate'}`}
+                      onClick={() => handleToggleActive(u.id)}
                     >
-                      {user.is_active ? 'Deactivate' : 'Activate'}
+                      {u.is_active ? 'Deactivate' : 'Activate'}
                     </button>
                   </td>
                 </tr>
               ))}
               {users.length === 0 && (
-                <tr><td colSpan={5} className="um-empty">No users found</td></tr>
+                <tr><td colSpan={6} className="um-empty">No users found</td></tr>
               )}
             </tbody>
           </table>

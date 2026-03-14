@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken, logout } from "./auth";
 
-// Point to backend; during dev it’s http://localhost:8000
+// Point to backend; during dev it's http://localhost:8000
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8000",
 });
@@ -15,7 +15,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, clear auth and redirect to login
+// Handle error responses
 api.interceptors.response.use(
   (response) => response,
   (error) => {

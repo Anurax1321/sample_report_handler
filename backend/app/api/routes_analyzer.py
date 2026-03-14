@@ -30,6 +30,9 @@ from app.schema.analyzer import (
 )
 
 from app.core.dependencies import get_current_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/analyzer", tags=["analyzer"], dependencies=[Depends(get_current_user)])
 
@@ -293,9 +296,10 @@ async def analyze_batch_pdfs(file: UploadFile = File(...)):
         try:
             temp_dir, pdf_files = extract_zip_file(Path(temp_zip_path))
         except Exception as e:
+            logger.exception("Failed to extract ZIP file")
             raise HTTPException(
                 status_code=422,
-                detail=f"Failed to extract ZIP file. The file may be corrupted or password-protected: {str(e)}"
+                detail="Failed to extract ZIP file. The file may be corrupted or password-protected."
             )
 
         # Validate ZIP content
@@ -364,24 +368,24 @@ async def analyze_batch_pdfs(file: UploadFile = File(...)):
         raise
 
     except ValueError as e:
+        logger.exception("Invalid ZIP file format")
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid ZIP file format: {str(e)}"
+            detail="Invalid ZIP file format"
         )
 
     except RuntimeError as e:
+        logger.exception("Error processing ZIP file")
         raise HTTPException(
             status_code=422,
-            detail=f"Error processing ZIP file: {str(e)}"
+            detail="Error processing ZIP file"
         )
 
     except Exception as e:
-        # Log unexpected errors for debugging
-        import traceback
-        print(f"Unexpected error in batch processing: {traceback.format_exc()}")
+        logger.exception("Unexpected error in batch processing")
         raise HTTPException(
             status_code=500,
-            detail=f"An unexpected error occurred while processing the batch. Please ensure the ZIP file is valid."
+            detail="An unexpected error occurred while processing the batch. Please ensure the ZIP file is valid."
         )
 
     finally:
@@ -476,11 +480,10 @@ async def export_to_excel(background_tasks: BackgroundTasks, analysis_result: di
         raise
 
     except Exception as e:
-        import traceback
-        print(f"Error generating Excel export: {traceback.format_exc()}")
+        logger.exception("Error generating Excel export")
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating Excel export: {str(e)}"
+            detail="Error generating Excel export"
         )
 
 
@@ -556,11 +559,10 @@ async def export_to_html(background_tasks: BackgroundTasks, analysis_result: dic
         raise
 
     except Exception as e:
-        import traceback
-        print(f"Error generating HTML export: {traceback.format_exc()}")
+        logger.exception("Error generating HTML export")
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating HTML export: {str(e)}"
+            detail="Error generating HTML export"
         )
 
 

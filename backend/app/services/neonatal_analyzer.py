@@ -4,6 +4,7 @@ Reads PDF reports, validates values against reference ranges, and flags abnormal
 Adapted for FastAPI backend from rainbow_report_verification project.
 """
 
+import os
 import re
 import zipfile
 import tempfile
@@ -827,8 +828,12 @@ def extract_zip_file(zip_path: Path) -> Tuple[Path, List[Tuple[Path, str]]]:
     temp_dir = Path(tempfile.mkdtemp(prefix="neonatal_reports_"))
 
     try:
-        # Extract ZIP
+        # Extract ZIP (validate paths to prevent ZIP slip attacks)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for member in zip_ref.namelist():
+                target = os.path.realpath(os.path.join(temp_dir, member))
+                if not target.startswith(os.path.realpath(str(temp_dir))):
+                    raise ValueError(f"Illegal path in ZIP: {member}")
             zip_ref.extractall(temp_dir)
 
         # Find all PDFs recursively
