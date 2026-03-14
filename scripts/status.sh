@@ -14,5 +14,5 @@ systemctl is-active cloudflared
 
 echo ""
 echo "=== Health Checks ==="
-curl -s http://127.0.0.1:8000/health && echo ""
-curl -s -o /dev/null -w "Frontend: %{http_code}\n" http://127.0.0.1:3000/
+curl -s http://127.0.0.1:8002/health && echo ""
+curl -s -o /dev/null -w "Frontend: %{http_code}\n" http://127.0.0.1:3002/

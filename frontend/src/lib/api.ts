@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getToken, logout } from "./auth";
 
-// Point to backend; during dev it's http://localhost:8000
+// Point to backend; during dev it's http://localhost:8002
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8000",
+  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8002",
 });
 
 // Attach Authorization header to every request

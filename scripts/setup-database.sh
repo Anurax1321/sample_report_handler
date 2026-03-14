@@ -61,30 +61,10 @@ else
     echo ""
 fi
 
-# Check if database exists
-if [ -f "dev.db" ]; then
-    echo "⚠️  Database file 'dev.db' already exists!"
-    read -p "Do you want to delete it and create a fresh database? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "🗑️  Deleting existing database..."
-        rm dev.db
-        echo "✅ Database deleted"
-    else
-        echo "⏭️  Skipping database creation (existing database will be used)"
-        echo ""
-        echo "================================================"
-        echo "✅ Setup Complete!"
-        echo "================================================"
-        exit 0
-    fi
-    echo ""
-fi
-
-# Run migrations to create database
-echo "🔨 Creating database and running migrations..."
+# Run migrations
+echo "🔨 Running database migrations..."
 alembic upgrade head
-echo "✅ Database created successfully!"
+echo "✅ Migrations applied successfully!"
 echo ""
 
 # Check if seed_data.py exists
@@ -105,12 +85,12 @@ echo "================================================"
 echo "✅ Database Setup Complete!"
 echo "================================================"
 echo ""
-echo "Database location: $BACKEND_DIR/dev.db"
+echo "Database: PostgreSQL on localhost:5434"
 echo ""
 echo "Next steps:"
 echo "  1. Start the backend server:"
 echo "     cd backend && source .venv/bin/activate"
-echo "     uvicorn app.main:app --reload --port 8000"
+echo "     uvicorn app.main:app --reload --port 8002"
 echo ""
 echo "  2. Or use the development script:"
 echo "     ./scripts/start-dev.sh"

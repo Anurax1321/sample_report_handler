@@ -25,11 +25,11 @@ async def lifespan(app: FastAPI):
 ║                                                            ║
 ╠════════════════════════════════════════════════════════════╣
 ║                                                            ║
-║  📍 Backend API:       http://localhost:8000              ║
-║  📚 API Docs:          http://localhost:8000/docs         ║
-║  ❤️  Health Check:     http://localhost:8000/health       ║
+║  📍 Backend API:       http://localhost:8002              ║
+║  📚 API Docs:          http://localhost:8002/docs         ║
+║  ❤️  Health Check:     http://localhost:8002/health       ║
 ║                                                            ║
-║  🎨 Frontend:          http://localhost:3000              ║
+║  🎨 Frontend:          http://localhost:3002              ║
 ║                                                            ║
 ╠════════════════════════════════════════════════════════════╣
 ║                                                            ║

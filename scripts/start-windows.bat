@@ -117,9 +117,9 @@ REM Start servers
 echo [6/6] Starting servers...
 echo.
 echo ========================================
-echo   Backend will run on:  http://localhost:8000
-echo   Frontend will run on: http://localhost:5173
-echo   API Docs:            http://localhost:8000/docs
+echo   Backend will run on:  http://localhost:8002
+echo   Frontend will run on: http://localhost:5175
+echo   API Docs:            http://localhost:8002/docs
 echo ========================================
 echo.
 echo Press Ctrl+C in each window to stop the servers
@@ -128,7 +128,7 @@ pause
 
 REM Start backend in new window
 cd "%SCRIPT_DIR%\backend"
-start "Backend Server" cmd /k "call .venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend Server" cmd /k "call .venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8002"
 
 REM Wait a bit for backend to start
 timeout /t 3 /nobreak >nul

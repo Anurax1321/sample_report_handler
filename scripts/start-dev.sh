@@ -76,7 +76,7 @@ fi
 if [ ! -f ".env.development" ]; then
     echo "Creating .env.development file..."
     cat > .env.development << EOF
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8002
 
 # Disable Vite caching in development
 VITE_FORCE_NO_CACHE=true
@@ -98,8 +98,8 @@ cd backend
 source .venv/bin/activate
 
 # Start backend in background
-echo "Starting backend on http://localhost:8000..."
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload > ../backend.log 2>&1 &
+echo "Starting backend on http://localhost:8002..."
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload > ../backend.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > ../backend.pid
 echo "Backend PID: $BACKEND_PID"
@@ -119,7 +119,7 @@ echo ""
 cd frontend
 
 # Start frontend in background
-echo "Starting frontend on http://localhost:5173..."
+echo "Starting frontend on http://localhost:5175..."
 nohup npm run dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 echo $FRONTEND_PID > ../frontend.pid
@@ -135,9 +135,9 @@ echo "[5/5] Startup Complete!"
 echo "========================================"
 echo ""
 echo "Both servers are now running:"
-echo "  - Backend:  http://localhost:8000"
-echo "  - Frontend: http://localhost:5173"
-echo "  - API Docs: http://localhost:8000/docs"
+echo "  - Backend:  http://localhost:8002"
+echo "  - Frontend: http://localhost:5175"
+echo "  - API Docs: http://localhost:8002/docs"
 echo ""
 echo "Logs:"
 echo "  - Backend:  tail -f backend.log"
@@ -155,11 +155,11 @@ echo ""
 echo "Opening application in browser..."
 # Try to open in Windows browser from WSL
 if command -v wslview &> /dev/null; then
-    wslview http://localhost:5173
+    wslview http://localhost:5175
 elif command -v powershell.exe &> /dev/null; then
-    powershell.exe -c "Start-Process 'http://localhost:5173'"
+    powershell.exe -c "Start-Process 'http://localhost:5175'"
 else
-    echo "Please open http://localhost:5173 in your browser"
+    echo "Please open http://localhost:5175 in your browser"
 fi
 
 echo ""

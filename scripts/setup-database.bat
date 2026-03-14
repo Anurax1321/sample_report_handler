@@ -57,30 +57,10 @@ if not exist ".env" (
     echo.
 )
 
-REM Check if database exists
-if exist "dev.db" (
-    echo Database file 'dev.db' already exists!
-    set /p DELETE="Do you want to delete it and create a fresh database? (y/N): "
-    if /i "%DELETE%"=="y" (
-        echo Deleting existing database...
-        del dev.db
-        echo Database deleted
-    ) else (
-        echo Skipping database creation (existing database will be used)
-        echo.
-        echo ================================================
-        echo Setup Complete!
-        echo ================================================
-        pause
-        exit /b 0
-    )
-    echo.
-)
-
-REM Run migrations to create database
-echo Creating database and running migrations...
+REM Run migrations
+echo Running database migrations...
 alembic upgrade head
-echo Database created successfully!
+echo Migrations applied successfully!
 echo.
 
 REM Check if seed_data.py exists
@@ -100,13 +80,13 @@ echo ================================================
 echo Database Setup Complete!
 echo ================================================
 echo.
-echo Database location: %CD%\dev.db
+echo Database: PostgreSQL on localhost:5434
 echo.
 echo Next steps:
 echo   1. Start the backend server:
 echo      cd backend
 echo      .venv\Scripts\activate
-echo      uvicorn app.main:app --reload --port 8000
+echo      uvicorn app.main:app --reload --port 8002
 echo.
 echo   2. Or use the development script:
 echo      scripts\start-dev.bat

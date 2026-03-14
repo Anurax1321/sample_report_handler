@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8002"
 ANALYZER_URL = f"{BASE_URL}/api/analyzer"
 
 
@@ -144,7 +144,7 @@ def test_api_documentation():
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
-            print("✓ API documentation accessible at http://localhost:8000/docs")
+            print("✓ API documentation accessible at http://localhost:8002/docs")
             return True
         else:
             print("✗ Could not access API documentation")
@@ -205,7 +205,7 @@ def main():
     if tests_passed == tests_total:
         print("\n✅ ALL API TESTS PASSED! Backend is ready for frontend integration.\n")
         print("Next step: Access the API docs to explore endpoints:")
-        print("👉 http://localhost:8000/docs")
+        print("👉 http://localhost:8002/docs")
         return 0
     else:
         print(f"\n❌ {tests_total - tests_passed} test(s) failed.\n")

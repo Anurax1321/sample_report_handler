@@ -1,177 +1,49 @@
 # Sample Report Handler
 
-A full-stack application for managing diagnostic sample entries and processing NBS (Newborn Screening) laboratory reports with React frontend and FastAPI backend.
+A full-stack laboratory information management system for **Vijayrekha Life Sciences** — handling neonatal blood screening (NBS) sample registration, report processing, PDF generation, and report analysis.
 
 ## Features
 
-- **Sample Management**: Create, track, and manage diagnostic samples
-- **Report Processing**: Upload and process NBS laboratory text files
-  - Automated Excel report generation with color-coded highlighting
-  - Support for Amino Acid (AA), Acylcarnitine (AC), and Extended Acylcarnitine (AC_EXT) data
-  - Medical reference range validation
-  - Individual patient reports with template-based formatting
-- **ZIP Download**: Download all generated Excel reports in one ZIP file
-- **Database Tracking**: Complete audit trail of all uploads and processing
+- **Sample Management** — Register, track, and manage patient samples with status tracking
+- **Report Processing** — Upload NBS lab files (AA, AC, AC_EXT or Excel), process with validated reference ranges, generate color-coded Excel reports
+- **PDF Generation** — Generate individual patient PDF reports, link to samples
+- **Report Analyser** — Analyse neonatal screening PDFs (single or batch via ZIP), flag abnormalities
+- **Authentication & Authorization** — JWT-based auth, admin roles, profile management
+- **Rate Limiting** — Brute-force protection on login (10/min), global default (60/min)
+- **Audit Logging** — Tracks who created/updated/deleted samples and reports
 
 ## Tech Stack
 
-**Frontend:**
-- React 19 + TypeScript
-- Vite
-- Axios for API calls
-- React Hook Form + Zod for form validation
+| Layer | Technology |
+|-------|-----------|
+| Backend | FastAPI, SQLAlchemy, Alembic, PostgreSQL |
+| Frontend | React 19, TypeScript, Vite |
+| Infrastructure | Docker, Nginx, WSL2 |
+| Auth | JWT (python-jose), bcrypt, slowapi |
 
-**Backend:**
-- FastAPI (Python)
-- SQLAlchemy ORM
-- Alembic for migrations
-- SQLite (development) / PostgreSQL (production)
+## Quick Start
 
-## 🚀 Quick Start with Docker (Recommended)
-
-### One Command Setup!
+### Docker (Recommended)
 
 ```bash
+git clone <repo-url>
+cd sample_report_handler
 docker compose up --build
 ```
 
-That's it! The system automatically:
-- ✅ Installs all dependencies
-- ✅ Runs database migrations
-- ✅ Creates required directories
-- ✅ Starts backend on http://localhost:8000
-- ✅ Starts frontend on http://localhost:3000
+This automatically runs migrations, seeds test data, and starts everything:
 
-**For detailed Docker instructions, troubleshooting, and production deployment, see [DOCKER_SETUP.md](docs/DOCKER_SETUP.md)**
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3002 |
+| Backend API | http://localhost:8002 |
+| API Docs | http://localhost:8002/docs |
 
-### Access Points
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs (Interactive API testing)
+Default admin login: `admin` / `admin123`
 
-### Docker Commands
+### Manual Setup
 
-**Start services:**
-```bash
-docker-compose up
-```
-
-**Start in detached mode:**
-```bash
-docker-compose up -d
-```
-
-**Stop services:**
-```bash
-docker-compose down
-```
-
-**Rebuild containers:**
-```bash
-docker-compose up --build
-```
-
-**View logs:**
-```bash
-docker-compose logs -f
-```
-
-**View specific service logs:**
-```bash
-docker-compose logs -f backend
-docker-compose logs -f frontend
-```
-
-**Remove all containers and volumes:**
-```bash
-docker-compose down -v
-```
-
-## Local Development (Without Docker)
-
-### Backend Setup
-
-1. **Navigate to backend directory**
-```bash
-cd backend
-```
-
-2. **Create virtual environment**
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Set up database**
-
-   **Quick method (recommended):**
-   ```bash
-   # Run from project root
-   ./scripts/setup-database.sh  # Linux/macOS/WSL
-   # OR
-   scripts\setup-database.bat   # Windows
-   ```
-
-   **Manual method:**
-   ```bash
-   # Copy environment file
-   cp .env.example .env  # Windows: copy .env.example .env
-
-   # Run migrations to create database
-   alembic upgrade head
-
-   # Optional: Add sample data
-   python seed_data.py
-   ```
-
-   **For detailed database setup instructions, see [DATABASE_SETUP.md](docs/DATABASE_SETUP.md)**
-
-5. **Start server**
-```bash
-uvicorn app.main:app --reload --port 8000
-```
-
-### Frontend Setup
-
-1. **Navigate to frontend directory**
-```bash
-cd frontend
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Start development server**
-```bash
-npm run dev
-```
-
-## API Endpoints
-
-### Health Check
-- `GET /health` - Check API status
-
-### Samples Management
-- `POST /samples` - Create new sample
-- `GET /samples` - List all samples (optional filter by status)
-- `PATCH /samples/{id}/status` - Update sample status
-- `DELETE /samples/{id}` - Delete sample
-
-### Report Processing (NEW!)
-- `POST /reports/upload` - Upload and process 3 NBS report files
-- `GET /reports` - List all reports (optional filter by sample_id)
-- `GET /reports/{id}` - Get specific report details
-- `GET /reports/{id}/download` - Download ZIP of generated Excel files
-- `DELETE /reports/{id}` - Delete report and associated files
-
-**For detailed report handler documentation, see [REPORT_HANDLER_IMPLEMENTATION.md](docs/REPORT_HANDLER_IMPLEMENTATION.md)**
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for non-Docker setup.
 
 ## Project Structure
 
@@ -179,107 +51,100 @@ npm run dev
 sample_report_handler/
 ├── backend/
 │   ├── app/
-│   │   ├── api/                   # API routes
-│   │   │   ├── routes_samples.py
-│   │   │   └── routes_reports.py  # NEW: Report endpoints
-│   │   ├── core/                  # Configuration
-│   │   │   ├── config.py
-│   │   │   └── reference_ranges.py  # NEW: Medical reference values
-│   │   ├── db/                    # Database models
-│   │   │   └── model.py           # Sample, Report, ReportFile models
-│   │   ├── schema/                # Pydantic schemas
-│   │   │   ├── sample.py
-│   │   │   └── report.py          # NEW: Report schemas
-│   │   ├── services/              # NEW: Report processing
-│   │   │   ├── data_extraction.py
-│   │   │   ├── structure.py
-│   │   │   ├── excel_generation.py
-│   │   │   ├── file_validator.py
-│   │   │   └── report_processor.py
-│   │   └── main.py                # FastAPI app
-│   ├── alembic/                   # Database migrations
-│   ├── templates/                 # NEW: Excel template
-│   ├── uploads/                   # NEW: Uploaded report files
-│   ├── entrypoint.sh              # NEW: Docker startup script
-│   ├── Dockerfile
-│   └── requirements.txt           # Updated with pandas, openpyxl, numpy
+│   │   ├── api/            # Route handlers
+│   │   ├── core/           # Config, auth, rate limiting, audit
+│   │   ├── db/             # SQLAlchemy models, session
+│   │   ├── schema/         # Pydantic schemas
+│   │   └── services/       # Business logic (processing, PDF gen, analysis)
+│   ├── alembic/            # Database migrations
+│   ├── templates/          # Excel template for report generation
+│   ├── uploads/            # Uploaded files (not in git)
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── lib/
-│   │   │   ├── api.ts
-│   │   │   └── reportApi.ts       # NEW: Report API client
-│   │   ├── pages/
-│   │   │   └── ReportHandling.tsx # NEW: Report upload UI
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── Dockerfile
-│   ├── nginx.conf
+│   │   ├── components/     # Shared components (Header, etc.)
+│   │   ├── context/        # React context (AuthContext)
+│   │   ├── lib/            # API clients (api.ts, auth.ts, reportApi.ts)
+│   │   └── pages/          # Page components
 │   └── package.json
-├── docker-compose.yml             # Updated with volumes
-├── docs/                           # Documentation
-│   ├── DATABASE_SETUP.md
-│   ├── DEVELOPMENT-GUIDE.md
-│   ├── DOCKER_SETUP.md
-│   ├── DOCKER_MODES.md
-│   ├── QUICK_START.md
-│   ├── REPORT_HANDLER_IMPLEMENTATION.md
-│   ├── TESTING.md
-│   └── WINDOWS_SETUP.md
-├── scripts/                        # Shell & batch scripts
-│   ├── start-dev.sh / .bat
-│   ├── stop-dev.sh / .bat
-│   ├── setup-database.sh / .bat
-│   ├── start-windows.bat
-│   └── refresh-frontend.sh
-└── README.md
+├── nginx/                  # Production nginx config
+├── docker-compose.yml      # Default Docker setup
+├── docker-compose.dev.yml  # Dev mode (hot reload)
+├── docker-compose.prod.yml # Production mode
+└── docs/                   # Documentation
 ```
 
-## Environment Variables
+## API Endpoints
 
-### Backend (.env)
-```
-CORS_ORIGINS=http://localhost:5173
-SQLALCHEMY_DATABASE_URI=sqlite:///./dev.db
-```
+### Auth
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/auth/login` | Login, get JWT token | Public |
+| POST | `/auth/register` | Create new user | Admin |
+| GET | `/auth/me` | Current user info | Authenticated |
+| GET | `/auth/users` | List all users | Admin |
+| PATCH | `/auth/profile` | Update username | Authenticated |
+| POST | `/auth/change-password` | Change password | Authenticated |
+| PATCH | `/auth/users/{id}/toggle-active` | Enable/disable user | Admin |
 
-### Frontend (.env)
-```
-VITE_API_URL=http://localhost:8000
-```
+### Samples
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/samples/` | Create sample |
+| GET | `/samples/` | List samples |
+| GET | `/samples/search?q=` | Search by patient ID |
+| PATCH | `/samples/{id}` | Update sample |
+| DELETE | `/samples/{id}` | Delete sample |
+| POST | `/samples/upload-pdf` | Upload PDF |
+| POST | `/samples/{id}/link-pdf/{pdf_id}` | Link PDF to sample |
 
-## Testing
+### Reports
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/reports/upload` | Upload 3 NBS files |
+| POST | `/reports/upload-excel` | Upload Excel file |
+| GET | `/reports/` | List reports |
+| POST | `/reports/{id}/approve` | Approve & generate PDFs |
+| GET | `/reports/{id}/download` | Download Excel ZIP |
+| GET | `/reports/{id}/download-pdf` | Download PDF ZIP |
 
-### Backend Tests
+### Analyser
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/analyzer/analyze-pdf` | Analyse single PDF |
+| POST | `/api/analyzer/analyze-batch` | Analyse ZIP of PDFs |
+| POST | `/api/analyzer/export/excel` | Export analysis to Excel |
+| POST | `/api/analyzer/export/html` | Export analysis to HTML |
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Development Guide](docs/DEVELOPMENT.md) | Local setup, manual start, project structure |
+| [Docker Guide](docs/DOCKER.md) | Docker setup, dev/prod modes, troubleshooting |
+| [Database Guide](docs/DATABASE.md) | PostgreSQL setup, migrations, seeding |
+| [Auth & Security](docs/AUTH.md) | Admin roles, rate limiting, audit logging |
+| [Report Processing](docs/REPORT_HANDLER_IMPLEMENTATION.md) | NBS report pipeline details |
+| [PDF Flow](docs/PDF_FLOW.md) | How PDFs move through the system |
+| [Testing](docs/TESTING.md) | Running backend/frontend tests |
+| [Windows Setup](docs/WINDOWS_SETUP.md) | Windows-specific instructions |
+
+## Ports
+
+| Service | Dev (manual) | Docker (default) | Docker (dev) | Docker (prod) |
+|---------|-------------|-----------------|-------------|--------------|
+| PostgreSQL | 5434 | 5434 | 5434 | internal only |
+| Backend | 8002 | 8002 | 8002 | 127.0.0.1:8002 |
+| Frontend | 5175 | 3002 | 5175 | 127.0.0.1:3002 |
+
+## Deployment
+
+Production deployment uses `docker-compose.prod.yml` with Nginx reverse proxy. See [nginx/vijayrekha.conf](nginx/vijayrekha.conf) for the server config.
+
 ```bash
-cd backend
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pytest -v
+docker compose -f docker-compose.prod.yml up -d --build
 ```
-
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
-
-### Run Tests with Coverage
-```bash
-# Backend
-cd backend && pytest --cov=app
-
-# Frontend
-cd frontend && npm run test:coverage
-```
-
-For detailed testing instructions, see [TESTING.md](docs/TESTING.md)
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
 
 ## License
 
-MIT
+Private — Vijayrekha Life Sciences

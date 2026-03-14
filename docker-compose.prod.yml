@@ -24,7 +24,7 @@ services:
       dockerfile: Dockerfile
     container_name: sample-report-backend-prod
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8002:8000"
     environment:
       - CORS_ORIGINS=${CORS_ORIGINS:-https://chinnaboina.com}
       - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER:-sample_user}:${DB_PASSWORD:-changeme_in_production}@db:5432/${DB_NAME:-sample_report_db}
@@ -55,7 +55,7 @@ services:
         - VITE_API_URL=${VITE_API_URL:-/vijayrekha/api}
     container_name: sample-report-frontend-prod
     ports:
-      - "127.0.0.1:3000:80"
+      - "127.0.0.1:3002:80"
     depends_on:
       backend:
         condition: service_healthy

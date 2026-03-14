@@ -101,7 +101,7 @@ REM Check if .env.development exists
 if not exist ".env.development" (
     echo Creating .env.development file...
     (
-        echo VITE_API_URL=http://localhost:8000
+        echo VITE_API_URL=http://localhost:8002
         echo.
         echo # Disable Vite caching in development
         echo VITE_FORCE_NO_CACHE=true
@@ -120,9 +120,9 @@ echo [3/5] Starting Backend Server...
 echo.
 
 REM Start backend in new window
-start "Backend - Sample Report Handler" cmd /k "cd /d "%~dp0..\backend" && call .venv\Scripts\activate.bat && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+start "Backend - Sample Report Handler" cmd /k "cd /d "%~dp0..\backend" && call .venv\Scripts\activate.bat && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
 
-echo Backend server starting on http://localhost:8000
+echo Backend server starting on http://localhost:8002
 echo.
 
 REM Wait for backend to start
@@ -138,7 +138,7 @@ echo.
 REM Start frontend in new window
 start "Frontend - Sample Report Handler" cmd /k "cd /d "%~dp0..\frontend" && npm run dev"
 
-echo Frontend server starting on http://localhost:5173
+echo Frontend server starting on http://localhost:5175
 echo.
 
 REM ===================================================================
@@ -148,9 +148,9 @@ echo [5/5] Startup Complete!
 echo ========================================
 echo.
 echo Both servers are now running:
-echo   - Backend:  http://localhost:8000
-echo   - Frontend: http://localhost:5173
-echo   - API Docs: http://localhost:8000/docs
+echo   - Backend:  http://localhost:8002
+echo   - Frontend: http://localhost:5175
+echo   - API Docs: http://localhost:8002/docs
 echo.
 echo The application will open automatically in your browser...
 echo.
@@ -163,7 +163,7 @@ REM Wait a bit more for frontend to start
 timeout /t 5 /nobreak >nul
 
 REM Open browser
-start http://localhost:5173
+start http://localhost:5175
 
 echo.
 echo Press any key to exit this window...

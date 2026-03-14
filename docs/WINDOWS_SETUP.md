@@ -1,249 +1,127 @@
 # Windows Setup Guide
 
-This guide will help you set up the NBS Sample Report Handler on Windows.
+Windows-specific instructions for running the Sample Report Handler without Docker.
+
+For Docker setup (recommended), see [DOCKER.md](DOCKER.md).
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+1. **Python 3.10+** — [python.org/downloads](https://www.python.org/downloads/). Check "Add Python to PATH" during install.
+2. **Node.js 20+ LTS** — [nodejs.org](https://nodejs.org/)
+3. **Git** — [git-scm.com](https://git-scm.com/download/win) (optional but recommended)
+4. **PostgreSQL 16** — Or use Docker for just the DB: `docker compose up db -d`
 
-### 1. Python 3.10 or higher
-- Download from https://www.python.org/downloads/
-- **IMPORTANT**: During installation, check "Add Python to PATH"
+## Quick Start
 
-### 2. Node.js (LTS version)
-- Download from https://nodejs.org/
-- The LTS (Long Term Support) version is recommended
+### Using Start Script
 
-### 3. Git (Optional but recommended)
-- Download from https://git-scm.com/download/win
+```cmd
+scripts\start-dev.bat
+```
 
-## Installation Steps
+This creates the venv, installs dependencies, runs migrations, seeds data, and starts both servers.
 
-### Option 1: Using the Startup Script (Recommended)
+### Manual Setup
 
-1. **Open Command Prompt or PowerShell** in the project directory
-2. Run the startup script:
-   ```cmd
-   start.bat
-   ```
-3. The script will automatically:
-   - Create Python virtual environment
-   - Install backend dependencies
-   - Install frontend dependencies
-   - Start both servers
+#### 1. Database
 
-### Option 2: Manual Setup
+Start PostgreSQL via Docker (easiest):
+```cmd
+docker compose up db -d
+```
 
-If the automatic script fails, follow these manual steps:
+This exposes PostgreSQL on port **5434**.
 
-#### Backend Setup
+#### 2. Backend
 
-1. **Navigate to the backend directory:**
-   ```cmd
-   cd backend
-   ```
+```cmd
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+alembic upgrade head
+python seed_admin.py
+uvicorn app.main:app --reload --port 8002
+```
 
-2. **Create a virtual environment:**
-   ```cmd
-   python -m venv .venv
-   ```
+If you get pandas/numpy build errors:
+```cmd
+pip install --only-binary :all: pandas numpy
+pip install -r requirements.txt
+```
 
-3. **Activate the virtual environment:**
-   ```cmd
-   .venv\Scripts\activate
-   ```
+#### 3. Frontend
 
-4. **Upgrade pip (important for Windows):**
-   ```cmd
-   python -m pip install --upgrade pip
-   ```
+Open a **new** Command Prompt:
+```cmd
+cd frontend
+npm install
+npm run dev
+```
 
-5. **Install dependencies:**
-   ```cmd
-   pip install -r requirements.txt
-   ```
+## Access Points
 
-   **If you get pandas/numpy build errors**, try:
-   ```cmd
-   pip install --only-binary :all: pandas numpy
-   pip install -r requirements.txt
-   ```
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5175 |
+| Backend API | http://localhost:8002 |
+| API Docs | http://localhost:8002/docs |
 
-6. **Run database migrations:**
-   ```cmd
-   alembic upgrade head
-   ```
+Default login: `admin` / `admin123`
 
-7. **Start the backend server:**
-   ```cmd
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
+## Environment Variables
 
-#### Frontend Setup
+### Backend (`backend/.env`)
+```env
+CORS_ORIGINS=http://localhost:5175
+SQLALCHEMY_DATABASE_URI=postgresql://sample_user:sample_pass@localhost:5434/sample_report_db
+JWT_SECRET_KEY=your-secret-key
+ACCESS_TOKEN_EXPIRE_MINUTES=480
+```
 
-1. **Open a NEW Command Prompt/PowerShell window**
-
-2. **Navigate to the frontend directory:**
-   ```cmd
-   cd frontend
-   ```
-
-3. **Install dependencies:**
-   ```cmd
-   npm install
-   ```
-
-4. **Start the development server:**
-   ```cmd
-   npm run dev
-   ```
-
-## Accessing the Application
-
-Once both servers are running:
-
-- **Frontend (UI)**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
+### Frontend (`frontend/.env.development`)
+```env
+VITE_API_URL=http://localhost:8002
+```
 
 ## Troubleshooting
 
-### Error: "pandas" or "numpy" build failed
+### "Python was not found"
 
-**Solution 1**: Install precompiled wheels
-```cmd
-pip install --only-binary :all: pandas numpy
-```
+Reinstall Python and check "Add Python to PATH". Restart your computer. Verify: `python --version`
 
-**Solution 2**: Install Microsoft C++ Build Tools
-1. Download from: https://visualstudio.microsoft.com/downloads/
-2. Select "Build Tools for Visual Studio"
-3. Install "Desktop development with C++"
-4. Restart your computer
-5. Try `pip install -r requirements.txt` again
+### Virtual environment activation fails in PowerShell
 
-**Solution 3**: Use a different Python version
-- Python 3.10 or 3.11 have better precompiled wheel availability
-- Avoid Python 3.12+ if possible (newer, fewer wheels)
-
-### Error: "npm" command not found
-
-**Solution**:
-- Ensure Node.js is installed
-- Restart your terminal/Command Prompt
-- Check installation: `node --version` and `npm --version`
-
-### Error: Port already in use
-
-**For Backend (port 8000):**
-```cmd
-# Find process using port 8000
-netstat -ano | findstr :8000
-
-# Kill the process (replace PID with actual process ID)
-taskkill /PID <PID> /F
-```
-
-**For Frontend (port 5173):**
-```cmd
-# Find process using port 5173
-netstat -ano | findstr :5173
-
-# Kill the process
-taskkill /PID <PID> /F
-```
-
-### Error: "Python was not found"
-
-**Solution**:
-1. Reinstall Python from https://www.python.org/downloads/
-2. **CRITICAL**: Check "Add Python to PATH" during installation
-3. Restart your computer
-4. Verify: `python --version`
-
-### Error: Virtual environment activation fails
-
-**In PowerShell**:
 ```powershell
-# Enable script execution
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Then activate
 .venv\Scripts\Activate.ps1
 ```
 
-**In Command Prompt**:
+In Command Prompt, use `.venv\Scripts\activate.bat` instead.
+
+### "npm" command not found
+
+Ensure Node.js is installed, then restart your terminal. Verify: `node --version`
+
+### Port already in use
+
 ```cmd
-.venv\Scripts\activate.bat
+netstat -ano | findstr :8002
+taskkill /PID <PID> /F
 ```
 
-### Database Issues
+### pandas/numpy build errors
 
-**Reset the database**:
 ```cmd
-# In backend directory
-del app.db
-alembic upgrade head
+pip install --only-binary :all: pandas numpy
+pip install -r requirements.txt
 ```
 
-## Development Tips
+Or install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/downloads/) ("Desktop development with C++").
 
-### Running Servers in Separate Windows
+## Related Docs
 
-1. **Backend** (Command Prompt 1):
-   ```cmd
-   cd backend
-   .venv\Scripts\activate
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-2. **Frontend** (Command Prompt 2):
-   ```cmd
-   cd frontend
-   npm run dev
-   ```
-
-### Stopping Servers
-
-- Press `Ctrl + C` in each terminal window
-- Or close the terminal windows
-
-## Next Steps
-
-After successful setup:
-
-1. **Access the application**: http://localhost:5173
-2. **Try Sample Entry**: Navigate to "Sample Entry" → "New Entry"
-3. **Upload Reports**: Navigate to "Report Analyzer" to upload and process reports
-4. **View Samples**: Navigate to "Sample Entry" → "Tracking" to view all samples
-
-## Getting Help
-
-If you encounter issues not covered here:
-
-1. Check the error message carefully
-2. Search for the error online
-3. Ensure all prerequisites are properly installed
-4. Try the manual setup steps
-5. Restart your computer and try again
-
-## Environment Variables (Optional)
-
-Create a `.env` file in the `backend` directory if you need custom settings:
-
-```env
-DATABASE_URL=sqlite:///./app.db
-CORS_ORIGINS=["http://localhost:5173"]
-```
-
-## Production Deployment (Windows Server)
-
-For production on Windows Server:
-
-1. Use **IIS** with **FastCGI** for Python
-2. Use **IIS** or **nginx** for serving the React frontend
-3. Configure proper database (PostgreSQL recommended over SQLite)
-4. Set up SSL certificates
-5. Configure Windows Firewall rules
-
-Contact your system administrator for production deployment assistance.
+- [Development Guide](DEVELOPMENT.md) — General local setup (Linux/macOS/WSL)
+- [Docker Guide](DOCKER.md) — Docker setup (works on Windows too)
+- [Database Guide](DATABASE.md) — Migration details

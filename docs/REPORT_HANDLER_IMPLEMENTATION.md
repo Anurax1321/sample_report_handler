@@ -223,7 +223,7 @@ cd backend
 uvicorn app.main:app --reload
 ```
 
-Backend will be available at `http://localhost:8000`
+Backend will be available at `http://localhost:8002`
 
 ### 5. Install Frontend Dependencies
 
@@ -239,14 +239,14 @@ cd frontend
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3000`
+Frontend will be available at `http://localhost:5175`
 
 ### 7. Create Test Sample (if needed)
 
 Before uploading reports, you need at least one sample in the database:
 
 ```bash
-curl -X POST http://localhost:8000/samples \
+curl -X POST http://localhost:8002/samples \
   -H "Content-Type: application/json" \
   -d '{
     "sample_code": "TEST001",
@@ -335,18 +335,14 @@ The system validates and provides clear error messages for:
 - Missing control samples
 - Processing errors (with specific error message)
 
-## Next Steps / Future Enhancements
+## Future Enhancements
 
 1. **Asynchronous Processing**: Use Celery for long-running reports
 2. **Progress Tracking**: WebSocket for real-time progress updates
 3. **Email Notifications**: Send email when processing completes
 4. **Cloud Storage**: Upload files to S3/Azure Blob instead of local filesystem
-5. **User Authentication**: Add login and track who uploaded what
-6. **Report History**: Show list of past reports with download links
-7. **Retention Policy**: Auto-delete old reports after X days
-8. **Logging**: Replace print statements with proper logging framework
-9. **Tests**: Add integration tests for upload/processing/download flow
-10. **Excel Preview**: Show preview of generated Excel before download
+5. **Retention Policy**: Auto-delete old reports after X days
+6. **Excel Preview**: Show preview of generated Excel before download
 
 ## Troubleshooting
 
