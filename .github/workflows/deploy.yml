@@ -10,6 +10,18 @@ jobs:
     steps:
       - name: Trigger deploy webhook
         run: |
-          curl -f -X POST \
+          echo "Triggering deployment..."
+          HTTP_STATUS=$(curl -s -o response.txt -w '%{http_code}' -X POST \
             -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" \
-            ${{ secrets.DEPLOY_WEBHOOK }}
+            ${{ secrets.DEPLOY_WEBHOOK }})
+
+          RESPONSE=$(cat response.txt 2>/dev/null || echo "(no response body)")
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $RESPONSE"
+
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+            echo "::error::Deploy webhook failed with HTTP $HTTP_STATUS: $RESPONSE"
+            exit 1
+          fi
+
+          echo "Deploy webhook triggered successfully."
