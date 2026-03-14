@@ -1,19 +1,5 @@
 # CLAUDE.md
 
-## Core Principles
-
-- **Think before you build:** For any non-trivial task (3+ steps), create a plan first and wait for approval.
-- **Code is truth:** Do not write long-form documentation about how code works. Use comments and keep docs high-level.
-- **Never make the same mistake twice:** If Claude makes a mistake, update this file with a new rule to prevent it.
-
-## Workflow
-
-1. **Plan:** Create a plan (detailed steps, file modifications) for non-trivial tasks.
-2. **Implement:** Edit code.
-3. **Test:** Run `pytest -v` (backend) and `npm test` (frontend) after every implementation.
-4. **Verify:** Use agents or `web-browser` to check the work.
-5. **Fix:** Run linter/fixer if needed.
-
 ## Project Context
 
 - **Stack:** FastAPI, SQLAlchemy, Alembic, PostgreSQL 16, React 19, TypeScript, Vite
@@ -46,11 +32,8 @@
 - All mutating operations on samples/reports must call `log_audit()` and set tracking fields (`created_by_id`, `updated_by_id`, `uploaded_by_id`).
 - Reference ranges and multiplication factors in `reference_ranges.py` are medically validated — do not modify without explicit approval.
 - Use the shared axios instance from `lib/api.ts` for frontend API calls (handles auth headers). The analyzer uses `services/analyzerApi.ts`.
-- Always use agents wherever suitable — delegate research, testing, and security review to parallel agents.
-- Always run multiple agents in parallel when tasks are independent.
-- Always run a security check agent after implementing auth, API, or data-handling changes.
-- Always test after implementations — run backend tests (`pytest -v`) and frontend tests (`npm test`) before considering a task complete.
 - When editing `backend/app/core/security.py` or auth-related code, run a security review agent before finishing.
+- Test commands: `pytest -v` (backend), `npm test` (frontend).
 
 ## Common Commands
 
