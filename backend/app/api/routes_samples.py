@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.db.session import SessionLocal
 from app.db import model
+from app.core.dependencies import get_db, get_current_user
 from app.schema.sample import SampleCreate, SampleRead, SampleUpdate, SampleUpdateStatus, SampleUpdateReportedDate, SamplePdfRead
 from datetime import datetime
 import uuid
@@ -12,14 +12,7 @@ import shutil
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "uploads", "sample_pdfs")
 
-router = APIRouter(prefix="/samples", tags=["samples"])
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+router = APIRouter(prefix="/samples", tags=["samples"], dependencies=[Depends(get_current_user)])
 
 @router.post("/", response_model=SampleRead)
 def create_sample(payload: SampleCreate, db: Session = Depends(get_db)):

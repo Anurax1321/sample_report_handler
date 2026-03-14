@@ -2,7 +2,7 @@
 API routes for Neonatal Report Analyzer
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Body, BackgroundTasks
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Body, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 import shutil
@@ -29,7 +29,9 @@ from app.schema.analyzer import (
     FailedReport
 )
 
-router = APIRouter(prefix="/api/analyzer", tags=["analyzer"])
+from app.core.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/analyzer", tags=["analyzer"], dependencies=[Depends(get_current_user)])
 
 # Constants for validation
 MAX_PDF_SIZE_MB = 50

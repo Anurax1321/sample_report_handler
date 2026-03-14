@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
 from app.core.config import settings
+from app.api.routes_auth import router as auth_router
 from app.api.routes_samples import router as samples_router
 from app.api.routes_reports import router as reports_router
 from app.api.routes_analyzer import router as analyzer_router
@@ -51,6 +52,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(samples_router)
 app.include_router(reports_router)
 app.include_router(analyzer_router)

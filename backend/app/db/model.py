@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, DateTime, Enum, JSON, ForeignKey, Text, Table, Column
+from sqlalchemy import String, Integer, DateTime, Boolean, Enum, JSON, ForeignKey, Text, Table, Column
 from datetime import datetime
 from typing import Optional
 import enum
@@ -13,6 +13,15 @@ report_samples = Table(
     Column("report_id", Integer, ForeignKey("reports.id", ondelete="CASCADE"), primary_key=True),
     Column("sample_id", Integer, ForeignKey("samples.id", ondelete="CASCADE"), primary_key=True),
 )
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(256))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
 
 class SampleStatus(str, enum.Enum):
     received = "received"

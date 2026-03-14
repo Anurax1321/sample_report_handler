@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal
 from app.db import model
+from app.core.dependencies import get_db, get_current_user
 from app.schema.report import ReportCreate, ReportRead
 from app.services import file_validator, report_processor, pdf_generation, excel_export
 from typing import List, Optional
@@ -12,19 +12,12 @@ import zipfile
 from io import BytesIO
 import json
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(get_current_user)])
 
 # Configuration - use absolute paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # Project backend dir
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "template.xlsx")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/upload", response_model=ReportRead)
 async def upload_report(

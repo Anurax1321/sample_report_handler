@@ -1,0 +1,242 @@
+.um-page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.um-loading {
+  text-align: center;
+  color: #6b7280;
+  padding: 3rem 0;
+}
+
+.um-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem 2rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.um-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.um-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #222);
+}
+
+.um-add-btn {
+  padding: 0.5rem 1.1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.um-add-btn:hover {
+  opacity: 0.9;
+}
+
+.um-error {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border: 1px solid #fecaca;
+  margin-bottom: 1rem;
+}
+
+/* --- Add user form --- */
+
+.um-form {
+  background: var(--bg-secondary, #f9fafb);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.um-form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.um-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.um-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #222);
+}
+
+.um-field input {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: var(--text-primary, #222);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.um-field input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.um-create-btn {
+  padding: 0.55rem 1.2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.um-create-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.um-create-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.um-form-error {
+  color: #dc2626;
+  font-size: 0.82rem;
+  margin-top: 0.6rem;
+}
+
+/* --- Table --- */
+
+.um-table-wrap {
+  overflow-x: auto;
+}
+
+.um-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.um-table th {
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #6b7280;
+  border-bottom: 2px solid var(--border-color, #e5e7eb);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.um-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  color: var(--text-primary, #222);
+}
+
+.um-inactive-row {
+  opacity: 0.55;
+}
+
+.um-username-cell {
+  font-weight: 600;
+}
+
+.um-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.um-badge-active {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.um-badge-inactive {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.um-toggle-btn {
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.um-deactivate {
+  background: transparent;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+.um-deactivate:hover {
+  background: #fef2f2;
+}
+
+.um-activate {
+  background: transparent;
+  border: 1px solid #86efac;
+  color: #059669;
+}
+
+.um-activate:hover {
+  background: #ecfdf5;
+}
+
+.um-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 2rem 0 !important;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 640px) {
+  .um-page {
+    padding: 1rem;
+  }
+
+  .um-container {
+    padding: 1rem 1.25rem;
+  }
+
+  .um-form-row {
+    flex-direction: column;
+  }
+
+  .um-create-btn {
+    width: 100%;
+  }
+}
