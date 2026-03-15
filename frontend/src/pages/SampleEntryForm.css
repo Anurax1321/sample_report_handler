@@ -629,3 +629,31 @@
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .sample-entry-form-page {
+    padding: 0.75rem;
+  }
+
+  .form-container {
+    padding: 1.25rem;
+  }
+
+  .form-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .form-group textarea {
+    min-height: 80px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    min-height: 44px;
+  }
+}

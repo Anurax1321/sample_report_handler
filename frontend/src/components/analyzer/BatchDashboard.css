@@ -251,4 +251,21 @@
   .sidebar-stat-card {
     min-width: auto;
   }
+
+  .batch-reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .batch-content-header {
+    padding: 1rem;
+  }
+
+  .failed-reports-section {
+    padding: 1.25rem;
+  }
+
+  .failed-report-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }

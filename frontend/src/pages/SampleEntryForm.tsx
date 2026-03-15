@@ -532,6 +532,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                   value={formData.weight}
                   onChange={handleChange}
                   placeholder="e.g., 2.64, 3.2"
+                  inputMode="decimal"
                 />
               </div>
             </div>
@@ -630,6 +631,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                   value={formData.price}
                   onChange={handleChange}
                   placeholder="e.g., 1500, 2000"
+                  inputMode="decimal"
                 />
               </div>
 
@@ -679,7 +681,7 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                 <label className="pdf-upload-label">
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,application/pdf"
                     multiple
                     onChange={handlePdfUpload}
                     disabled={uploadingPdf}

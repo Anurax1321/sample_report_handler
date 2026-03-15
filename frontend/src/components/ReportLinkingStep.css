@@ -382,3 +382,15 @@
     align-items: flex-start;
   }
 }
+
+@media (max-width: 480px) {
+  .report-linking-step {
+    padding: 1rem;
+  }
+
+  .btn-done {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+}

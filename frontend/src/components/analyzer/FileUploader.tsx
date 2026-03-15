@@ -3,23 +3,28 @@ import './FileUploader.css';
 
 interface FileUploaderProps {
   onFileSelect: (file: File) => void;
+  onMultiFileSelect?: (files: File[]) => void;
   acceptedTypes: string;
   maxSizeMB?: number;
   label: string;
   disabled?: boolean;
   showUploadButton?: boolean;
+  allowMultiplePDFs?: boolean;
 }
 
 export default function FileUploader({
   onFileSelect,
+  onMultiFileSelect,
   acceptedTypes,
   maxSizeMB = 50,
   label,
   disabled = false,
-  showUploadButton = true
+  showUploadButton = true,
+  allowMultiplePDFs = false
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -35,12 +40,12 @@ export default function FileUploader({
   };
 
   const validateFile = (file: File): string | null => {
-    // Check file type
+    // Check file type by extension
     const fileExtension = file.name.toLowerCase().split('.').pop();
-    const acceptedExtensions = acceptedTypes.split(',').map(t => t.trim().replace('.', ''));
+    const validExtensions = ['pdf', 'zip'];
 
-    if (!acceptedExtensions.includes(fileExtension || '')) {
-      return `Invalid file type. Please upload a PDF or ZIP file. Accepted types: ${acceptedTypes}`;
+    if (!validExtensions.includes(fileExtension || '')) {
+      return `Invalid file type. Please upload a PDF or ZIP file.`;
     }
 
     // Check file size with specific limits
@@ -55,6 +60,54 @@ export default function FileUploader({
     return null;
   };
 
+  const handleMultipleFiles = (fileList: FileList) => {
+    const pdfFiles: File[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const ext = file.name.toLowerCase().split('.').pop();
+
+      // If a single ZIP is selected, treat as single file
+      if (ext === 'zip' && fileList.length === 1) {
+        setSelectedFile(file);
+        setSelectedFiles([]);
+        if (!showUploadButton) onFileSelect(file);
+        return;
+      }
+
+      if (ext !== 'pdf') {
+        errors.push(`${file.name}: not a PDF file`);
+        continue;
+      }
+
+      const err = validateFile(file);
+      if (err) {
+        errors.push(`${file.name}: ${err}`);
+        continue;
+      }
+      pdfFiles.push(file);
+    }
+
+    if (errors.length > 0) {
+      alert(`Some files were skipped:\n${errors.join('\n')}`);
+    }
+
+    if (pdfFiles.length === 1) {
+      // Single PDF — use normal single-file flow
+      setSelectedFile(pdfFiles[0]);
+      setSelectedFiles([]);
+      if (!showUploadButton) onFileSelect(pdfFiles[0]);
+    } else if (pdfFiles.length > 1) {
+      setSelectedFile(null);
+      setSelectedFiles(pdfFiles);
+      if (!showUploadButton && onMultiFileSelect) onMultiFileSelect(pdfFiles);
+    } else {
+      // All files were invalid — clear previous selection
+      handleClearFile();
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -63,6 +116,12 @@ export default function FileUploader({
 
     const files = e.dataTransfer.files;
     if (files.length > 0) {
+      if (allowMultiplePDFs) {
+        handleMultipleFiles(files);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       const file = files[0];
       const error = validateFile(file);
 
@@ -72,6 +131,10 @@ export default function FileUploader({
       }
 
       setSelectedFile(file);
+      setSelectedFiles([]);
+
+      // Reset input so re-selecting the same file via click works
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
       // If no upload button, auto-submit
       if (!showUploadButton) {
@@ -83,6 +146,12 @@ export default function FileUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+      if (allowMultiplePDFs) {
+        handleMultipleFiles(files);
+        e.target.value = '';
+        return;
+      }
+
       const file = files[0];
       const error = validateFile(file);
 
@@ -93,6 +162,10 @@ export default function FileUploader({
       }
 
       setSelectedFile(file);
+      setSelectedFiles([]);
+
+      // Reset input so re-selecting the same file triggers onChange
+      e.target.value = '';
 
       // If no upload button, auto-submit
       if (!showUploadButton) {
@@ -114,15 +187,31 @@ export default function FileUploader({
   };
 
   const handleUploadClick = () => {
-    if (selectedFile && !disabled) {
+    if (disabled) return;
+    if (selectedFiles.length > 1 && onMultiFileSelect) {
+      onMultiFileSelect(selectedFiles);
+    } else if (selectedFile) {
       onFileSelect(selectedFile);
     }
   };
 
   const handleClearFile = () => {
     setSelectedFile(null);
+    setSelectedFiles([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const updated = selectedFiles.filter((_, i) => i !== index);
+    if (updated.length === 1) {
+      setSelectedFile(updated[0]);
+      setSelectedFiles([]);
+    } else if (updated.length === 0) {
+      handleClearFile();
+    } else {
+      setSelectedFiles(updated);
     }
   };
 
@@ -144,6 +233,7 @@ export default function FileUploader({
           onChange={handleFileChange}
           style={{ display: 'none' }}
           disabled={disabled}
+          multiple={allowMultiplePDFs}
         />
 
         <div className="file-uploader-icon">
@@ -154,7 +244,26 @@ export default function FileUploader({
           </svg>
         </div>
 
-        {selectedFile ? (
+        {selectedFiles.length > 1 ? (
+          <div className="file-uploader-selected">
+            <p className="file-type-badge">📄 {selectedFiles.length} PDFs selected (batch)</p>
+            <div className="multi-file-list">
+              {selectedFiles.map((f, i) => (
+                <div key={i} className="multi-file-item">
+                  <span className="multi-file-name">{f.name}</span>
+                  <span className="multi-file-size">{formatFileSize(f.size)}</span>
+                  <button
+                    type="button"
+                    className="multi-file-remove"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveFile(i); }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : selectedFile ? (
           <div className="file-uploader-selected">
             <p className="file-name">{selectedFile.name}</p>
             <p className="file-size">{formatFileSize(selectedFile.size)}</p>
@@ -165,18 +274,18 @@ export default function FileUploader({
         ) : (
           <div className="file-uploader-text">
             <p className="primary-text">
-              {isDragging ? 'Drop file here' : 'Drag and drop your file here'}
+              {isDragging ? 'Drop files here' : 'Drag and drop your files here'}
             </p>
             <p className="secondary-text">or click to browse</p>
             <p className="file-types">
-              Accepted: PDF (single report, max 50MB) or ZIP (multiple reports, max 200MB)
+              Accepted: PDF (single or multiple reports, max 50MB each) or ZIP (batch, max 200MB)
             </p>
           </div>
         )}
       </div>
 
       {/* Upload Button - shown when file is selected and showUploadButton is true */}
-      {showUploadButton && selectedFile && (
+      {showUploadButton && (selectedFile || selectedFiles.length > 1) && (
         <div className="file-uploader-actions">
           <button
             className="upload-button"

@@ -165,6 +165,11 @@
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .samples-table {
   width: 100%;
   border-collapse: collapse;
@@ -1135,5 +1140,34 @@ textarea.edit-input {
 
   .modal-body {
     padding: 1.25rem;
+  }
+
+  .modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .modal-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .modal-footer-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }

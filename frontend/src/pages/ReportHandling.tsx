@@ -485,7 +485,7 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
                     <input
                       type="file"
                       onChange={handleMultiFileSelect}
-                      accept=".txt"
+                      accept=".txt,text/plain"
                       multiple
                       className="file-input"
                     />
@@ -538,7 +538,7 @@ export default function ReportHandling({ embedded, onUploadSuccess, onClose: _on
                     <input
                       type="file"
                       onChange={handleExcelFileSelect}
-                      accept=".xlsm,.xlsx"
+                      accept=".xlsm,.xlsx,application/vnd.ms-excel.sheet.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       className="file-input"
                     />
                     <div className="file-input-display">

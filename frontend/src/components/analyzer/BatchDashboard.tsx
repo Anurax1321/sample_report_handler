@@ -9,7 +9,7 @@ interface BatchDashboardProps {
   uploadedZipFile: File | null;
 }
 
-export default function BatchDashboard({ batchResult, uploadedZipFile }: BatchDashboardProps) {
+export default function BatchDashboard({ batchResult, onReset, uploadedZipFile }: BatchDashboardProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'abnormal' | 'normal' | 'failed'>('abnormal');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -53,6 +53,13 @@ export default function BatchDashboard({ batchResult, uploadedZipFile }: BatchDa
       <div className="batch-sidebar">
         <div className="sidebar-header">
           <h3>Filters</h3>
+          <button className="reset-button" onClick={onReset} style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            New Analysis
+          </button>
         </div>
 
         <div className="sidebar-filters">

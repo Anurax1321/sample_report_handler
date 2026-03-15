@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import JSZip from 'jszip';
 import FileUploader from '../components/analyzer/FileUploader';
 import AnalysisResults from '../components/analyzer/AnalysisResults';
 import BatchDashboard from '../components/analyzer/BatchDashboard';
@@ -83,13 +84,59 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
     }
   };
 
+  const handleMultiFileSelect = async (files: File[]) => {
+    setIsAnalyzing(true);
+    setError(null);
+    setAnalysisResult(null);
+    setBatchResult(null);
+    setIsBatchUpload(true);
+    setUploadedFileName(`${files.length} PDF files`);
+
+    try {
+      // Zip the PDFs client-side
+      const zip = new JSZip();
+      for (const file of files) {
+        const buffer = await file.arrayBuffer();
+        zip.file(file.name, buffer);
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const zipFile = new File([blob], 'batch_reports.zip', { type: 'application/zip' });
+
+      setUploadedZipFile(zipFile);
+      const response = await analyzeBatchPDFs(zipFile);
+
+      if (response.success) {
+        setBatchResult(response);
+      } else {
+        setError(response.message || 'Batch analysis failed');
+      }
+    } catch (err: any) {
+      console.error('Multi-file analysis error:', err);
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. The files may be too large. Please try with fewer files.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Network error. Please check if the backend server is running and accessible.');
+      } else {
+        setError(err.message || 'Failed to analyze reports. Please try again.');
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleReset = () => {
+    setIsAnalyzing(false);
     setAnalysisResult(null);
     setBatchResult(null);
     setError(null);
     setUploadedFileName('');
     setIsBatchUpload(false);
     setUploadedZipFile(null);
+    setShowInstructions(false);
   };
 
   const pageContent = (
@@ -124,6 +171,7 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
                     <h5>Upload Your Files</h5>
                     <ul>
                       <li><strong>Single PDF:</strong> Upload one report file (max 50MB)</li>
+                      <li><strong>Multiple PDFs:</strong> Select multiple PDF files at once for batch analysis</li>
                       <li><strong>Batch ZIP:</strong> Upload a ZIP containing multiple PDF reports (max 200MB)</li>
                       <li>The system <strong>automatically detects</strong> the file type and processes accordingly</li>
                     </ul>
@@ -149,10 +197,12 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
         {!isAnalyzing && !analysisResult && !batchResult && (
           <FileUploader
             onFileSelect={handleFileSelect}
-            acceptedTypes=".pdf,.zip"
+            onMultiFileSelect={handleMultiFileSelect}
+            acceptedTypes=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
             maxSizeMB={200}
-            label="Upload Report File"
-            disabled={false}
+            label="Upload Report Files"
+            disabled={isAnalyzing}
+            allowMultiplePDFs
           />
         )}
 
@@ -175,22 +225,36 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
 
         {/* Error Section - Show after failed analysis */}
         {error && !isAnalyzing && (
-          <div className="error-message">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <div>
-              <h4>Analysis Failed</h4>
-              <p>{error}</p>
+          <>
+            <div className="error-message">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <div>
+                <h4>Analysis Failed</h4>
+                <p>{error}</p>
+              </div>
             </div>
-          </div>
+            <button className="reset-button" onClick={handleReset} style={{ marginTop: '1rem' }}>
+              Try Again
+            </button>
+          </>
         )}
 
         {/* Single PDF Results */}
         {analysisResult && !isAnalyzing && (
-          <AnalysisResults result={analysisResult} />
+          <>
+            <button className="reset-button" onClick={handleReset} style={{ marginBottom: '1rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              New Analysis
+            </button>
+            <AnalysisResults result={analysisResult} />
+          </>
         )}
 
         {/* Batch Results */}
