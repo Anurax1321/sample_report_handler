@@ -15,16 +15,19 @@ def serialize_processed_data(
     final_data_frame_list: List,
     raw_combined_df,
     patient_names: List[str],
-    date_code: str
+    date_code: str,
+    has_controls: bool = True
 ) -> str:
     """
     Serialize processed report data to JSON format for frontend review
 
     Args:
-        final_data_frame_list: List of 3 DataFrames [Control I, Control II, Patients]
+        final_data_frame_list: List of DataFrames. With controls: [Control I, Control II, Patients].
+            Without controls: [Patients].
         raw_combined_df: The raw combined DataFrame before restructuring
         patient_names: List of patient/sample names
         date_code: Date code from filename
+        has_controls: True if data includes controls (rows 0-3), False if patients only
 
     Returns:
         JSON string containing all processed data with metadata
@@ -94,11 +97,20 @@ def serialize_processed_data(
     # Build data array with color codes
     processed_data_with_colors = []
     for idx, row in raw_combined_df.iterrows():
+        if has_controls:
+            is_c1 = idx in [0, 1]
+            is_c2 = idx in [2, 3]
+            is_pat = idx >= 4
+        else:
+            is_c1 = False
+            is_c2 = False
+            is_pat = True
+
         row_data = {
             'sample_name': row['Sample text'],
-            'is_control_1': idx in [0, 1],
-            'is_control_2': idx in [2, 3],
-            'is_patient': idx >= 4,
+            'is_control_1': is_c1,
+            'is_control_2': is_c2,
+            'is_patient': is_pat,
             'values': {}
         }
 
@@ -260,9 +272,9 @@ def serialize_processed_data(
         },
         'processed_data': processed_data_with_colors,
         'structured_dataframes': {
-            'control_1': df_to_dict(final_data_frame_list[0]),
-            'control_2': df_to_dict(final_data_frame_list[1]),
-            'patients': df_to_dict(final_data_frame_list[2])
+            'control_1': df_to_dict(final_data_frame_list[0]) if has_controls else None,
+            'control_2': df_to_dict(final_data_frame_list[1]) if has_controls else None,
+            'patients': df_to_dict(final_data_frame_list[-1])
         }
     }
 
@@ -402,21 +414,31 @@ def process_excel_file(
         # Extract data from Excel (returns same format as get_final_data)
         raw_combined_df, sample_names, total_count = extract_from_excel(file_path)
 
-        print(f"Excel extraction: {total_count} samples, {raw_combined_df.shape[1] - 1} compounds")
+        # Detect if controls are present (ConcData path includes them, Concentration does not)
+        has_controls = any('CONTROL' in str(n).upper() for n in sample_names)
 
-        # Restructure data frames for controls and patients (same as text pipeline)
-        final_data_frame_list = [
-            structure.redefine_dataframe(raw_combined_df[:2].copy(), c1_flag=True),
-            structure.redefine_dataframe(raw_combined_df[2:4].copy(), c2_flag=True),
-            structure.redefine_dataframe(raw_combined_df[4:].copy())
-        ]
+        print(f"Excel extraction: {total_count} samples, {raw_combined_df.shape[1] - 1} compounds, controls={'yes' if has_controls else 'no'}")
 
-        # Serialize data to JSON for frontend review (same as text pipeline)
+        if has_controls:
+            # ConcData path: first 4 rows are controls (2x Control I, 2x Control II)
+            final_data_frame_list = [
+                structure.redefine_dataframe(raw_combined_df[:2].copy(), c1_flag=True),
+                structure.redefine_dataframe(raw_combined_df[2:4].copy(), c2_flag=True),
+                structure.redefine_dataframe(raw_combined_df[4:].copy())
+            ]
+        else:
+            # Concentration path: all rows are patients, no controls
+            final_data_frame_list = [
+                structure.redefine_dataframe(raw_combined_df.copy())
+            ]
+
+        # Serialize data to JSON for frontend review
         processed_data_json = serialize_processed_data(
             final_data_frame_list,
             raw_combined_df,
             sample_names,
-            date_code
+            date_code,
+            has_controls=has_controls
         )
 
         # Create output directory and placeholder

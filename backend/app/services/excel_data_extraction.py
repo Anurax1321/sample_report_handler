@@ -1,6 +1,12 @@
 # Excel data extraction module for NBS laboratory Excel files (.xlsm/.xlsx)
 # Handles parsing of Shimadzu NeoBase Excel exports (e.g., "18022026 MR LABS DATA.xlsm")
 # Produces the same DataFrame format as the text file pipeline (data_extraction.get_final_data)
+#
+# Supports two sheet layouts:
+#   - "Concentration" sheet (preferred): transposed layout, samples as columns, compounds as rows.
+#     Extracts only patient columns (skips BLANK and CONTROL columns).
+#   - "ConcData" sheet (fallback): row-based layout, samples as rows.
+#     Includes controls (duplicated to 4 rows for downstream pipeline).
 
 import re
 import openpyxl
@@ -18,14 +24,8 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
     """
     Extract concentration data from a Shimadzu NeoBase Excel file.
 
-    The Excel file has a 'ConcData' sheet with:
-    - Row 6: analyte headers in odd columns (7, 9, 11, ...)
-    - Row 7: decimal places
-    - Rows 8-11: reference range limits (Caution/Notice upper/lower)
-    - Rows 12+: sample data, each analyte uses 2 columns (value + flag)
-
-    Values in the Excel are already final concentrations (multiplication factors
-    already applied by NeoBase software), unlike the raw txt files.
+    Tries the 'Concentration' sheet first (patients only, no controls).
+    Falls back to 'ConcData' sheet (includes controls).
 
     Args:
         file_path: Path to the .xlsm or .xlsx file
@@ -33,9 +33,8 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
     Returns:
         Tuple of (combined_df, sample_names, sample_count)
         - combined_df: DataFrame with 'Sample text' column + all compound columns
-          in the same format as data_extraction.get_final_data() output
-        - sample_names: List of sample names (controls + patients)
-        - sample_count: Total number of samples (including controls)
+        - sample_names: List of sample names
+        - sample_count: Total number of samples
 
     Raises:
         ExcelDataExtractionError: If file format is invalid or data extraction fails
@@ -45,13 +44,132 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
     except Exception as e:
         raise ExcelDataExtractionError(f"Failed to open Excel file: {e}")
 
-    if 'ConcData' not in wb.sheetnames:
+    if 'Concentration' in wb.sheetnames:
+        return _extract_from_concentration_sheet(wb)
+    elif 'ConcData' in wb.sheetnames:
+        return _extract_from_concdata_sheet(wb)
+    else:
         wb.close()
         raise ExcelDataExtractionError(
-            "Excel file does not contain a 'ConcData' sheet. "
+            "Excel file does not contain a 'Concentration' or 'ConcData' sheet. "
             "Expected a Shimadzu NeoBase export file."
         )
 
+
+def _extract_from_concentration_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]:
+    """
+    Extract patient data from the 'Concentration' sheet (transposed layout).
+
+    Layout:
+    - Row 3: column headers (sample identifiers)
+    - Column A (rows 6+): compound names
+    - Columns 2-5: criteria limits (skip)
+    - BLANK/CONTROL columns: identified by row-3 header containing those words (skip)
+    - Remaining columns: patient data (extract)
+    """
+    ws = wb['Concentration']
+
+    # Step 1: Read row 3 to identify columns
+    max_col = ws.max_column
+    patient_columns = []  # (col_index, clean_name)
+
+    for c in range(2, max_col + 1):
+        header = ws.cell(3, c).value
+        if header is None:
+            continue
+
+        header_str = str(header).strip()
+        if not header_str:
+            continue
+
+        upper_header = header_str.upper()
+
+        # Skip criteria limit columns (first few columns with known labels)
+        if any(kw in upper_header for kw in [
+            'UPPER CAUTION', 'LOWER CAUTION', 'UPPER NOTICE', 'LOWER NOTICE',
+            'CAUTION', 'NOTICE'
+        ]):
+            continue
+
+        # Skip BLANK columns
+        if 'BLANK' in upper_header:
+            continue
+
+        # Skip CONTROL columns
+        if 'CONTROL' in upper_header:
+            continue
+
+        # This is a patient column
+        patient_columns.append((c, header_str))
+
+    if not patient_columns:
+        wb.close()
+        raise ExcelDataExtractionError(
+            "No patient sample columns found in Concentration sheet row 3."
+        )
+
+    # Step 2: Read compound names from column A (rows 6+)
+    max_row = ws.max_row
+    compound_rows = []  # (row_index, compound_name)
+
+    for r in range(6, max_row + 1):
+        compound = ws.cell(r, 1).value
+        if compound is None:
+            continue
+        compound_str = str(compound).strip()
+        if compound_str:
+            compound_rows.append((r, compound_str))
+
+    if not compound_rows:
+        wb.close()
+        raise ExcelDataExtractionError(
+            "No compound names found in column A of Concentration sheet."
+        )
+
+    # Step 3: Extract data — each patient column becomes a row in the output
+    compound_names = [name for _, name in compound_rows]
+    data_rows = []
+    sample_names = []
+
+    for col_idx, raw_name in patient_columns:
+        clean_name = _clean_sample_name(raw_name)
+        sample_names.append(clean_name)
+
+        row_values = []
+        for row_idx, _ in compound_rows:
+            val = ws.cell(row_idx, col_idx).value
+            if val is None or val == '-' or val == '':
+                row_values.append(0.0)
+            else:
+                try:
+                    row_values.append(float(val))
+                except (ValueError, TypeError):
+                    row_values.append(0.0)
+
+        data_rows.append(row_values)
+
+    wb.close()
+
+    # Step 4: Build DataFrame and reorder columns to match reference_ranges order
+    df = pd.DataFrame(data_rows, columns=compound_names)
+
+    from app.core.reference_ranges import range_dict
+    expected_order = [c for c in range_dict.keys() if c in df.columns]
+    extra_cols = [c for c in df.columns if c not in expected_order]
+    df = df[expected_order + extra_cols]
+
+    df.insert(0, 'Sample text', sample_names)
+
+    df = df.apply(lambda col: pd.to_numeric(col, errors='coerce') if col.name != 'Sample text' else col)
+
+    return df, sample_names, len(sample_names)
+
+
+def _extract_from_concdata_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]:
+    """
+    Extract data from the 'ConcData' sheet (row-based layout, legacy format).
+    Includes controls (duplicated to 4 rows for downstream pipeline).
+    """
     ws = wb['ConcData']
 
     # Step 1: Extract analyte headers from row 6 (odd columns starting at 7)
@@ -92,7 +210,6 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
 
         # Identify controls
         if 'CONTROL' in upper_name:
-            # Determine if control 1 or control 2
             if '1' in upper_name or (len(controls) < 2):
                 controls.append((r, sample_name, True, False))
             else:
@@ -100,10 +217,7 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
         else:
             patients.append((r, sample_name))
 
-    # The downstream pipeline expects exactly 4 control rows:
-    # rows 0,1 = Control I (duplicate), rows 2,3 = Control II (duplicate)
-    # Excel files typically have only 2 control rows (1x Control I, 1x Control II).
-    # Duplicate each to match the expected 4-row layout.
+    # Duplicate controls to match expected 4-row layout
     if len(controls) == 2:
         controls = [controls[0], controls[0], controls[1], controls[1]]
     elif len(controls) < 4:
@@ -112,8 +226,6 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
             f"found {len(controls)}. Proceeding with available controls."
         )
 
-    # Step 4: Build ordered row list — controls first (as pipeline expects),
-    # then patients
     ordered_rows = controls + patients
     total_count = len(ordered_rows)
 
@@ -121,14 +233,12 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
         wb.close()
         raise ExcelDataExtractionError("No valid samples found in Excel file.")
 
-    # Step 5: Extract data for each sample
+    # Step 4: Extract data for each sample
     compound_names = list(analyte_columns.values())
     data_rows = []
     sample_names = []
 
     for row_idx, sample_name, *_ in ordered_rows:
-        # Clean up sample name — strip the _XX_YYY suffix if present
-        # e.g., "718_28_028" -> "718", "CONTROL 1 _3_003" -> "CONTROL1"
         clean_name = _clean_sample_name(sample_name)
         sample_names.append(clean_name)
 
@@ -147,22 +257,16 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
 
     wb.close()
 
-    # Step 6: Build DataFrame in the same format as get_final_data() output
+    # Step 5: Build DataFrame
     df = pd.DataFrame(data_rows, columns=compound_names)
 
-    # Reorder columns to match the expected order from the txt pipeline.
-    # The downstream pipeline accesses columns by name, so order doesn't
-    # strictly matter, but we match range_dict order for consistency.
     from app.core.reference_ranges import range_dict
     expected_order = [c for c in range_dict.keys() if c in df.columns]
-    # Add any columns present in Excel but not in range_dict (shouldn't happen but safe)
     extra_cols = [c for c in df.columns if c not in expected_order]
     df = df[expected_order + extra_cols]
 
-    # Add 'Sample text' column as first column (same as get_final_data)
     df.insert(0, 'Sample text', sample_names)
 
-    # Convert to numeric (except Sample text)
     df = df.apply(lambda col: pd.to_numeric(col, errors='coerce') if col.name != 'Sample text' else col)
 
     return df, sample_names, total_count
