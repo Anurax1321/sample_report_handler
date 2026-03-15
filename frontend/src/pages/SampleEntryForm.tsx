@@ -49,11 +49,12 @@ interface SampleEntryFormProps {
   onSuccess?: () => void;
 }
 
-function computeAge(dob: string): string {
+function computeAge(dob: string, referenceDate?: string): string {
   if (!dob) return '';
   const birthDate = new Date(dob);
-  const today = new Date();
-  const diffMs = today.getTime() - birthDate.getTime();
+  // Use collection date as reference if available, otherwise today
+  const refDate = referenceDate ? new Date(referenceDate) : new Date();
+  const diffMs = refDate.getTime() - birthDate.getTime();
   if (diffMs < 0) return '';
 
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -63,17 +64,17 @@ function computeAge(dob: string): string {
   }
 
   const diffMonths =
-    (today.getFullYear() - birthDate.getFullYear()) * 12 +
-    (today.getMonth() - birthDate.getMonth());
+    (refDate.getFullYear() - birthDate.getFullYear()) * 12 +
+    (refDate.getMonth() - birthDate.getMonth());
 
   if (diffMonths < 12) {
     return `${diffMonths}M`;
   }
 
-  const years = today.getFullYear() - birthDate.getFullYear();
+  const years = refDate.getFullYear() - birthDate.getFullYear();
   const hadBirthday =
-    today.getMonth() > birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+    refDate.getMonth() > birthDate.getMonth() ||
+    (refDate.getMonth() === birthDate.getMonth() && refDate.getDate() >= birthDate.getDate());
   return `${hadBirthday ? years : years - 1}Y`;
 }
 
@@ -152,10 +153,10 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
       .catch(() => {});
   }, []);
 
-  // Recompute age when DOB changes
+  // Recompute age when DOB or collection date changes
   useEffect(() => {
-    setComputedAge(computeAge(formData.date_of_birth));
-  }, [formData.date_of_birth]);
+    setComputedAge(computeAge(formData.date_of_birth, formData.collection_date));
+  }, [formData.date_of_birth, formData.collection_date]);
 
   // TODO: Auto-fill price based on client + analysis type when PRICING_MATRIX is populated
   // useEffect(() => {
@@ -454,11 +455,10 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                     {clients
                       .filter(c => !formData.from_hospital || c.toLowerCase().includes(formData.from_hospital.toLowerCase()))
                       .map(c => (
-                      <div key={c} className="custom-dropdown-item">
-                        <span
-                          className={formData.from_hospital === c ? 'selected' : ''}
-                          onClick={() => { setFormData(prev => ({ ...prev, from_hospital: c })); setShowClientDropdown(false); }}
-                        >
+                      <div key={c} className="custom-dropdown-item"
+                        onClick={() => { setFormData(prev => ({ ...prev, from_hospital: c })); setShowClientDropdown(false); }}
+                      >
+                        <span className={formData.from_hospital === c ? 'selected' : ''}>
                           {c}
                         </span>
                         <button
@@ -561,11 +561,10 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                     {allAnalysisTypes
                       .filter(t => !formData.type_of_analysis || t.toLowerCase().includes(formData.type_of_analysis.toLowerCase()))
                       .map(t => (
-                      <div key={t} className="custom-dropdown-item">
-                        <span
-                          className={formData.type_of_analysis === t ? 'selected' : ''}
-                          onClick={() => { setFormData(prev => ({ ...prev, type_of_analysis: t })); setShowAnalysisDropdown(false); }}
-                        >
+                      <div key={t} className="custom-dropdown-item"
+                        onClick={() => { setFormData(prev => ({ ...prev, type_of_analysis: t })); setShowAnalysisDropdown(false); }}
+                      >
+                        <span className={formData.type_of_analysis === t ? 'selected' : ''}>
                           {t}
                         </span>
                         <button
@@ -601,11 +600,10 @@ export default function SampleEntryForm({ embedded, initialData, onClose, onSucc
                     {allSampleTypes
                       .filter(t => !formData.type_of_sample || t.toLowerCase().includes(formData.type_of_sample.toLowerCase()))
                       .map(t => (
-                      <div key={t} className="custom-dropdown-item">
-                        <span
-                          className={formData.type_of_sample === t ? 'selected' : ''}
-                          onClick={() => { setFormData(prev => ({ ...prev, type_of_sample: t })); setShowSampleTypeDropdown(false); }}
-                        >
+                      <div key={t} className="custom-dropdown-item"
+                        onClick={() => { setFormData(prev => ({ ...prev, type_of_sample: t })); setShowSampleTypeDropdown(false); }}
+                      >
+                        <span className={formData.type_of_sample === t ? 'selected' : ''}>
                           {t}
                         </span>
                         <button

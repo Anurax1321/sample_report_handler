@@ -12,8 +12,11 @@ RUN npm install
 # Copy source code (volume will override this)
 COPY . .
 
-# Expose Vite dev server port
-EXPOSE 5173
+# Copy and make entrypoint executable
+COPY entrypoint.dev.sh /entrypoint.dev.sh
+RUN chmod +x /entrypoint.dev.sh
 
-# Run dev server with host 0.0.0.0 to allow external access
-CMD ["sh", "-c", "echo '' && echo '  ➜  Frontend: http://localhost:3000/vijayrekha/' && echo '' && npm run dev -- --host 0.0.0.0"]
+# Expose Vite dev server port
+EXPOSE 5175
+
+CMD ["/entrypoint.dev.sh"]

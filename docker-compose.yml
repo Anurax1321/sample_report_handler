@@ -52,9 +52,10 @@ services:
       dockerfile: Dockerfile.dev
     container_name: sample-report-frontend
     ports:
-      - "3002:5173"
+      - "3002:5175"
     environment:
       - VITE_API_URL=http://localhost:8002
+      - HOST_PORT=3002
     volumes:
       - ./frontend:/app
       - /app/node_modules

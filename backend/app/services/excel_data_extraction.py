@@ -19,6 +19,10 @@ class ExcelDataExtractionError(Exception):
     """Custom exception for Excel data extraction errors"""
     pass
 
+# Safety caps for Excel dimensions to prevent DoS from malformed files
+MAX_ROWS = 5000
+MAX_COLS = 500
+
 
 def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
     """
@@ -44,16 +48,19 @@ def extract_from_excel(file_path: str) -> Tuple[pd.DataFrame, List[str], int]:
     except Exception as e:
         raise ExcelDataExtractionError(f"Failed to open Excel file: {e}")
 
-    if 'Concentration' in wb.sheetnames:
-        return _extract_from_concentration_sheet(wb)
-    elif 'ConcData' in wb.sheetnames:
-        return _extract_from_concdata_sheet(wb)
-    else:
+    try:
+        if 'Concentration' in wb.sheetnames:
+            return _extract_from_concentration_sheet(wb)
+        elif 'ConcData' in wb.sheetnames:
+            return _extract_from_concdata_sheet(wb)
+        else:
+            raise ExcelDataExtractionError(
+                "Excel file does not contain a 'Concentration' or 'ConcData' sheet. "
+                "Expected a Shimadzu NeoBase export file."
+            )
+    except Exception:
         wb.close()
-        raise ExcelDataExtractionError(
-            "Excel file does not contain a 'Concentration' or 'ConcData' sheet. "
-            "Expected a Shimadzu NeoBase export file."
-        )
+        raise
 
 
 def _extract_from_concentration_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]:
@@ -70,7 +77,7 @@ def _extract_from_concentration_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]
     ws = wb['Concentration']
 
     # Step 1: Read row 3 to identify columns
-    max_col = ws.max_column
+    max_col = min(ws.max_column or 0, MAX_COLS)
     patient_columns = []  # (col_index, clean_name)
 
     for c in range(2, max_col + 1):
@@ -109,7 +116,7 @@ def _extract_from_concentration_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]
         )
 
     # Step 2: Read compound names from column A (rows 6+)
-    max_row = ws.max_row
+    max_row = min(ws.max_row or 0, MAX_ROWS)
     compound_rows = []  # (row_index, compound_name)
 
     for r in range(6, max_row + 1):
@@ -174,7 +181,7 @@ def _extract_from_concdata_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]:
 
     # Step 1: Extract analyte headers from row 6 (odd columns starting at 7)
     analyte_columns = {}  # col_index -> analyte_name
-    for c in range(7, ws.max_column + 1, 2):
+    for c in range(7, min((ws.max_column or 0) + 1, MAX_COLS + 1), 2):
         header = ws.cell(6, c).value
         if header and isinstance(header, str) and header.strip():
             analyte_columns[c] = header.strip()
@@ -187,7 +194,7 @@ def _extract_from_concdata_sheet(wb) -> Tuple[pd.DataFrame, List[str], int]:
 
     # Step 2: Find the first data row (skip header/metadata rows 1-11)
     first_data_row = 12
-    max_row = ws.max_row
+    max_row = min(ws.max_row or 0, MAX_ROWS)
 
     # Step 3: Extract all sample rows, categorizing as control/blank/patient
     controls = []  # (row_idx, name, is_control_1, is_control_2)
