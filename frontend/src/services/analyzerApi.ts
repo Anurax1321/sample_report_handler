@@ -2,11 +2,10 @@
  * API service for Neonatal Report Analyzer
  */
 
-import axios from 'axios';
+import api from '../lib/api';
 import type { SingleAnalysisResponse, BatchAnalysisResponse, AnalysisResult } from '../types/analyzer';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const ANALYZER_URL = `${API_BASE_URL}/api/analyzer`;
+const ANALYZER_PREFIX = '/api/analyzer';
 
 // Timeout configurations (in milliseconds)
 const SINGLE_PDF_TIMEOUT = 120000; // 2 minutes for single PDF
@@ -19,8 +18,8 @@ export const analyzeSinglePDF = async (file: File): Promise<SingleAnalysisRespon
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await axios.post<SingleAnalysisResponse>(
-    `${ANALYZER_URL}/analyze-pdf`,
+  const response = await api.post<SingleAnalysisResponse>(
+    `${ANALYZER_PREFIX}/analyze-pdf`,
     formData,
     {
       headers: {
@@ -40,8 +39,8 @@ export const analyzeBatchPDFs = async (file: File): Promise<BatchAnalysisRespons
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await axios.post<BatchAnalysisResponse>(
-    `${ANALYZER_URL}/analyze-batch`,
+  const response = await api.post<BatchAnalysisResponse>(
+    `${ANALYZER_PREFIX}/analyze-batch`,
     formData,
     {
       headers: {
@@ -58,7 +57,7 @@ export const analyzeBatchPDFs = async (file: File): Promise<BatchAnalysisRespons
  * Health check for analyzer service
  */
 export const checkAnalyzerHealth = async (): Promise<{ status: string; service: string }> => {
-  const response = await axios.get(`${ANALYZER_URL}/health`);
+  const response = await api.get(`${ANALYZER_PREFIX}/health`);
   return response.data;
 };
 
@@ -66,8 +65,8 @@ export const checkAnalyzerHealth = async (): Promise<{ status: string; service: 
  * Export analysis result to Excel
  */
 export const exportToExcel = async (analysisResult: AnalysisResult): Promise<Blob> => {
-  const response = await axios.post(
-    `${ANALYZER_URL}/export/excel`,
+  const response = await api.post(
+    `${ANALYZER_PREFIX}/export/excel`,
     analysisResult,
     {
       responseType: 'blob',
@@ -81,8 +80,8 @@ export const exportToExcel = async (analysisResult: AnalysisResult): Promise<Blo
  * Export analysis result to HTML
  */
 export const exportToHTML = async (analysisResult: AnalysisResult): Promise<Blob> => {
-  const response = await axios.post(
-    `${ANALYZER_URL}/export/html`,
+  const response = await api.post(
+    `${ANALYZER_PREFIX}/export/html`,
     analysisResult,
     {
       responseType: 'blob',

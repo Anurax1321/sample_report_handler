@@ -290,3 +290,45 @@
     width: 24px;
   }
 }
+
+@media (max-width: 480px) {
+  .report-handling-modal[data-step="1"],
+  .report-handling-modal[data-step="2"],
+  .report-handling-modal[data-step="3"] {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .report-handling-modal .modal-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .report-handling-modal .content-card {
+    padding: 1.25rem;
+  }
+
+  .modal-step-indicator .step span:not(.step-number) {
+    display: none;
+  }
+
+  .step-connector {
+    width: 16px;
+  }
+
+  .confirm-dialog {
+    padding: 1.5rem;
+  }
+
+  .confirm-dialog .confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-dialog .btn-cancel,
+  .confirm-dialog .btn-discard {
+    width: 100%;
+    text-align: center;
+    min-height: 44px;
+  }
+}

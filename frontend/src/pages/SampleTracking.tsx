@@ -400,6 +400,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
           </div>
         ) : (
           <>
+            <div className="table-scroll-wrapper">
             <table className="samples-table">
               <thead>
                 <tr>
@@ -426,6 +427,7 @@ export default function SampleTracking({ embedded, onSamplesChange, refreshTrigg
                   ))}
               </tbody>
             </table>
+            </div>
 
             <div className="pagination">
               <div className="pagination-left">

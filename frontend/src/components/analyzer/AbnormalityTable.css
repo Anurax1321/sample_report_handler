@@ -204,3 +204,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 480px) {
+  .abnormality-header {
+    padding: 1rem;
+  }
+
+  .header-left h3 {
+    font-size: 1.05rem;
+  }
+
+  .search-input,
+  .category-filter {
+    min-width: unset;
+    width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .abnormality-content {
+    padding: 1rem;
+  }
+
+  .abnormality-item {
+    padding: 1rem;
+  }
+}

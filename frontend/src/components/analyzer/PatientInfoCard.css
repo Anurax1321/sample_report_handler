@@ -57,3 +57,27 @@
   margin: 0;
   font-style: italic;
 }
+
+@media (max-width: 480px) {
+  .patient-info-header {
+    padding: 1rem;
+  }
+
+  .patient-info-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .patient-info-content {
+    padding: 1rem;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .info-label {
+    min-width: unset;
+    font-size: 0.8rem;
+  }
+}

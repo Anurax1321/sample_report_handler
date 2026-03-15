@@ -93,3 +93,20 @@
     padding: 1rem;
   }
 }
+
+@media (max-width: 480px) {
+  .report-analyser-modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .report-analyser-modal .modal-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .report-analyser-embedded {
+    padding: 0.75rem;
+  }
+}

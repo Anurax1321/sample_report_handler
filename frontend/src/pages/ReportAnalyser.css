@@ -359,4 +359,30 @@
   .mode-button {
     width: 100%;
   }
+
+  .analyzing-status {
+    padding: 2.5rem 1.5rem;
+    min-height: auto;
+  }
+
+  .analyzing-status h3 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .reset-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .error-message {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }

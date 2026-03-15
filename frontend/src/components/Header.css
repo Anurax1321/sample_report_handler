@@ -369,7 +369,22 @@
     height: 18px;
   }
 
+  .profile-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
   .profile-dropdown {
     width: 220px;
+    right: -0.5rem;
+  }
+
+  .pw-modal {
+    padding: 1.25rem;
+  }
+
+  .home-link span {
+    display: none;
   }
 }

@@ -10,3 +10,13 @@
   font-size: 0.85rem;
   color: var(--text-secondary, #717171);
 }
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 1rem;
+  }
+
+  .footer-text {
+    font-size: 0.8rem;
+  }
+}

@@ -163,3 +163,29 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 480px) {
+  .file-uploader-dropzone {
+    padding: 2rem 1.25rem;
+  }
+
+  .file-uploader-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .file-uploader-text .primary-text {
+    font-size: 1rem;
+  }
+
+  .file-uploader-actions {
+    flex-direction: column;
+  }
+
+  .upload-button,
+  .clear-button {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+}

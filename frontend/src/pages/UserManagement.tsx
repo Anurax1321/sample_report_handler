@@ -97,6 +97,8 @@ export default function UserManagement() {
                   onChange={e => setNewUsername(e.target.value)}
                   placeholder="Enter username"
                   autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
                 />
               </div>
               <div className="um-field">
