@@ -149,7 +149,7 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
         {!isAnalyzing && !analysisResult && !batchResult && (
           <FileUploader
             onFileSelect={handleFileSelect}
-            acceptedTypes=".pdf,.zip"
+            acceptedTypes=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
             maxSizeMB={200}
             label="Upload Report File"
             disabled={false}

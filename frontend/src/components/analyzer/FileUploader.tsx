@@ -35,12 +35,12 @@ export default function FileUploader({
   };
 
   const validateFile = (file: File): string | null => {
-    // Check file type
+    // Check file type by extension
     const fileExtension = file.name.toLowerCase().split('.').pop();
-    const acceptedExtensions = acceptedTypes.split(',').map(t => t.trim().replace('.', ''));
+    const validExtensions = ['pdf', 'zip'];
 
-    if (!acceptedExtensions.includes(fileExtension || '')) {
-      return `Invalid file type. Please upload a PDF or ZIP file. Accepted types: ${acceptedTypes}`;
+    if (!validExtensions.includes(fileExtension || '')) {
+      return `Invalid file type. Please upload a PDF or ZIP file.`;
     }
 
     // Check file size with specific limits
