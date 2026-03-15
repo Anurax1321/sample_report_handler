@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import JSZip from 'jszip';
 import FileUploader from '../components/analyzer/FileUploader';
 import AnalysisResults from '../components/analyzer/AnalysisResults';
 import BatchDashboard from '../components/analyzer/BatchDashboard';
@@ -83,6 +84,50 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
     }
   };
 
+  const handleMultiFileSelect = async (files: File[]) => {
+    setIsAnalyzing(true);
+    setError(null);
+    setAnalysisResult(null);
+    setBatchResult(null);
+    setIsBatchUpload(true);
+    setUploadedFileName(`${files.length} PDF files`);
+
+    try {
+      // Zip the PDFs client-side
+      const zip = new JSZip();
+      for (const file of files) {
+        const buffer = await file.arrayBuffer();
+        zip.file(file.name, buffer);
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const zipFile = new File([blob], 'batch_reports.zip', { type: 'application/zip' });
+
+      setUploadedZipFile(zipFile);
+      const response = await analyzeBatchPDFs(zipFile);
+
+      if (response.success) {
+        setBatchResult(response);
+      } else {
+        setError(response.message || 'Batch analysis failed');
+      }
+    } catch (err: any) {
+      console.error('Multi-file analysis error:', err);
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. The files may be too large. Please try with fewer files.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Network error. Please check if the backend server is running and accessible.');
+      } else {
+        setError(err.message || 'Failed to analyze reports. Please try again.');
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleReset = () => {
     setAnalysisResult(null);
     setBatchResult(null);
@@ -124,6 +169,7 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
                     <h5>Upload Your Files</h5>
                     <ul>
                       <li><strong>Single PDF:</strong> Upload one report file (max 50MB)</li>
+                      <li><strong>Multiple PDFs:</strong> Select multiple PDF files at once for batch analysis</li>
                       <li><strong>Batch ZIP:</strong> Upload a ZIP containing multiple PDF reports (max 200MB)</li>
                       <li>The system <strong>automatically detects</strong> the file type and processes accordingly</li>
                     </ul>
@@ -149,10 +195,12 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
         {!isAnalyzing && !analysisResult && !batchResult && (
           <FileUploader
             onFileSelect={handleFileSelect}
+            onMultiFileSelect={handleMultiFileSelect}
             acceptedTypes=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
             maxSizeMB={200}
-            label="Upload Report File"
+            label="Upload Report Files"
             disabled={false}
+            allowMultiplePDFs
           />
         )}
 

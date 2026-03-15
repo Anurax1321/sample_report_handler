@@ -101,6 +101,68 @@
   border: 1px solid rgba(212, 165, 116, 0.4);
 }
 
+.multi-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.multi-file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.multi-file-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #2d3748;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.multi-file-size {
+  font-size: 0.75rem;
+  color: #718096;
+  flex-shrink: 0;
+}
+
+.multi-file-remove {
+  width: 24px;
+  height: 24px;
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #a0aec0;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.multi-file-remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  transform: none;
+  box-shadow: none;
+}
+
 .file-uploader-actions {
   display: flex;
   gap: 1rem;
