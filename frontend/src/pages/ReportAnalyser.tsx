@@ -129,12 +129,14 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
   };
 
   const handleReset = () => {
+    setIsAnalyzing(false);
     setAnalysisResult(null);
     setBatchResult(null);
     setError(null);
     setUploadedFileName('');
     setIsBatchUpload(false);
     setUploadedZipFile(null);
+    setShowInstructions(false);
   };
 
   const pageContent = (
@@ -199,7 +201,7 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
             acceptedTypes=".pdf,.zip,application/pdf,application/zip,application/x-zip-compressed"
             maxSizeMB={200}
             label="Upload Report Files"
-            disabled={false}
+            disabled={isAnalyzing}
             allowMultiplePDFs
           />
         )}
@@ -223,22 +225,36 @@ export default function ReportAnalyser({ embedded }: ReportAnalyserProps = {}) {
 
         {/* Error Section - Show after failed analysis */}
         {error && !isAnalyzing && (
-          <div className="error-message">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <div>
-              <h4>Analysis Failed</h4>
-              <p>{error}</p>
+          <>
+            <div className="error-message">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <div>
+                <h4>Analysis Failed</h4>
+                <p>{error}</p>
+              </div>
             </div>
-          </div>
+            <button className="reset-button" onClick={handleReset} style={{ marginTop: '1rem' }}>
+              Try Again
+            </button>
+          </>
         )}
 
         {/* Single PDF Results */}
         {analysisResult && !isAnalyzing && (
-          <AnalysisResults result={analysisResult} />
+          <>
+            <button className="reset-button" onClick={handleReset} style={{ marginBottom: '1rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              New Analysis
+            </button>
+            <AnalysisResults result={analysisResult} />
+          </>
         )}
 
         {/* Batch Results */}

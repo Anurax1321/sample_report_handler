@@ -102,6 +102,9 @@ export default function FileUploader({
       setSelectedFile(null);
       setSelectedFiles(pdfFiles);
       if (!showUploadButton && onMultiFileSelect) onMultiFileSelect(pdfFiles);
+    } else {
+      // All files were invalid — clear previous selection
+      handleClearFile();
     }
   };
 
@@ -113,8 +116,9 @@ export default function FileUploader({
 
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      if (allowMultiplePDFs && files.length > 1) {
+      if (allowMultiplePDFs) {
         handleMultipleFiles(files);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
 
@@ -128,6 +132,9 @@ export default function FileUploader({
 
       setSelectedFile(file);
       setSelectedFiles([]);
+
+      // Reset input so re-selecting the same file via click works
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
       // If no upload button, auto-submit
       if (!showUploadButton) {
@@ -139,7 +146,7 @@ export default function FileUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      if (allowMultiplePDFs && files.length > 1) {
+      if (allowMultiplePDFs) {
         handleMultipleFiles(files);
         e.target.value = '';
         return;
@@ -156,6 +163,9 @@ export default function FileUploader({
 
       setSelectedFile(file);
       setSelectedFiles([]);
+
+      // Reset input so re-selecting the same file triggers onChange
+      e.target.value = '';
 
       // If no upload button, auto-submit
       if (!showUploadButton) {
