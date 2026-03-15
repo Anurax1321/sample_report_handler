@@ -275,7 +275,7 @@ export default function FileUploader({
       </div>
 
       {/* Upload Button - shown when file is selected and showUploadButton is true */}
-      {showUploadButton && selectedFile && (
+      {showUploadButton && (selectedFile || selectedFiles.length > 1) && (
         <div className="file-uploader-actions">
           <button
             className="upload-button"
