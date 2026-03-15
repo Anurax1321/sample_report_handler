@@ -51,6 +51,8 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
+              autoCapitalize="off"
+              autoCorrect="off"
               autoFocus
               required
             />
