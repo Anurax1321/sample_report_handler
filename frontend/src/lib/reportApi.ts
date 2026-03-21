@@ -184,8 +184,15 @@ export async function getProcessedData(reportId: number): Promise<ProcessedRepor
 /**
  * Approve a report with edited data and generate PDF
  */
-export async function approveReport(reportId: number, editedData: Record<string, number>): Promise<any> {
-  const response = await api.post<any>(`/reports/${reportId}/approve`, editedData);
+export async function approveReport(
+  reportId: number,
+  editedData: Record<string, number>,
+  editedNames?: Record<number, string>
+): Promise<ApproveResult> {
+  const response = await api.post<ApproveResult>(`/reports/${reportId}/approve`, {
+    edited_data: editedData,
+    edited_names: editedNames || {},
+  });
   return response.data;
 }
 

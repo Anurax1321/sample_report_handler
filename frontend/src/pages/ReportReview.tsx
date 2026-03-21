@@ -140,7 +140,31 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
     const { data, colDef, newValue, oldValue } = event;
     const field = colDef.field;
 
-    if (!field || field === 'sampleName' || field === 'rowType') return;
+    if (!field || field === 'rowType') return;
+
+    // Handle patient name edits separately
+    if (field === 'sampleName') {
+      const trimmedValue = String(newValue).trim();
+      if (!trimmedValue || trimmedValue === oldValue) {
+        event.api.getRowNode(data.id)?.setDataValue(field, oldValue);
+        return;
+      }
+
+      const updatedData = [...rowData];
+      const rowIndex = updatedData.findIndex(row => row.id === data.id);
+      if (rowIndex !== -1) {
+        updatedData[rowIndex].sampleName = trimmedValue;
+        setRowData(updatedData);
+      }
+
+      const cellKey = `${data.id}-sampleName`;
+      setEditedCells(prev => {
+        const next = new Set(prev).add(cellKey);
+        onDirtyChange?.(next.size > 0);
+        return next;
+      });
+      return;
+    }
 
     // Only process if value actually changed
     if (newValue === oldValue) return;
@@ -230,6 +254,7 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
     const editedData: Record<string, number> = {};
 
     editedCells.forEach(cellKey => {
+      if (cellKey.endsWith('-sampleName')) return; // Skip name edits, handled separately
       const [rowIdStr, compound] = cellKey.split('-');
       const rowId = parseInt(rowIdStr);
       const row = rowData.find(r => r.id === rowId);
@@ -242,6 +267,21 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
     return editedData;
   }, [editedCells, rowData]);
 
+  // Collect edited patient names
+  const getEditedNames = useCallback(() => {
+    const names: Record<number, string> = {};
+    editedCells.forEach(cellKey => {
+      if (cellKey.endsWith('-sampleName')) {
+        const rowId = parseInt(cellKey.split('-')[0]);
+        const row = rowData.find(r => r.id === rowId);
+        if (row) {
+          names[rowId] = row.sampleName;
+        }
+      }
+    });
+    return names;
+  }, [editedCells, rowData]);
+
   // Handle approval
   const handleApprove = useCallback(async () => {
     if (!reportId || !processedData) return;
@@ -250,11 +290,12 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
       setApproving(true);
       setShowConfirmDialog(false);
 
-      // Get edited data
+      // Get edited data and edited patient names
       const editedData = getEditedData();
+      const editedNames = getEditedNames();
 
       // Send to backend and generate PDFs
-      const result = await approveReport(parseInt(reportId), editedData);
+      const result = await approveReport(parseInt(reportId), editedData, editedNames);
 
       // Download the generated ZIP file containing all PDFs
       const zipFilename = result.zip_filename || `NBS_Reports_${processedData.date_code}.zip`;
@@ -279,7 +320,7 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
     } finally {
       setApproving(false);
     }
-  }, [reportId, processedData, getEditedData, navigate]);
+  }, [reportId, processedData, getEditedData, getEditedNames, navigate]);
 
   // Show confirmation dialog
   const handleApproveClick = () => {
@@ -349,8 +390,15 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
         headerName: 'Sample Name',
         pinned: 'left',
         width: 150,
-        cellStyle: { fontWeight: '500' },
-        editable: false,
+        cellStyle: (params: any) => {
+          const cellKey = `${params.data.id}-sampleName`;
+          const isEdited = editedCells.has(cellKey);
+          return {
+            fontWeight: '500',
+            ...(isEdited ? { border: '2px solid #d4a574' } : {}),
+          };
+        },
+        editable: (params: any) => !params.data.isControl1 && !params.data.isControl2,
       },
       {
         field: 'rowType',
@@ -497,8 +545,8 @@ export default function ReportReview({ embedded, reportId: reportIdProp, onGoBac
             <div>
               <h2>Editable Data Grid with Real-Time Validation</h2>
               <p className="preview-description">
-                Click any cell to edit. Color updates automatically based on reference ranges.
-                Edited cells are highlighted with a border.
+                Click any cell to edit values. Double-click a patient name to rename it.
+                Color updates automatically based on reference ranges. Edited cells are highlighted with a border.
               </p>
             </div>
             {editedCells.size > 0 && (

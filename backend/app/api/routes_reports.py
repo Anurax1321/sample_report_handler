@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db import model
 from app.db.model import User
@@ -16,6 +17,11 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ApproveRequest(BaseModel):
+    edited_data: dict = {}
+    edited_names: dict = {}
 
 router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(get_current_user)])
 
@@ -408,7 +414,7 @@ async def download_report(report_id: int, db: Session = Depends(get_db)):
     )
 
 @router.post("/{report_id}/approve")
-async def approve_report(report_id: int, edited_data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def approve_report(report_id: int, request: ApproveRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Approve a report with edited data and generate PDF
 
@@ -429,9 +435,23 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
         # Store the edited data in the processed_data field
         processed_data = json.loads(report.processed_data)
 
+        # Apply edited patient names
+        for row_id_str, new_name in request.edited_names.items():
+            row_id = int(row_id_str)
+            if row_id < len(processed_data['processed_data']):
+                new_name = str(new_name).strip()
+                if new_name:
+                    processed_data['processed_data'][row_id]['sample_name'] = new_name
+
+        # Update patient_names list for consistency
+        processed_data['patient_names'] = [
+            row['sample_name'] for row in processed_data['processed_data']
+            if not row.get('is_control_1') and not row.get('is_control_2')
+        ]
+
         # Update processed_data with edited values
         # edited_data format: { "rowId-compound": newValue, ... }
-        for cell_key, new_value in edited_data.items():
+        for cell_key, new_value in request.edited_data.items():
             row_id_str, compound = cell_key.split('-', 1)
             row_id = int(row_id_str)
 
@@ -480,6 +500,12 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
         db.commit()
         db.refresh(report)
 
+        # Build patient name lookup from processed data (excluding controls)
+        patient_names_from_data = [
+            row['sample_name'] for row in processed_data['processed_data']
+            if not row.get('is_control_1') and not row.get('is_control_2')
+        ]
+
         # Return report with zip info for frontend
         return {
             **report.__dict__,
@@ -491,9 +517,9 @@ async def approve_report(report_id: int, edited_data: dict, db: Session = Depend
                     "id": pdf.id,
                     "filename": pdf.filename,
                     "file_size": pdf.file_size,
-                    "patient_name": pdf.filename.replace("NBS_Report_", "").replace(".pdf", "").replace("_", " ")
+                    "patient_name": patient_names_from_data[i] if i < len(patient_names_from_data) else pdf.filename.replace("NBS_Report_", "").replace(".pdf", "").replace("_", " ")
                 }
-                for pdf in created_pdf_records
+                for i, pdf in enumerate(created_pdf_records)
             ]
         }
 
