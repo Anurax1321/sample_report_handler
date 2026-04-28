@@ -89,18 +89,18 @@ fi
 
 # 8. Verify frontend is serving real assets (not HTML fallback)
 log "Verifying frontend assets..."
-RESPONSE_TYPE=$(curl -s -o /dev/null -w '%{content_type}' http://127.0.0.1:3000/ 2>/dev/null || echo "unreachable")
+RESPONSE_TYPE=$(curl -s -o /dev/null -w '%{content_type}' http://127.0.0.1:3002/ 2>/dev/null || echo "unreachable")
 if [[ "$RESPONSE_TYPE" != *"text/html"* ]]; then
     log "WARNING: Frontend root is not returning HTML (got: $RESPONSE_TYPE)"
 fi
 
 # Extract a CSS/JS filename from index.html and verify it serves the correct MIME type
-INDEX_HTML=$(curl -s http://127.0.0.1:3000/ 2>/dev/null)
+INDEX_HTML=$(curl -s http://127.0.0.1:3002/ 2>/dev/null)
 CSS_FILE=$(echo "$INDEX_HTML" | grep -oP 'href="/([^"]+\.css)"' | head -1 | sed 's/href="//;s/"//')
 JS_FILE=$(echo "$INDEX_HTML" | grep -oP 'src="/([^"]+\.js)"' | head -1 | sed 's/src="//;s/"//')
 
 if [[ -n "$CSS_FILE" ]]; then
-    CSS_TYPE=$(curl -s -o /dev/null -w '%{content_type}' "http://127.0.0.1:3000${CSS_FILE}" 2>/dev/null)
+    CSS_TYPE=$(curl -s -o /dev/null -w '%{content_type}' "http://127.0.0.1:3002${CSS_FILE}" 2>/dev/null)
     if [[ "$CSS_TYPE" != *"text/css"* ]]; then
         fail "CSS asset '${CSS_FILE}' returned MIME type '${CSS_TYPE}' instead of text/css — stale build detected!"
     fi
@@ -110,7 +110,7 @@ else
 fi
 
 if [[ -n "$JS_FILE" ]]; then
-    JS_TYPE=$(curl -s -o /dev/null -w '%{content_type}' "http://127.0.0.1:3000${JS_FILE}" 2>/dev/null)
+    JS_TYPE=$(curl -s -o /dev/null -w '%{content_type}' "http://127.0.0.1:3002${JS_FILE}" 2>/dev/null)
     if [[ "$JS_TYPE" != *"javascript"* ]]; then
         fail "JS asset '${JS_FILE}' returned MIME type '${JS_TYPE}' instead of javascript — stale build detected!"
     fi
