@@ -16,7 +16,7 @@ import './App.css';
 
 export default function App() {
   return (
-    <BrowserRouter basename="/vijayrekha">
+    <BrowserRouter>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />

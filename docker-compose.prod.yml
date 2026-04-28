@@ -26,7 +26,7 @@ services:
     ports:
       - "127.0.0.1:8002:8000"
     environment:
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://chinnaboina.com}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://vijayrekha.chinnaboina.com}
       - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER:-sample_user}:${DB_PASSWORD:-changeme_in_production}@db:5432/${DB_NAME:-sample_report_db}
       - DEPLOY_SECRET=${DEPLOY_SECRET}
     volumes:
@@ -50,7 +50,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-/vijayrekha/api}
+        - VITE_API_URL=${VITE_API_URL:-/api}
     container_name: sample-report-frontend-prod
     ports:
       - "127.0.0.1:3002:80"
