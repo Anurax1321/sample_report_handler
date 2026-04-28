@@ -31,9 +31,7 @@ services:
       - DEPLOY_SECRET=${DEPLOY_SECRET}
     volumes:
       - backend-uploads:/app/uploads
-      - /var/run/docker.sock:/var/run/docker.sock
       - /home/anurag/projects/sample_report_handler:/host-project:rw
-      - /home/anurag/.ssh:/root/.ssh:ro
     depends_on:
       db:
         condition: service_healthy
